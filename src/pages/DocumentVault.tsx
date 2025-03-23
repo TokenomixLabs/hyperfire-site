@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import GlobalCTA from '@/components/GlobalCTA';
+import DocumentViewer from '@/components/DocumentViewer';
 
 interface Document {
   id: string;
@@ -44,6 +45,8 @@ interface Document {
   thumbnail?: string;
   isPremium: boolean;
   downloadUrl: string;
+  previewUrl?: string;
+  content?: string;
 }
 
 // Mock data for demonstration
@@ -62,7 +65,8 @@ const documents: Document[] = [
     tags: ['tokenomics', 'guide', 'fundamentals'],
     thumbnail: 'https://images.unsplash.com/photo-1639322537228-f710d846310a',
     isPremium: false,
-    downloadUrl: '#'
+    downloadUrl: '#',
+    previewUrl: 'https://mozilla.github.io/pdf.js/web/viewer.html?file=https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf'
   },
   {
     id: '2',
@@ -187,6 +191,7 @@ const DocumentVault = () => {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [showDocumentPreview, setShowDocumentPreview] = useState(false);
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
   const [activeFilter, setActiveFilter] = useState({
     brand: 'all',
     category: 'all',
@@ -249,7 +254,7 @@ const DocumentVault = () => {
 
   const handleDocumentClick = (document: Document) => {
     setCurrentDocument(document);
-    setShowDocumentPreview(true);
+    setShowDocumentViewer(true);
   };
 
   const handleDownload = (document: Document) => {
@@ -999,6 +1004,16 @@ const DocumentVault = () => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+            )}
+            
+            {/* New Document Viewer Component */}
+            {currentDocument && (
+              <DocumentViewer
+                document={currentDocument}
+                isOpen={showDocumentViewer}
+                onClose={() => setShowDocumentViewer(false)}
+                onDownload={handleDownload}
+              />
             )}
             
             {/* CTA Section */}
