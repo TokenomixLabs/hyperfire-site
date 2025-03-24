@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import ContentLibrary from "./pages/ContentLibrary";
 import LiveEvents from "./pages/LiveEvents";
 import DocumentVault from "./pages/DocumentVault";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/content" element={<ContentLibrary />} />
           <Route path="/live" element={<LiveEvents />} />
           <Route path="/documents" element={<DocumentVault />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
