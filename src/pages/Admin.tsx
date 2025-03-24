@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users, CheckSquare } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare, Image } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
@@ -32,6 +32,10 @@ const Admin = () => {
   const handleNavigateToApproval = () => {
     navigate("/content-approval");
   };
+  
+  const handleNavigateToMedia = () => {
+    navigate("/media-library");
+  };
 
   return (
     <AnimatedTransition className="container mx-auto px-4 py-8 max-w-7xl">
@@ -50,6 +54,14 @@ const Admin = () => {
         
         <div className="flex items-center gap-2">
           <NotificationCenter />
+          
+          <Button 
+            variant="outline"
+            onClick={handleNavigateToMedia}
+            className="flex items-center gap-2"
+          >
+            <Image className="h-4 w-4" /> Media Library
+          </Button>
           
           <Button 
             variant="outline"
