@@ -1,7 +1,7 @@
-
 import ContentApprovalItemActions from "./approval/ContentApprovalItemActions";
 import ContentApprovalMetadata from "./approval/ContentApprovalMetadata";
 import ContentStatusBadge from "./approval/ContentStatusBadge";
+import { Badge } from "@/components/ui/badge";
 
 interface ContentApprovalItemProps {
   item: {

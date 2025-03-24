@@ -19,7 +19,7 @@ interface NotificationItemProps {
 }
 
 const NotificationItem = ({ notification, onMarkAsRead, formatTimeAgo }: NotificationItemProps) => {
-  const getIconForType = (notification: typeof NotificationItemProps.prototype.notification) => {
+  const getIconForType = (notification: NotificationItemProps["notification"]) => {
     const IconComponent = notification.icon;
     const colorClass = notification.type.includes('approval_request') 
       ? 'text-amber-500' 

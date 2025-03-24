@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, FileText, Calendar, Check, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
