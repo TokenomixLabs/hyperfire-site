@@ -83,7 +83,7 @@ const ContentApprovalItem = ({
           />
           <Badge 
             variant={
-              item.status === 'approved' ? 'success' :
+              item.status === 'approved' ? 'secondary' :
               item.status === 'rejected' ? 'destructive' : 'outline'
             }
             className="absolute top-2 left-2"
