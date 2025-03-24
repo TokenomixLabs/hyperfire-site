@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft } from "lucide-react";
+import { Plus, ArrowLeft, Users } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
@@ -24,6 +24,10 @@ const Admin = () => {
     });
   };
 
+  const handleNavigateToUsers = () => {
+    navigate("/users");
+  };
+
   return (
     <AnimatedTransition className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
@@ -39,12 +43,21 @@ const Admin = () => {
           <h1 className="text-2xl font-bold">Admin Panel</h1>
         </div>
         
-        <Button 
-          onClick={() => setActiveTab("create-content")} 
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Create New
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleNavigateToUsers}
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" /> Manage Users
+          </Button>
+          <Button 
+            onClick={() => setActiveTab("create-content")} 
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Create New
+          </Button>
+        </div>
       </div>
       
       <Tabs 

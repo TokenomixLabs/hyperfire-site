@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Calendar, TrendingUp, Clock, Bookmark } from "lucide-react";
+import ActivityLog from "./ActivityLog";
 
 const AdminDashboard = () => {
   // Mock data - in a real app this would come from an API
@@ -73,35 +74,7 @@ const AdminDashboard = () => {
 
       <div>
         <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity Log</CardTitle>
-            <CardDescription>Recent actions taken in the CMS</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { action: "Document uploaded", user: "Sarah Johnson", time: "10 minutes ago", item: "Q2 Financial Report.pdf" },
-                { action: "Content created", user: "Alex Chen", time: "2 hours ago", item: "Market Update: July 2023" },
-                { action: "Event scheduled", user: "Maria Rodriguez", time: "Yesterday at 4:32 PM", item: "Quarterly Investor Call" },
-                { action: "Document updated", user: "James Wilson", time: "2 days ago", item: "Tokenomics Whitepaper v2" },
-                { action: "User access granted", user: "Admin", time: "3 days ago", item: "Editor role for mark@example.com" }
-              ].map((activity, i) => (
-                <div key={i} className="flex items-start pb-3 last:pb-0 border-b last:border-0">
-                  <div className="w-full">
-                    <div className="flex justify-between items-center">
-                      <p className="font-medium">{activity.action}</p>
-                      <span className="text-xs text-muted-foreground">{activity.time}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {activity.user} • {activity.item}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <ActivityLog limit={5} />
       </div>
     </div>
   );
