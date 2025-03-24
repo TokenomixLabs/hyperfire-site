@@ -3,12 +3,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
 import EventCreator from "@/components/EventCreator";
 import AdminDashboard from "@/components/AdminDashboard";
+import NotificationCenter from "@/components/NotificationCenter";
 import { useToast } from "@/hooks/use-toast";
 
 const Admin = () => {
@@ -27,6 +28,10 @@ const Admin = () => {
   const handleNavigateToUsers = () => {
     navigate("/users");
   };
+  
+  const handleNavigateToApproval = () => {
+    navigate("/content-approval");
+  };
 
   return (
     <AnimatedTransition className="container mx-auto px-4 py-8 max-w-7xl">
@@ -44,6 +49,16 @@ const Admin = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          <NotificationCenter />
+          
+          <Button 
+            variant="outline"
+            onClick={handleNavigateToApproval}
+            className="flex items-center gap-2"
+          >
+            <CheckSquare className="h-4 w-4" /> Content Approval
+          </Button>
+          
           <Button 
             variant="outline"
             onClick={handleNavigateToUsers}
@@ -51,6 +66,7 @@ const Admin = () => {
           >
             <Users className="h-4 w-4" /> Manage Users
           </Button>
+          
           <Button 
             onClick={() => setActiveTab("create-content")} 
             className="bg-purple-600 hover:bg-purple-700"

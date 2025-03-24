@@ -5,6 +5,7 @@ import { Menu, X, Search, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BrandSelector from './BrandSelector';
+import NotificationCenter from './NotificationCenter';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -113,6 +114,8 @@ const Header = () => {
 
           <div className="flex items-center space-x-3">
             <BrandSelector />
+            
+            <NotificationCenter />
 
             <button 
               onClick={() => setSearchOpen(!searchOpen)}
