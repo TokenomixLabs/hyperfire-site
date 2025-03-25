@@ -13,6 +13,7 @@ import UserManagement from "./pages/UserManagement";
 import ContentApproval from "./pages/ContentApproval";
 import MediaLibrary from "./pages/MediaLibrary";
 import SeoTools from "./pages/SeoTools";
+import IntegrationTools from "./pages/IntegrationTools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/content-approval" element={<ContentApproval />} />
           <Route path="/media-library" element={<MediaLibrary />} />
           <Route path="/seo-tools" element={<SeoTools />} />
+          <Route path="/integration-tools" element={<IntegrationTools />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

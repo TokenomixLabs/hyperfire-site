@@ -1,13 +1,14 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, Tag, BarChart2, Star, ExternalLink, AlertCircle } from "lucide-react";
+import { ArrowLeft, Search, Tag, BarChart2, Star, ExternalLink, AlertCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import { useToast } from "@/hooks/use-toast";
 import MetaTagManager from "@/components/seo/MetaTagManager";
 import SeoScoreTool from "@/components/seo/SeoScoreTool";
+import KeywordResearchTool from "@/components/seo/KeywordResearchTool";
 
 const SeoTools = () => {
   const [activeTab, setActiveTab] = useState("meta-tags");
@@ -39,7 +40,7 @@ const SeoTools = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full md:w-auto md:inline-flex grid-cols-2 mb-8">
+        <TabsList className="grid w-full md:w-auto md:inline-flex grid-cols-3 mb-8">
           <TabsTrigger value="meta-tags" className="flex items-center gap-2">
             <Tag className="h-4 w-4" />
             Meta Tags
@@ -47,6 +48,10 @@ const SeoTools = () => {
           <TabsTrigger value="seo-score" className="flex items-center gap-2">
             <BarChart2 className="h-4 w-4" />
             SEO Score
+          </TabsTrigger>
+          <TabsTrigger value="keyword-research" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Keyword Research
           </TabsTrigger>
         </TabsList>
         
@@ -56,6 +61,10 @@ const SeoTools = () => {
         
         <TabsContent value="seo-score" className="mt-4">
           <SeoScoreTool />
+        </TabsContent>
+        
+        <TabsContent value="keyword-research" className="mt-4">
+          <KeywordResearchTool />
         </TabsContent>
       </Tabs>
     </AnimatedTransition>

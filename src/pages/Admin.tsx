@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
@@ -40,6 +40,10 @@ const Admin = () => {
   const handleNavigateToSeoTools = () => {
     navigate("/seo-tools");
   };
+  
+  const handleNavigateToIntegrationTools = () => {
+    navigate("/integration-tools");
+  };
 
   return (
     <AnimatedTransition className="container mx-auto px-4 py-8 max-w-7xl">
@@ -58,6 +62,14 @@ const Admin = () => {
         
         <div className="flex items-center gap-2">
           <NotificationCenter />
+          
+          <Button 
+            variant="outline"
+            onClick={handleNavigateToIntegrationTools}
+            className="flex items-center gap-2"
+          >
+            <Code className="h-4 w-4" /> Integration Tools
+          </Button>
           
           <Button 
             variant="outline"
