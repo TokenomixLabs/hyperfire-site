@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Calendar, Clock, Eye, FileText, Play, ExternalLink, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
