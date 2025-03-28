@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Key, Plus, RefreshCw, Trash2, Copy, EyeOff, Eye, Shield, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -117,14 +116,12 @@ const ApiKeyManager = () => {
       return;
     }
     
-    // Generate a random API key (in a real app this would be done securely on the server)
     const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
     let key = "il_pk_";
     for (let i = 0; i < 24; i++) {
       key += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     
-    // Set expiration date based on selection
     let expiresAt: Date | null = null;
     if (newKeyExpiration !== "never") {
       expiresAt = new Date();
@@ -147,7 +144,6 @@ const ApiKeyManager = () => {
     setApiKeys(prev => [...prev, newKey]);
     setGeneratedKey(key);
     
-    // Reset form
     setNewKeyName("");
     setNewKeyPermissions(["content:read"]);
     setNewKeyExpiration("never");
@@ -396,7 +392,7 @@ const ApiKeyManager = () => {
                       <Switch 
                         checked={apiKey.active} 
                         onCheckedChange={(checked) => handleToggleKeyStatus(apiKey.id, checked)} 
-                        size="sm"
+                        className="scale-75"
                       />
                       <span className={apiKey.active ? "text-green-600" : "text-red-600"}>
                         {apiKey.active ? "Active" : "Inactive"}
