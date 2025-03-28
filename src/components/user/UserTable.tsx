@@ -1,5 +1,5 @@
 
-import { Shield, Mail, X, Check } from "lucide-react";
+import { Shield, Mail, X, Check, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,6 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface UserReferralStats {
+  clicks: number;
+  signups: number;
+  sharedContent: number;
+}
+
 interface User {
   id: string;
   name: string;
@@ -19,13 +25,17 @@ interface User {
   role: string;
   status: string;
   lastActive: string;
+  referralLink?: string;
+  daoReferralLink?: string;
+  referralStats?: UserReferralStats;
 }
 
 interface UserTableProps {
   users: User[];
+  onViewStats?: (user: User) => void;
 }
 
-const UserTable = ({ users }: UserTableProps) => {
+const UserTable = ({ users, onViewStats }: UserTableProps) => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "admin":
@@ -76,6 +86,17 @@ const UserTable = ({ users }: UserTableProps) => {
               <TableCell>{user.lastActive}</TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
+                  {user.status === "active" && onViewStats && (
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => onViewStats(user)}
+                      className="text-blue-600 hover:text-blue-700"
+                      title="View Referral Stats"
+                    >
+                      <BarChart2 className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button variant="outline" size="icon">
                     <Shield className="h-4 w-4" />
                   </Button>

@@ -1,7 +1,13 @@
-
 import { useState } from 'react';
-import { Calendar, Clock, Eye, FileText, Play, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, Eye, FileText, Play, ExternalLink, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface ContentItem {
   id: string;
@@ -29,6 +35,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
   onClick 
 }) => {
   const [isHovering, setIsHovering] = useState(false);
+  const { toast } = useToast();
   
   const handleClick = () => {
     if (onClick) {
@@ -60,6 +67,67 @@ const ContentCard: React.FC<ContentCardProps> = ({
       default:
         return 'bg-gray-600 text-white';
     }
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // In a real app, get the current user's referral code from context/state
+    const referralCode = "username123";
+    
+    // Construct the referral URL
+    const referralUrl = `insiderlife.com${item.url}?ref=${referralCode}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(referralUrl);
+    
+    toast({
+      title: "Link copied",
+      description: "Referral link copied to clipboard!",
+    });
+  };
+
+  const handleSharePlatform = (platform: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // In a real app, get the current user's referral code from context/state
+    const referralCode = "username123";
+    
+    // Construct the referral URL
+    const referralUrl = `insiderlife.com${item.url}?ref=${referralCode}`;
+    
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(`Check out: ${item.title}`)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralUrl)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralUrl)}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(item.title)}`;
+        break;
+      default:
+        // Copy to clipboard if platform not recognized
+        navigator.clipboard.writeText(referralUrl);
+        toast({
+          title: "Link copied",
+          description: "Referral link copied to clipboard!",
+        });
+        return;
+    }
+    
+    // Open share window
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    
+    toast({
+      title: "Sharing content",
+      description: `Sharing "${item.title}" via ${platform}`,
+    });
   };
 
   if (layout === 'list') {
@@ -120,8 +188,39 @@ const ContentCard: React.FC<ContentCardProps> = ({
             )}
           </div>
         </div>
-        <div className="pr-4">
-          <ExternalLink size={18} className="text-gray-400 group-hover:text-primary transition-colors" />
+        <div className="pr-4 flex">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-gray-400 hover:text-primary transition-colors" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Share2 size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => handleShare(e as React.MouseEvent)}>
+                Copy referral link
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e as React.MouseEvent)}>
+                Share on Twitter
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e as React.MouseEvent)}>
+                Share on Facebook
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e as React.MouseEvent)}>
+                Share on LinkedIn
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e as React.MouseEvent)}>
+                Share on Telegram
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
+            <ExternalLink size={18} />
+          </Button>
         </div>
       </div>
     );
@@ -165,6 +264,37 @@ const ContentCard: React.FC<ContentCardProps> = ({
               </span>
             )}
           </div>
+          <div className="absolute top-3 right-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="bg-black/30 text-white hover:bg-black/50 transition-colors" 
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Share2 size={18} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={(e) => handleShare(e as React.MouseEvent)}>
+                  Copy referral link
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e as React.MouseEvent)}>
+                  Share on Twitter
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e as React.MouseEvent)}>
+                  Share on Facebook
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e as React.MouseEvent)}>
+                  Share on LinkedIn
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e as React.MouseEvent)}>
+                  Share on Telegram
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <div className="p-6">
           <div className="flex items-center space-x-2 mb-2">
@@ -197,7 +327,6 @@ const ContentCard: React.FC<ContentCardProps> = ({
     );
   }
 
-  // Default grid layout
   return (
     <div 
       className="glass-card overflow-hidden rounded-lg transition-all duration-300 hover:shadow-lg cursor-pointer group"
@@ -234,6 +363,35 @@ const ContentCard: React.FC<ContentCardProps> = ({
               Live
             </span>
           )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="bg-black/30 text-white hover:bg-black/50 transition-colors ml-auto" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Share2 size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => handleShare(e as React.MouseEvent)}>
+                Copy referral link
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e as React.MouseEvent)}>
+                Share on Twitter
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e as React.MouseEvent)}>
+                Share on Facebook
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e as React.MouseEvent)}>
+                Share on LinkedIn
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e as React.MouseEvent)}>
+                Share on Telegram
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="p-4">
