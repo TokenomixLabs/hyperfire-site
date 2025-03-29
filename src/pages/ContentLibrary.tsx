@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, List, SlidersHorizontal, X, Search, Filter, ChevronDown } from 'lucide-react';
@@ -21,7 +20,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import GlobalCTA from '@/components/GlobalCTA';
 
-// Mock data for demonstration
 const contentData: ContentItem[] = [
   {
     id: '1',
@@ -140,7 +138,6 @@ const ContentLibrary = () => {
   } = useContentFilter(contentData);
 
   useEffect(() => {
-    // Simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
@@ -172,7 +169,6 @@ const ContentLibrary = () => {
       <main className="flex-1 pt-24 pb-16">
         <AnimatedTransition>
           <div className="container mx-auto px-4 sm:px-6">
-            {/* Page Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight mb-2">Content Library</h1>
               <p className="text-gray-600 dark:text-gray-300">
@@ -180,7 +176,6 @@ const ContentLibrary = () => {
               </p>
             </div>
             
-            {/* Search and Filter Bar */}
             <div className="mb-8 flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <form onSubmit={handleSearch} className="relative">
@@ -246,7 +241,6 @@ const ContentLibrary = () => {
               </div>
             </div>
             
-            {/* Filter Panel */}
             {showFilterPanel && (
               <div className="mb-8 glass-card rounded-lg p-6 border border-gray-200 dark:border-gray-800 animate-scale-in">
                 <div className="flex justify-between items-center mb-4">
@@ -350,7 +344,6 @@ const ContentLibrary = () => {
               </div>
             )}
             
-            {/* Content Tabs */}
             <Tabs defaultValue="all" className="mb-8">
               <TabsList className="glass-card">
                 <TabsTrigger value="all">All Content</TabsTrigger>
@@ -479,7 +472,6 @@ const ContentLibrary = () => {
               </TabsContent>
             </Tabs>
             
-            {/* CTA Section */}
             <section className="mt-16">
               <GlobalCTA 
                 id="content-footer"

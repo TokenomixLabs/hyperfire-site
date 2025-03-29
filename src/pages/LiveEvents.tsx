@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Header from '@/components/Header';
 import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
-import ContentCard, { ContentItem } from '@/components/ContentCard';
+import ContentCard, { ContentItem } from '@/components/content-card';
 import LivestreamPlayer from '@/components/LivestreamPlayer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { ContentItem } from '@/components/ContentCard';
+import { ContentItem } from '@/components/content-card';
 
 interface FilterOptions {
   brand?: string;
