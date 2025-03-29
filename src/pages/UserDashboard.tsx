@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -8,6 +9,7 @@ import ReferralsTab from '@/components/user/dashboard/ReferralsTab';
 import ReferralLinksTab from '@/components/user/dashboard/ReferralLinksTab';
 import SharesTab from '@/components/user/dashboard/SharesTab';
 import GlobalCTA from '@/components/GlobalCTA';
+import { ReferralPlatform } from '@/context/ReferralContext';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
@@ -25,11 +27,12 @@ const UserDashboard = () => {
     platforms: 12,
   };
 
-  const statsData = [
-    { name: "Total Views", value: 12345 },
-    { name: "Unique Visitors", value: 6789 },
-    { name: "Avg. Session Duration", value: "3m 24s" },
-    { name: "Bounce Rate", value: "45%" },
+  // Mock platform stats data for StatsTab
+  const platformStats = [
+    { platform: 'insiderlife' as ReferralPlatform, clicks: 2500, signups: 400, sharedContent: 60 },
+    { platform: 'insiderdao' as ReferralPlatform, clicks: 1200, signups: 220, sharedContent: 35 },
+    { platform: 'societi' as ReferralPlatform, clicks: 600, signups: 100, sharedContent: 18 },
+    { platform: 'aifc' as ReferralPlatform, clicks: 267, signups: 69, sharedContent: 10 }
   ];
 
   const referrals = [
@@ -38,17 +41,25 @@ const UserDashboard = () => {
     { id: "3", name: "Charlie Brown", signupDate: "2024-02-10", source: "societi" },
   ];
 
-  const referralLinks = {
-    insiderlife: "insiderlife.com/?ref=your-username",
-    insiderdao: "insiderdao.com/?ref=your-username",
-    societi: "societi.com/?ref=your-username",
-    aifc: "aifc.com/?ref=your-username",
+  // Convert the object format to array format for ReferralLinksTab
+  const referralLinks = [
+    { platform: 'insiderlife' as ReferralPlatform, url: "insiderlife.com/?ref=your-username", isSet: true },
+    { platform: 'insiderdao' as ReferralPlatform, url: "insiderdao.com/?ref=your-username", isSet: true },
+    { platform: 'societi' as ReferralPlatform, url: "societi.com/?ref=your-username", isSet: true },
+    { platform: 'aifc' as ReferralPlatform, url: "aifc.com/?ref=your-username", isSet: true }
+  ];
+
+  // Mock updateReferralLink function
+  const updateReferralLink = (platform: ReferralPlatform, url: string) => {
+    console.log(`Updating ${platform} referral link to ${url}`);
+    // In a real app, this would update the state or call an API
   };
 
-  const sharesData = [
-    { id: "1", contentTitle: "The Future of AI", platform: "Twitter", shares: 50, clicks: 120 },
-    { id: "2", contentTitle: "Blockchain Explained", platform: "LinkedIn", shares: 30, clicks: 90 },
-    { id: "3", contentTitle: "Web3 Development", platform: "Facebook", shares: 40, clicks: 110 },
+  // Convert the format to match what SharesTab expects
+  const shares = [
+    { id: "1", title: "The Future of AI", date: "March 15, 2024", clicks: 120, signups: 14 },
+    { id: "2", title: "Blockchain Explained", date: "March 2, 2024", clicks: 90, signups: 8 },
+    { id: "3", title: "Web3 Development", date: "February 20, 2024", clicks: 110, signups: 12 }
   ];
 
   return (
@@ -75,16 +86,22 @@ const UserDashboard = () => {
                 <TabsTrigger value="shares">Shares</TabsTrigger>
               </TabsList>
               <TabsContent value="stats" className="mt-6">
-                <StatsTab statsData={statsData} />
+                <StatsTab 
+                  platformStats={platformStats}
+                  reachStats={reachStats}
+                />
               </TabsContent>
               <TabsContent value="referrals" className="mt-6">
                 <ReferralsTab referrals={referrals} />
               </TabsContent>
               <TabsContent value="links" className="mt-6">
-                <ReferralLinksTab referralLinks={referralLinks} />
+                <ReferralLinksTab
+                  referralLinks={referralLinks}
+                  updateReferralLink={updateReferralLink}
+                />
               </TabsContent>
               <TabsContent value="shares" className="mt-6">
-                <SharesTab sharesData={sharesData} />
+                <SharesTab shares={shares} />
               </TabsContent>
             </Tabs>
 
