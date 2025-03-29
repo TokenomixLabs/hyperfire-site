@@ -14,6 +14,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import ContentExample from "./pages/ContentExample";
 
 // Protected pages
 import ProfileSetup from "./pages/auth/ProfileSetup";
@@ -27,6 +28,7 @@ import ContentApproval from "./pages/ContentApproval";
 import MediaLibrary from "./pages/MediaLibrary";
 import SeoTools from "./pages/SeoTools";
 import IntegrationTools from "./pages/IntegrationTools";
+import ReferralTrackingStats from "./components/referrals/ReferralTrackingStats";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/content-example" element={<ContentExample />} />
+              <Route path="/content-example/:contentId" element={<ContentExample />} />
               
               {/* Protected Routes */}
               <Route 
@@ -131,6 +135,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <IntegrationTools />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/referral-stats" 
+                element={
+                  <ProtectedRoute>
+                    <ReferralTrackingStats />
                   </ProtectedRoute>
                 } 
               />

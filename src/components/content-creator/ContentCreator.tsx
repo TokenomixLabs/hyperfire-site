@@ -17,11 +17,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { CampaignCTA } from "@/types/referral";
+import { CampaignCTA, ContentCTA } from "@/types/referral";
 import TagSelector from "./TagSelector";
 import BrandSelector from "./BrandSelector";
 import ImageUploader from "./ImageUploader";
 import CTASelector from "./CTASelector";
+import ContentCTASelector from "./ContentCTASelector";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 // Data that would typically come from API
 const tags = [
@@ -78,6 +81,8 @@ const ContentCreator = () => {
   const [image, setImage] = useState<string | null>(null);
   const [ctaOptions] = useState<CampaignCTA[]>(mockCTAs);
   const [selectedCTAs, setSelectedCTAs] = useState<string[]>([]);
+  const [contentCTAs, setContentCTAs] = useState<ContentCTA[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("basics");
   const { toast } = useToast();
 
   const form = useForm({
@@ -113,13 +118,18 @@ const ContentCreator = () => {
     );
   };
 
+  const handleContentCTAsChange = (updatedCTAs: ContentCTA[]) => {
+    setContentCTAs(updatedCTAs);
+  };
+
   const onSubmit = (data: any) => {
     // In a real app, this would send data to your backend
     console.log({
       ...data,
       tags: selectedTags,
       featuredImage: image,
-      ctas: selectedCTAs.map(id => ctaOptions.find(cta => cta.id === id)),
+      campaignCTAs: selectedCTAs.map(id => ctaOptions.find(cta => cta.id === id)),
+      contentCTAs: contentCTAs,
     });
 
     toast({
@@ -132,6 +142,7 @@ const ContentCreator = () => {
     setSelectedTags([]);
     setImage(null);
     setSelectedCTAs([]);
+    setContentCTAs([]);
   };
 
   return (
@@ -139,96 +150,102 @@ const ContentCreator = () => {
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter content title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid grid-cols-3 w-full mb-6">
+                <TabsTrigger value="basics">Basic Info</TabsTrigger>
+                <TabsTrigger value="content">Content</TabsTrigger>
+                <TabsTrigger value="ctas">Call to Actions</TabsTrigger>
+              </TabsList>
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Brief description of the content"
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        This will appear in content cards and search results.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="brand"
-                  render={({ field }) => (
-                    <BrandSelector 
-                      brands={brands} 
-                      value={field.value} 
-                      onValueChange={field.onChange} 
+              <TabsContent value="basics" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter content title" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="isPremium"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Brief description of the content"
+                              className="resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            This will appear in content cards and search results.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="brand"
+                      render={({ field }) => (
+                        <BrandSelector 
+                          brands={brands} 
+                          value={field.value} 
+                          onValueChange={field.onChange} 
                         />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Premium Content</FormLabel>
-                        <FormDescription>
-                          Mark this content as premium (requires subscription)
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                
-                <CTASelector 
-                  ctaOptions={ctaOptions}
-                  selectedCTAs={selectedCTAs}
-                  onCTAToggle={handleCTAToggle}
-                />
-              </div>
+                      )}
+                    />
 
-              <div className="space-y-6">
-                <ImageUploader 
-                  image={image}
-                  onImageUpload={handleImageUpload}
-                  onRemoveImage={removeImage}
-                />
+                    <FormField
+                      control={form.control}
+                      name="isPremium"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Premium Content</FormLabel>
+                            <FormDescription>
+                              Mark this content as premium (requires subscription)
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                <TagSelector 
-                  tags={tags} 
-                  selectedTags={selectedTags} 
-                  setSelectedTags={setSelectedTags} 
-                />
+                  <div className="space-y-6">
+                    <ImageUploader 
+                      image={image}
+                      onImageUpload={handleImageUpload}
+                      onRemoveImage={removeImage}
+                    />
 
+                    <TagSelector 
+                      tags={tags} 
+                      selectedTags={selectedTags} 
+                      setSelectedTags={setSelectedTags} 
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="content" className="space-y-6">
                 <FormField
                   control={form.control}
                   name="content"
@@ -238,7 +255,7 @@ const ContentCreator = () => {
                       <FormControl>
                         <Textarea
                           placeholder="Enter your content here..."
-                          className="resize-none min-h-[200px]"
+                          className="resize-none min-h-[400px]"
                           {...field}
                         />
                       </FormControl>
@@ -249,8 +266,40 @@ const ContentCreator = () => {
                     </FormItem>
                   )}
                 />
-              </div>
-            </div>
+              </TabsContent>
+
+              <TabsContent value="ctas" className="space-y-6">
+                <div className="grid grid-cols-1 gap-8">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Global Campaign CTAs</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        These CTAs are managed globally and apply to all content with the same tag.
+                      </p>
+                      <CTASelector 
+                        ctaOptions={ctaOptions}
+                        selectedCTAs={selectedCTAs}
+                        onCTAToggle={handleCTAToggle}
+                      />
+                    </div>
+                    
+                    <Separator className="my-6" />
+                    
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Content-Specific CTAs</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        These CTAs are specific to this content item and will override global CTAs.
+                      </p>
+                      <ContentCTASelector 
+                        contentId="new-content" 
+                        selectedCTAs={contentCTAs} 
+                        onChange={handleContentCTAsChange} 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <div className="flex justify-end">
               <Button type="submit" className="bg-purple-600 hover:bg-purple-700">

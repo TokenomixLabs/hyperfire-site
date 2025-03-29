@@ -48,3 +48,16 @@ export interface ContentCTA {
   placement?: 'inline' | 'banner' | 'card';
   position?: 'top' | 'bottom';
 }
+
+export interface CTAClickStats {
+  id: string;
+  ctaId: string;
+  contentId: string;
+  campaignId: string;
+  userId?: string;
+  referrerId?: string;
+  timestamp: string;
+  converted: boolean;
+  conversionType?: 'signup' | 'purchase' | 'other';
+  revenue?: number;
+}
