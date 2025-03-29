@@ -2,7 +2,7 @@
 import { FileText, Play, Clock } from 'lucide-react';
 import React from 'react';
 
-export const getTypeIcon = (type: string): React.ReactNode => {
+export const getTypeIcon = (type: string): React.ReactElement => {
   switch (type) {
     case 'video':
       return <Play size={14} className="mr-1" />;
