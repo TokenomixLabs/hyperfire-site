@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ReferralProgram, CampaignCTA } from "@/types/referral";
