@@ -54,13 +54,13 @@ export const ReferralProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   ]);
   
   // Mock statistics - in a real app, these would come from an API
-  const [aggregatedStats, setAggregatedStats] = useState<ReferralStats>({
+  const [aggregatedStats] = useState<ReferralStats>({
     clicks: 156,
     signups: 24,
     sharedContent: 8,
   });
   
-  const [platformStats, setPlatformStats] = useState<PlatformStats[]>([
+  const [platformStats] = useState<PlatformStats[]>([
     { platform: 'insiderlife', clicks: 78, signups: 12, sharedContent: 4 },
     { platform: 'insiderdao', clicks: 45, signups: 8, sharedContent: 3 },
     { platform: 'societi', clicks: 21, signups: 3, sharedContent: 1 },
@@ -77,18 +77,20 @@ export const ReferralProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setReferrer(currentReferrer);
     }
     
-    // Load saved referral links from localStorage
+    // Load saved referral links from localStorage only once on mount
     try {
       const savedLinks = localStorage.getItem('referralLinks');
+      
       if (savedLinks) {
         const parsedLinks = JSON.parse(savedLinks) as ReferralLink[];
         setReferralLinks(parsedLinks);
       } else {
         // Initialize with the default InsiderLife link
         const defaultLinks = [...referralLinks];
+        const defaultCode = "currentuser123"; // Don't use userReferralCode here to avoid dependency cycle
         defaultLinks[0] = {
           platform: 'insiderlife',
-          url: `insiderlife.com/?ref=${userReferralCode || 'currentuser123'}`,
+          url: `insiderlife.com/?ref=${defaultCode}`,
           isSet: true
         };
         setReferralLinks(defaultLinks);
@@ -97,7 +99,9 @@ export const ReferralProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (error) {
       console.error('Failed to load referral links:', error);
     }
-  }, [getCurrentReferrer, userReferralCode]);
+    // Only run this effect once on component mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   const updateReferralLink = (platform: ReferralPlatform, url: string) => {
     const updatedLinks = referralLinks.map(link => 
