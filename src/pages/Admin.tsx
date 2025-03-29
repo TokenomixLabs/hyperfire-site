@@ -3,13 +3,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2 } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
 import EventCreator from "@/components/EventCreator";
 import AdminDashboard from "@/components/AdminDashboard";
 import NotificationCenter from "@/components/NotificationCenter";
+import ReferralProgramManager from "@/components/admin/referrals/ReferralProgramManager";
+import CTAManager from "@/components/admin/referrals/CTAManager";
 import { useToast } from "@/hooks/use-toast";
 
 const Admin = () => {
@@ -117,11 +119,13 @@ const Admin = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-4 mb-8">
+        <TabsList className="grid grid-cols-6 mb-8">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="create-content">Content</TabsTrigger>
           <TabsTrigger value="upload-document">Documents</TabsTrigger>
           <TabsTrigger value="create-event">Events</TabsTrigger>
+          <TabsTrigger value="referral-programs">Referral Programs</TabsTrigger>
+          <TabsTrigger value="cta-manager">CTA Manager</TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard" className="mt-4">
@@ -138,6 +142,14 @@ const Admin = () => {
         
         <TabsContent value="create-event" className="mt-4">
           <EventCreator />
+        </TabsContent>
+        
+        <TabsContent value="referral-programs" className="mt-4">
+          <ReferralProgramManager />
+        </TabsContent>
+        
+        <TabsContent value="cta-manager" className="mt-4">
+          <CTAManager />
         </TabsContent>
       </Tabs>
     </AnimatedTransition>

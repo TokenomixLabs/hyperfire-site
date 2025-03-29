@@ -40,6 +40,16 @@ const getPlatformHelpUrl = (platform: ReferralPlatform): string => {
   }
 };
 
+// Helper to get platform instructions
+const getPlatformInstructions = (platform: ReferralPlatform): string => {
+  switch (platform) {
+    case 'insiderdao': return 'Log in to InsiderDAO, go to Profile > Referrals, and copy your unique link';
+    case 'societi': return 'Visit the Societi Partner dashboard, navigate to Referrals tab, and copy your link';
+    case 'aifc': return 'Go to AI Freedom Code members area > Affiliate Program and copy your custom link';
+    default: return '';
+  }
+};
+
 const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTabProps) => {
   const [referralInputs, setReferralInputs] = useState<Record<ReferralPlatform, string>>(
     referralLinks.reduce((acc, link) => ({
@@ -48,6 +58,7 @@ const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTa
     }), {} as Record<ReferralPlatform, string>)
   );
   
+  const [expandedInfo, setExpandedInfo] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleCopyLink = (link: string, type: string) => {
@@ -60,6 +71,17 @@ const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTa
 
   const handleUpdateReferralLink = (platform: ReferralPlatform) => {
     const url = referralInputs[platform];
+    
+    // Simple validation for referral links
+    if (url && !url.includes('ref=') && !url.includes('referral=')) {
+      toast({
+        title: "Invalid referral link",
+        description: "The link doesn't appear to be a valid referral link. It should contain 'ref=' or 'referral=' parameter.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     updateReferralLink(platform, url);
     
     toast({
@@ -74,6 +96,14 @@ const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTa
       [platform]: value
     }));
   };
+  
+  const toggleExpandInfo = (platform: ReferralPlatform) => {
+    if (expandedInfo === platform) {
+      setExpandedInfo(null);
+    } else {
+      setExpandedInfo(platform);
+    }
+  };
 
   return (
     <Card>
@@ -86,7 +116,7 @@ const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTa
       <CardContent className="space-y-6">
         {referralLinks.map(link => (
           <div key={link.platform} className="space-y-3 pb-5 border-b last:border-b-0 last:pb-0">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <div className="flex items-center">
                 <h3 className="font-medium">{getPlatformDisplayName(link.platform)} Referral Link</h3>
                 {link.isSet ? (
@@ -103,26 +133,44 @@ const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTa
               </div>
               
               {link.platform !== 'insiderlife' && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <a 
-                        href={getPlatformHelpUrl(link.platform)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center"
-                      >
-                        <Info className="h-4 w-4 mr-1" />
-                        How to get it
-                      </a>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Learn how to get your {getPlatformDisplayName(link.platform)} referral link</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <div className="flex items-center space-x-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a 
+                          href={getPlatformHelpUrl(link.platform)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center"
+                        >
+                          Get Link
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Learn how to get your {getPlatformDisplayName(link.platform)} referral link</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleExpandInfo(link.platform)}
+                    className="text-sm text-muted-foreground flex items-center"
+                  >
+                    <Info className="h-3.5 w-3.5 mr-1" />
+                    Help
+                  </Button>
+                </div>
               )}
             </div>
+            
+            {expandedInfo === link.platform && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md text-sm text-blue-700 dark:text-blue-300 my-2">
+                <h4 className="font-medium mb-1">How to get your {getPlatformDisplayName(link.platform)} referral link:</h4>
+                <p>{getPlatformInstructions(link.platform)}</p>
+              </div>
+            )}
             
             <div className="flex items-center gap-2 mt-1.5">
               <Input 
@@ -172,8 +220,8 @@ const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTa
             Signal Amplification Guide
           </h3>
           <p className="text-sm text-blue-600 dark:text-blue-300 mt-1">
-            Your links are automatically added when you share content. Every visitor is tracked for 90 days, 
-            and you get credit if they sign up later on any of our platforms.
+            Your links are automatically added when you share content. When content includes a CTA for a specific platform 
+            (like InsiderDAO), your personal referral link for that platform will be used to give you credit for conversions.
           </p>
         </div>
       </CardContent>

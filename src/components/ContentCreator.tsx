@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Form, 
   FormControl, 
@@ -27,9 +27,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useForm } from "react-hook-form";
-import { Check, ChevronsUpDown, Upload, Save, X } from "lucide-react";
+import { Check, ChevronsUpDown, Upload, Save, X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { CampaignCTA } from "@/types/referral";
 
 const tags = [
   { label: "Cryptocurrency", value: "crypto" },
@@ -51,11 +52,42 @@ const brands = [
   { label: "InsiderDAO", value: "insiderdao" },
 ];
 
+// Mock CTAs - in a real app, these would come from an API
+const mockCTAs: CampaignCTA[] = [
+  {
+    id: "1",
+    programId: "insiderdao",
+    buttonText: "Join InsiderDAO",
+    description: "Join the exclusive crypto trading community",
+    theme: "primary",
+    placement: "card",
+  },
+  {
+    id: "2",
+    programId: "societi",
+    buttonText: "Try Societi Free",
+    description: "Connect with like-minded individuals in our network",
+    theme: "default",
+    placement: "inline",
+  },
+  {
+    id: "3",
+    programId: "aifc",
+    buttonText: "Learn AI Development",
+    description: "Master AI development with our comprehensive course",
+    theme: "minimal",
+    placement: "banner",
+    position: "bottom",
+  },
+];
+
 const ContentCreator = () => {
   const [open, setOpen] = useState(false);
   const [brandOpen, setBrandOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [image, setImage] = useState<string | null>(null);
+  const [ctaOptions, setCTAOptions] = useState<CampaignCTA[]>(mockCTAs);
+  const [selectedCTAs, setSelectedCTAs] = useState<string[]>([]);
   const { toast } = useToast();
 
   const form = useForm({
@@ -83,12 +115,21 @@ const ContentCreator = () => {
     setImage(null);
   };
 
+  const handleCTAToggle = (ctaId: string) => {
+    setSelectedCTAs(prev => 
+      prev.includes(ctaId)
+        ? prev.filter(id => id !== ctaId)
+        : [...prev, ctaId]
+    );
+  };
+
   const onSubmit = (data: any) => {
     // In a real app, this would send data to your backend
     console.log({
       ...data,
       tags: selectedTags,
       featuredImage: image,
+      ctas: selectedCTAs.map(id => ctaOptions.find(cta => cta.id === id)),
     });
 
     toast({
@@ -100,6 +141,7 @@ const ContentCreator = () => {
     form.reset();
     setSelectedTags([]);
     setImage(null);
+    setSelectedCTAs([]);
   };
 
   return (
@@ -222,6 +264,44 @@ const ContentCreator = () => {
                     </FormItem>
                   )}
                 />
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Call-to-Actions</FormLabel>
+                    <FormDescription>Add CTAs to this content</FormDescription>
+                  </div>
+                  <div className="space-y-2">
+                    {ctaOptions.map(cta => (
+                      <div 
+                        key={cta.id} 
+                        className={`flex items-start p-3 border rounded-md cursor-pointer transition-colors ${
+                          selectedCTAs.includes(cta.id) 
+                            ? 'border-insider-500 bg-insider-50 dark:bg-insider-900/20' 
+                            : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/50'
+                        }`}
+                        onClick={() => handleCTAToggle(cta.id)}
+                      >
+                        <Checkbox 
+                          checked={selectedCTAs.includes(cta.id)}
+                          className="mt-1 mr-3"
+                          onCheckedChange={() => handleCTAToggle(cta.id)}
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium">{cta.buttonText}</div>
+                          <div className="text-sm text-muted-foreground">{cta.description}</div>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-xs rounded">
+                              {cta.placement}
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-xs rounded">
+                              {cta.theme}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-6">

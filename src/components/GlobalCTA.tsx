@@ -1,7 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useReferral } from '@/context/ReferralContext';
+import { ReferralPlatform } from '@/context/ReferralContext';
 
 export interface CTAProps {
   id: string;
@@ -30,6 +31,7 @@ const GlobalCTA: React.FC<CTAProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const storageKey = `cta-dismissed-${id}`;
+  const { referralLinks, trackClick, generateReferralLink } = useReferral();
 
   useEffect(() => {
     if (dismissible) {
@@ -53,6 +55,10 @@ const GlobalCTA: React.FC<CTAProps> = ({
         return 'from-blue-600 to-blue-800 border-blue-500';
       case 'insiderdao':
         return 'from-purple-600 to-purple-800 border-purple-500';
+      case 'societi':
+        return 'from-green-600 to-green-800 border-green-500';
+      case 'aifc':
+        return 'from-orange-600 to-orange-800 border-orange-500';
       default:
         return 'from-gray-700 to-gray-900 border-gray-600';
     }
@@ -67,6 +73,21 @@ const GlobalCTA: React.FC<CTAProps> = ({
       default:
         return 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-800';
     }
+  };
+  
+  const handleButtonClick = () => {
+    trackClick(id, brand as ReferralPlatform);
+  };
+  
+  const getReferralUrl = () => {
+    const platform = brand as ReferralPlatform;
+    const link = referralLinks.find(l => l.platform === platform);
+    
+    if (link && link.isSet) {
+      return generateReferralLink(buttonUrl, platform);
+    }
+    
+    return buttonUrl;
   };
 
   if (!isVisible) return null;
@@ -88,8 +109,9 @@ const GlobalCTA: React.FC<CTAProps> = ({
               <Button 
                 className={`transition-all ${theme === 'primary' ? 'bg-white text-insider-700 hover:bg-gray-100' : 'bg-insider-600 hover:bg-insider-700 text-white'}`}
                 asChild
+                onClick={handleButtonClick}
               >
-                <a href={buttonUrl} target="_blank" rel="noreferrer" className="flex items-center">
+                <a href={getReferralUrl()} target="_blank" rel="noreferrer" className="flex items-center">
                   {buttonText}
                   <ChevronRight size={16} className="ml-1.5" />
                 </a>
@@ -130,8 +152,9 @@ const GlobalCTA: React.FC<CTAProps> = ({
           <Button 
             className={`w-full justify-center transition-all ${theme === 'primary' ? 'bg-white text-insider-700 hover:bg-gray-100' : 'bg-insider-600 hover:bg-insider-700 text-white'}`}
             asChild
+            onClick={handleButtonClick}
           >
-            <a href={buttonUrl} target="_blank" rel="noreferrer" className="flex items-center">
+            <a href={getReferralUrl()} target="_blank" rel="noreferrer" className="flex items-center">
               {buttonText}
               <ChevronRight size={16} className="ml-1.5" />
             </a>
@@ -141,7 +164,6 @@ const GlobalCTA: React.FC<CTAProps> = ({
     );
   }
 
-  // Inline CTA
   return (
     <div className={`rounded-lg p-4 transition-all duration-300 flex items-center space-x-4 border ${getThemeStyles()}`}>
       <div className="flex-1">
@@ -152,8 +174,9 @@ const GlobalCTA: React.FC<CTAProps> = ({
         <Button 
           className={`transition-all ${theme === 'primary' ? 'bg-white text-insider-700 hover:bg-gray-100' : 'bg-insider-600 hover:bg-insider-700 text-white'}`}
           asChild
+          onClick={handleButtonClick}
         >
-          <a href={buttonUrl} target="_blank" rel="noreferrer" className="flex items-center">
+          <a href={getReferralUrl()} target="_blank" rel="noreferrer" className="flex items-center">
             {buttonText}
             <ChevronRight size={16} className="ml-1.5" />
           </a>
