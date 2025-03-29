@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
+import { ArrowLeft } from 'lucide-react';
 
 const signupSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -22,6 +23,7 @@ const signupSchema = z.object({
 const Signup = () => {
   const { signup } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -44,9 +46,20 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-purple-50 dark:from-purple-950 dark:to-purple-900">
+      <div className="p-4">
+        <Button 
+          variant="ghost" 
+          className="flex items-center text-purple-600 hover:text-purple-700 hover:bg-purple-100/50"
+          onClick={() => navigate('/')}
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back to Home
+        </Button>
+      </div>
+
       <AnimatedTransition>
-        <div className="flex min-h-screen flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="flex min-h-[calc(100vh-80px)] flex-1 flex-col justify-center px-6 py-12 lg:px-8">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight">
               Join InsiderLife
