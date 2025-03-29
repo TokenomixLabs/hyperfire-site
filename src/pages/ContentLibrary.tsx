@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Grid, List, SlidersHorizontal, X, Search, Filter, ChevronDown } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Header from '@/components/Header';
-import ContentCard, { ContentItem } from '@/components/ContentCard';
+import ContentCard, { ContentItem } from '@/components/content-card';
 import { useContentFilter } from '@/hooks/useContentFilter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
