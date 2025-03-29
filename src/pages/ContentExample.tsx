@@ -59,7 +59,7 @@ const mockContent = {
   author: "Alex Thompson",
   publishedDate: "2023-07-15",
   tags: ["cryptocurrency", "trading", "blockchain", "investing"],
-  // Content-specific CTAs
+  // Content-specific CTAs with proper types
   ctas: [
     {
       id: "content-cta-1",
@@ -67,9 +67,9 @@ const mockContent = {
       campaignId: "insiderdao",
       buttonText: "Join InsiderDAO Trading Community",
       description: "Get access to exclusive trading signals and strategies",
-      theme: "primary",
-      placement: "card",
-      position: "bottom"
+      theme: "primary" as const,
+      placement: "card" as const,
+      position: "bottom" as const
     },
     {
       id: "content-cta-2",
@@ -77,9 +77,9 @@ const mockContent = {
       campaignId: "aifc",
       buttonText: "Learn AI Trading Strategies",
       description: "Master AI-powered trading with our comprehensive course",
-      theme: "default",
-      placement: "inline",
-      position: "bottom"
+      theme: "default" as const,
+      placement: "inline" as const,
+      position: "bottom" as const
     }
   ]
 };
@@ -95,7 +95,9 @@ const ContentExample = () => {
     
     // Use mock data for this example
     setContent(mockContent);
-    setContentCTAs(mockContent.ctas);
+    
+    // Explicitly cast to ContentCTA[] to ensure type safety
+    setContentCTAs(mockContent.ctas as ContentCTA[]);
   }, [contentId]);
 
   return (
