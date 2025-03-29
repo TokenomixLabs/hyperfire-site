@@ -32,6 +32,18 @@ interface TagSelectorProps {
 const TagSelector = ({ tags, selectedTags, setSelectedTags }: TagSelectorProps) => {
   const [open, setOpen] = useState(false);
 
+  const handleTagToggle = (tagValue: string) => {
+    if (selectedTags.includes(tagValue)) {
+      setSelectedTags(selectedTags.filter((value) => value !== tagValue));
+    } else {
+      setSelectedTags([...selectedTags, tagValue]);
+    }
+  };
+
+  const handleRemoveTag = (tagValue: string) => {
+    setSelectedTags(selectedTags.filter((t) => t !== tagValue));
+  };
+
   return (
     <div>
       <FormLabel className="block mb-2">Tags</FormLabel>
@@ -60,13 +72,7 @@ const TagSelector = ({ tags, selectedTags, setSelectedTags }: TagSelectorProps) 
                 <CommandItem
                   key={tag.value}
                   value={tag.value}
-                  onSelect={() => {
-                    setSelectedTags((prev) =>
-                      prev.includes(tag.value)
-                        ? prev.filter((value) => value !== tag.value)
-                        : [...prev, tag.value]
-                    );
-                  }}
+                  onSelect={() => handleTagToggle(tag.value)}
                 >
                   <div className="flex items-center">
                     <Checkbox
@@ -96,11 +102,7 @@ const TagSelector = ({ tags, selectedTags, setSelectedTags }: TagSelectorProps) 
                   variant="ghost"
                   size="icon"
                   className="h-4 w-4 ml-1 hover:bg-transparent"
-                  onClick={() =>
-                    setSelectedTags((prev) =>
-                      prev.filter((t) => t !== tagValue)
-                    )
-                  }
+                  onClick={() => handleRemoveTag(tagValue)}
                 >
                   <X className="h-3 w-3" />
                 </Button>
