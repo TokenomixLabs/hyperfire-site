@@ -14,9 +14,16 @@ const setCookie = (name: string, value: string, days: number): void => {
   document.cookie = name + "=" + value + expires + "; path=/";
 };
 
+// Types for localStorage
+interface ReferralData {
+  referrer: string;
+  timestamp: number;
+  platform?: string;
+}
+
 interface UseReferralTrackingProps {
   // Optional callback to execute when a referral is detected
-  onReferralDetected?: (referralCode: string) => void;
+  onReferralDetected?: (referralCode: string, platform?: string) => void;
   // Number of days to keep the referral cookie
   cookieDuration?: number;
 }
@@ -31,42 +38,99 @@ const useReferralTracking = ({
     // Check for referral code in URL
     const urlParams = new URLSearchParams(window.location.search);
     const referralCode = urlParams.get('ref');
+    const platform = urlParams.get('platform') || 'insiderlife'; // Default to InsiderLife
     
     if (referralCode) {
-      const existingReferrer = getCookie('referrer');
+      // Check for existing referral in localStorage (more persistent than cookies)
+      let shouldTrack = true;
       
-      // If there's a new referral code and no existing cookie, or we're overriding
-      if (!existingReferrer) {
-        // Set the referral cookie
-        setCookie('referrer', referralCode, cookieDuration);
+      try {
+        const storedReferralData = localStorage.getItem('referralData');
         
-        if (onReferralDetected) {
-          onReferralDetected(referralCode);
+        if (storedReferralData) {
+          const referralData: ReferralData = JSON.parse(storedReferralData);
+          const currentTime = new Date().getTime();
+          const daysSinceReferral = (currentTime - referralData.timestamp) / (1000 * 60 * 60 * 24);
+          
+          // Only override if explicitly requested or if the cookie has expired
+          if (daysSinceReferral < cookieDuration && !urlParams.get('override')) {
+            shouldTrack = false;
+          }
         }
         
-        // For debugging/testing only - would be removed in production
-        toast({
-          title: "Referral Tracked",
-          description: `You were referred by ${referralCode}`,
-        });
+        if (shouldTrack) {
+          // Set the cookie for compatibility
+          setCookie('referrer', referralCode, cookieDuration);
+          
+          // Store in localStorage with timestamp and platform
+          const referralData: ReferralData = {
+            referrer: referralCode,
+            timestamp: new Date().getTime(),
+            platform
+          };
+          
+          localStorage.setItem('referralData', JSON.stringify(referralData));
+          
+          if (onReferralDetected) {
+            onReferralDetected(referralCode, platform);
+          }
+          
+          // For debugging/testing only - would be removed in production
+          toast({
+            title: "Referral Tracked",
+            description: `You were referred by ${referralCode}`,
+          });
+        }
+      } catch (error) {
+        console.error('Error storing referral data:', error);
+        
+        // Fallback to just setting the cookie
+        setCookie('referrer', referralCode, cookieDuration);
       }
     }
   }, [onReferralDetected, cookieDuration, toast]);
   
   // Functions to expose to components using this hook
-  const trackContentClick = (contentId: string, referralCode: string) => {
+  const trackContentClick = (contentId: string, referralCode: string, platform: string = 'insiderlife') => {
     // In a real app, this would call an API to track the click
-    console.log(`Content ${contentId} clicked via referral code ${referralCode}`);
+    console.log(`Content ${contentId} clicked via ${platform} referral code ${referralCode}`);
     // This is a mock implementation - in a real app you'd send this to your backend
   };
   
   const getCurrentReferrer = (): string | null => {
+    // Try localStorage first (more persistent)
+    try {
+      const storedReferralData = localStorage.getItem('referralData');
+      if (storedReferralData) {
+        const referralData: ReferralData = JSON.parse(storedReferralData);
+        return referralData.referrer;
+      }
+    } catch (error) {
+      console.error('Error retrieving referral data from localStorage:', error);
+    }
+    
+    // Fall back to cookie
     return getCookie('referrer');
+  };
+  
+  const getReferralPlatform = (): string | null => {
+    try {
+      const storedReferralData = localStorage.getItem('referralData');
+      if (storedReferralData) {
+        const referralData: ReferralData = JSON.parse(storedReferralData);
+        return referralData.platform || 'insiderlife';
+      }
+    } catch (error) {
+      console.error('Error retrieving referral platform from localStorage:', error);
+    }
+    
+    return 'insiderlife'; // Default if not found
   };
   
   return {
     trackContentClick,
-    getCurrentReferrer
+    getCurrentReferrer,
+    getReferralPlatform
   };
 };
 

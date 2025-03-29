@@ -8,7 +8,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
+import { useReferral, ReferralPlatform } from '@/context/ReferralContext';
 
 export interface ContentItem {
   id: string;
@@ -37,6 +43,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
 }) => {
   const [isHovering, setIsHovering] = useState(false);
   const { toast } = useToast();
+  const { generateReferralLink, trackClick, referralLinks } = useReferral();
   
   const handleClick = () => {
     if (onClick) {
@@ -70,32 +77,50 @@ const ContentCard: React.FC<ContentCardProps> = ({
     }
   };
 
-  const handleShare = (e: React.MouseEvent) => {
+  const getPlatformName = (platform: ReferralPlatform): string => {
+    switch (platform) {
+      case 'insiderlife': return 'InsiderLife';
+      case 'insiderdao': return 'InsiderDAO';
+      case 'societi': return 'Societi';
+      case 'aifc': return 'AI Freedom Code';
+      default: return platform;
+    }
+  };
+
+  const handleShareWithPlatform = (e: React.MouseEvent, platform: ReferralPlatform) => {
     e.stopPropagation();
     
-    // In a real app, get the current user's referral code from context/state
-    const referralCode = "username123";
+    // Generate platform-specific referral link
+    const referralUrl = generateReferralLink(item.url, platform);
     
-    // Construct the referral URL
-    const referralUrl = `insiderlife.com${item.url}?ref=${referralCode}`;
+    // Check if platform link is set
+    const platformLink = referralLinks.find(link => link.platform === platform);
+    if (platform !== 'insiderlife' && (!platformLink || !platformLink.isSet)) {
+      toast({
+        title: "Platform link not set",
+        description: `Please set your ${getPlatformName(platform)} referral link in the dashboard first.`,
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Copy to clipboard
     navigator.clipboard.writeText(referralUrl);
     
+    // Track the sharing event
+    trackClick(item.id, platform);
+    
     toast({
       title: "Link copied",
-      description: "Referral link copied to clipboard!",
+      description: `${getPlatformName(platform)} referral link copied to clipboard!`,
     });
   };
 
   const handleSharePlatform = (platform: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // In a real app, get the current user's referral code from context/state
-    const referralCode = "username123";
-    
-    // Construct the referral URL
-    const referralUrl = `insiderlife.com${item.url}?ref=${referralCode}`;
+    // Generate the default (InsiderLife) referral link
+    const referralUrl = generateReferralLink(item.url);
     
     let shareUrl = '';
     
@@ -121,6 +146,9 @@ const ContentCard: React.FC<ContentCardProps> = ({
         });
         return;
     }
+    
+    // Track the sharing event
+    trackClick(item.id);
     
     // Open share window
     window.open(shareUrl, '_blank', 'width=600,height=400');
@@ -202,19 +230,39 @@ const ContentCard: React.FC<ContentCardProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => handleShare(e as React.MouseEvent)}>
-                Copy referral link
+              <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'insiderlife')}>
+                Copy InsiderLife link
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e as React.MouseEvent)}>
+              
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Copy for other platforms</DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'insiderdao')}>
+                      InsiderDAO link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'societi')}>
+                      Societi link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'aifc')}>
+                      AI Freedom Code link
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e)}>
                 Share on Twitter
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e as React.MouseEvent)}>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e)}>
                 Share on Facebook
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e as React.MouseEvent)}>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e)}>
                 Share on LinkedIn
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e as React.MouseEvent)}>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e)}>
                 Share on Telegram
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -278,19 +326,39 @@ const ContentCard: React.FC<ContentCardProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={(e) => handleShare(e as React.MouseEvent)}>
-                  Copy referral link
+                <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'insiderlife')}>
+                  Copy InsiderLife link
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e as React.MouseEvent)}>
+                
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Copy for other platforms</DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'insiderdao')}>
+                        InsiderDAO link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'societi')}>
+                        Societi link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'aifc')}>
+                        AI Freedom Code link
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e)}>
                   Share on Twitter
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e as React.MouseEvent)}>
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e)}>
                   Share on Facebook
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e as React.MouseEvent)}>
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e)}>
                   Share on LinkedIn
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e as React.MouseEvent)}>
+                <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e)}>
                   Share on Telegram
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -376,19 +444,39 @@ const ContentCard: React.FC<ContentCardProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => handleShare(e as React.MouseEvent)}>
-                Copy referral link
+              <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'insiderlife')}>
+                Copy InsiderLife link
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e as React.MouseEvent)}>
+              
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Copy for other platforms</DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'insiderdao')}>
+                      InsiderDAO link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'societi')}>
+                      Societi link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => handleShareWithPlatform(e, 'aifc')}>
+                      AI Freedom Code link
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('twitter', e)}>
                 Share on Twitter
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e as React.MouseEvent)}>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('facebook', e)}>
                 Share on Facebook
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e as React.MouseEvent)}>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('linkedin', e)}>
                 Share on LinkedIn
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e as React.MouseEvent)}>
+              <DropdownMenuItem onClick={(e) => handleSharePlatform('telegram', e)}>
                 Share on Telegram
               </DropdownMenuItem>
             </DropdownMenuContent>

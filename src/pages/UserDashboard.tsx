@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Header from '@/components/Header';
 import UserDashboardContent from '@/components/user/UserDashboard';
+import { ReferralProvider } from '@/context/ReferralContext';
 
 const UserDashboard = () => {
   return (
@@ -13,7 +14,9 @@ const UserDashboard = () => {
       <main className="flex-1 pt-24 pb-16">
         <AnimatedTransition>
           <div className="container mx-auto px-4 sm:px-6">
-            <UserDashboardContent />
+            <ReferralProvider>
+              <UserDashboardContent />
+            </ReferralProvider>
           </div>
         </AnimatedTransition>
       </main>
