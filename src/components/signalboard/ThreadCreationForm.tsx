@@ -27,7 +27,8 @@ import {
   ArrowLeft,
   Upload,
   Save,
-  Eye
+  Eye,
+  X
 } from 'lucide-react';
 import {
   Select,
