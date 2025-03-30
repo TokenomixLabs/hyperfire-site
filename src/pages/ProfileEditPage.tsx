@@ -7,6 +7,7 @@ import ProfileEditForm from '@/components/profile/ProfileEditForm';
 import ReferralLinksManager from '@/components/profile/ReferralLinksManager';
 import ProfileVisibilityToggle from '@/components/profile/ProfileVisibilityToggle';
 import ProfileStats from '@/components/profile/ProfileStats';
+import { ReferralPlatform } from '@/context/ReferralContext';
 
 const ProfileEditPage: React.FC = () => {
   const { user, updateUserProfile } = useAuth();
@@ -26,6 +27,18 @@ const ProfileEditPage: React.FC = () => {
     });
   };
 
+  const handleSaveReferralLinks = (links: Record<ReferralPlatform, string>) => {
+    // Make sure we have a complete referralLinks object
+    const updatedReferralLinks: Record<ReferralPlatform, string> = {
+      insiderlife: links.insiderlife || '',
+      insiderdao: links.insiderdao || '',
+      societi: links.societi || '',
+      aifc: links.aifc || '',
+    };
+    
+    handleSave({ referralLinks: updatedReferralLinks });
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
       <h1 className="text-3xl font-bold mb-8">Edit Profile</h1>
@@ -41,7 +54,7 @@ const ProfileEditPage: React.FC = () => {
             <h2 className="text-xl font-semibold mb-4">Referral Links</h2>
             <ReferralLinksManager 
               referralLinks={user.referralLinks || {}} 
-              onSave={(links) => handleSave({ referralLinks: links })} 
+              onSave={handleSaveReferralLinks} 
             />
           </div>
           

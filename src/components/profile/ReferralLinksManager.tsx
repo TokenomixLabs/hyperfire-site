@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 interface ReferralLinksManagerProps {
-  referralLinks: Record<ReferralPlatform, string>;
+  referralLinks: Partial<Record<ReferralPlatform, string>>;
   onSave: (links: Record<ReferralPlatform, string>) => void;
 }
 
@@ -34,7 +34,14 @@ const ReferralLinksManager: React.FC<ReferralLinksManagerProps> = ({ referralLin
   });
 
   function onSubmit(values: z.infer<typeof referralLinksSchema>) {
-    onSave(values);
+    // Ensure all values are present, even if empty strings
+    const completeLinks: Record<ReferralPlatform, string> = {
+      insiderlife: values.insiderlife || '',
+      insiderdao: values.insiderdao || '',
+      societi: values.societi || '',
+      aifc: values.aifc || '',
+    };
+    onSave(completeLinks);
   }
 
   const platformLabels: Record<ReferralPlatform, string> = {

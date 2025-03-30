@@ -8,7 +8,23 @@ import { Bell, User, Settings, LogOut, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LogoutButton from '@/components/auth/LogoutButton';
 
-const HeaderActions = () => {
+interface HeaderActionsProps {
+  searchOpen?: boolean;
+  setSearchOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  mobileMenuOpen?: boolean;
+  setMobileMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  isDarkMode?: boolean;
+  toggleDarkMode?: () => void;
+}
+
+const HeaderActions: React.FC<HeaderActionsProps> = ({ 
+  searchOpen,
+  setSearchOpen,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  isDarkMode,
+  toggleDarkMode
+}) => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   

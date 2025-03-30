@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -49,7 +50,7 @@ const Header = () => {
 
         <DesktopNav />
 
-        <HeaderActions
+        <HeaderActions 
           searchOpen={searchOpen}
           setSearchOpen={setSearchOpen}
           mobileMenuOpen={mobileMenuOpen}
