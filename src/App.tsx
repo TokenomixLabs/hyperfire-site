@@ -17,6 +17,8 @@ import NotFound from "./pages/NotFound";
 import ContentExample from "./pages/ContentExample";
 import SignalSeriesViewer from "./pages/SignalSeriesViewer";
 import BrowseSignalSeries from "./pages/BrowseSignalSeries";
+import SignalLibrary from "./pages/SignalLibrary";
+import SignalSeriesDetail from "./pages/SignalSeriesDetail";
 
 // SignalBoard pages
 import SignalBoardLayout from "./components/signalboard/SignalBoardLayout";
@@ -39,6 +41,7 @@ import IntegrationTools from "./pages/IntegrationTools";
 import ReferralTrackingStats from "./components/referrals/ReferralTrackingStats";
 import SignalSeriesAdmin from "./pages/admin/SignalSeriesAdmin";
 import MySignalFunnels from "./pages/user/MySignalFunnels";
+import MySignalDuplicates from "./pages/user/MySignalDuplicates";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +63,8 @@ const App = () => (
               <Route path="/content-example/:contentId" element={<ContentExample />} />
               <Route path="/s/:slug" element={<SignalSeriesViewer />} />
               <Route path="/browse-signals" element={<BrowseSignalSeries />} />
+              <Route path="/signal-library" element={<SignalLibrary />} />
+              <Route path="/signal/:slug" element={<SignalSeriesDetail />} />
               
               {/* SignalBoard Routes */}
               <Route path="/signalboard" element={<SignalBoardLayout />}>
@@ -185,6 +190,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <MySignalFunnels />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/my-signal-duplicates" 
+                element={
+                  <ProtectedRoute>
+                    <MySignalDuplicates />
                   </ProtectedRoute>
                 } 
               />
