@@ -30,7 +30,7 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             buttonText: "Join AI Freedom Code",
             description: "Get access to our complete AI toolkit and training library",
             theme: "primary",
-            placement: "bottom",
+            placement: "banner",
             position: "bottom"
           }
         ]
@@ -55,9 +55,9 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             campaignId: "insiderlife",
             buttonText: "Get Our AI Prompt Library",
             description: "Download our collection of 100+ effective AI prompts for business",
-            theme: "secondary",
+            theme: "primary",
             placement: "inline",
-            position: "middle"
+            position: "top"
           }
         ]
       },
@@ -75,7 +75,7 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             buttonText: "Join Our AI Business Mastermind",
             description: "Connect with other AI-powered entrepreneurs in our private community",
             theme: "primary",
-            placement: "bottom",
+            placement: "banner",
             position: "bottom"
           }
         ]
@@ -94,7 +94,7 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             buttonText: "Apply for AI Freedom Code",
             description: "Take your AI skills to the next level with our comprehensive program",
             theme: "primary",
-            placement: "bottom",
+            placement: "banner",
             position: "bottom"
           }
         ]
@@ -151,7 +151,7 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             buttonText: "Join InsiderDAO",
             description: "Get access to our premium crypto signals and analysis",
             theme: "primary",
-            placement: "bottom",
+            placement: "banner",
             position: "bottom"
           }
         ]
@@ -209,9 +209,9 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             campaignId: "insiderlife",
             buttonText: "Get Our Privacy Toolkit",
             description: "Download our comprehensive guide to digital privacy tools",
-            theme: "secondary",
+            theme: "primary",
             placement: "inline",
-            position: "middle"
+            position: "top"
           }
         ]
       },
@@ -229,7 +229,7 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             buttonText: "Join Our Financial Sovereignty Course",
             description: "Master the tools and strategies for financial freedom",
             theme: "primary",
-            placement: "bottom",
+            placement: "banner",
             position: "bottom"
           }
         ]
@@ -293,7 +293,7 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             buttonText: "Try Societi Pro",
             description: "Optimize your social media workflow with our AI-powered platform",
             theme: "primary",
-            placement: "bottom",
+            placement: "banner",
             position: "bottom"
           }
         ]
@@ -353,7 +353,7 @@ export const mockSignalLibrary: SignalLibraryItem[] = [
             description: "Plan your content strategy with our AI-powered assistant",
             theme: "primary",
             placement: "inline",
-            position: "middle"
+            position: "top"
           }
         ]
       },
