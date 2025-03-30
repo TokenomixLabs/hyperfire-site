@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -24,15 +25,16 @@ const ProfileSetup = () => {
   const { user, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || '',
       username: user?.username || '',
-      insiderdao: user?.referralLinks.insiderdao || '',
-      societi: user?.referralLinks.societi || '',
-      aifc: user?.referralLinks.aifc || '',
+      insiderdao: user?.referralLinks?.insiderdao || '',
+      societi: user?.referralLinks?.societi || '',
+      aifc: user?.referralLinks?.aifc || '',
     }
   });
 
@@ -40,22 +42,49 @@ const ProfileSetup = () => {
     try {
       setIsSubmitting(true);
       
-      // Update the user profile
-      updateUserProfile({
+      // Prepare the user data object
+      const userData = {
         name: values.name,
         username: values.username,
         referralLinks: {
-          insiderlife: user?.referralLinks.insiderlife || '',
+          insiderlife: user?.referralLinks?.insiderlife || '',
           insiderdao: values.insiderdao || '',
           societi: values.societi || '',
           aifc: values.aifc || '',
         }
+      };
+      
+      // Call the API to update the user profile
+      const response = await fetch('/api/users/profile-setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to set up profile');
+      }
+      
+      // Update the user profile in the context
+      updateUserProfile(userData);
+      
+      toast({
+        title: "Profile setup complete",
+        description: "Your profile has been successfully set up.",
       });
 
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
       console.error('Profile setup error:', error);
+      toast({
+        title: "Setup failed",
+        description: error instanceof Error ? error.message : "Failed to set up your profile. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileVisibilityToggleProps {
   isPublic: boolean;
@@ -14,13 +15,42 @@ const ProfileVisibilityToggle: React.FC<ProfileVisibilityToggleProps> = ({
   isPublic, 
   onToggle 
 }) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
+
+  const handleToggle = async (checked: boolean) => {
+    setIsUpdating(true);
+    
+    try {
+      // Call the parent component's onToggle function
+      await onToggle(checked);
+      
+      toast({
+        title: "Profile visibility updated",
+        description: checked 
+          ? "Your profile is now public and visible to everyone." 
+          : "Your profile is now private and only visible to you.",
+      });
+    } catch (error) {
+      console.error('Failed to update profile visibility:', error);
+      toast({
+        title: "Update failed",
+        description: "Failed to update your profile visibility. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
         <Switch 
           id="profile-visibility" 
           checked={isPublic}
-          onCheckedChange={onToggle}
+          onCheckedChange={handleToggle}
+          disabled={isUpdating}
         />
         <Label htmlFor="profile-visibility" className="cursor-pointer">
           Public Profile
@@ -42,9 +72,11 @@ const ProfileVisibilityToggle: React.FC<ProfileVisibilityToggleProps> = ({
       </div>
       
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        {isPublic 
-          ? "Your profile is currently public and can be viewed by anyone." 
-          : "Your profile is currently private and can only be viewed by you and admins."}
+        {isUpdating 
+          ? "Updating visibility settings..." 
+          : isPublic 
+            ? "Your profile is currently public and can be viewed by anyone." 
+            : "Your profile is currently private and can only be viewed by you and admins."}
       </p>
     </div>
   );

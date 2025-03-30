@@ -7,6 +7,7 @@ import { ReferralPlatform } from '@/context/ReferralContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
 
 interface ReferralLinksManagerProps {
   referralLinks: Partial<Record<ReferralPlatform, string>>;
@@ -23,6 +24,7 @@ const referralLinksSchema = z.object({
 });
 
 const ReferralLinksManager: React.FC<ReferralLinksManagerProps> = ({ referralLinks, onSave }) => {
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof referralLinksSchema>>({
     resolver: zodResolver(referralLinksSchema),
     defaultValues: {
@@ -33,15 +35,37 @@ const ReferralLinksManager: React.FC<ReferralLinksManagerProps> = ({ referralLin
     },
   });
 
-  function onSubmit(values: z.infer<typeof referralLinksSchema>) {
-    // Ensure all values are present, even if empty strings
-    const completeLinks: Record<ReferralPlatform, string> = {
-      insiderlife: values.insiderlife || '',
-      insiderdao: values.insiderdao || '',
-      societi: values.societi || '',
-      aifc: values.aifc || '',
-    };
-    onSave(completeLinks);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function onSubmit(values: z.infer<typeof referralLinksSchema>) {
+    setIsSubmitting(true);
+    
+    try {
+      // Ensure all values are present, even if empty strings
+      const completeLinks: Record<ReferralPlatform, string> = {
+        insiderlife: values.insiderlife || '',
+        insiderdao: values.insiderdao || '',
+        societi: values.societi || '',
+        aifc: values.aifc || '',
+      };
+      
+      // Call the parent's onSave function
+      await onSave(completeLinks);
+      
+      toast({
+        title: "Links updated",
+        description: "Your referral links have been successfully updated.",
+      });
+    } catch (error) {
+      console.error('Failed to update referral links:', error);
+      toast({
+        title: "Update failed",
+        description: "Failed to update your referral links. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const platformLabels: Record<ReferralPlatform, string> = {
@@ -74,7 +98,9 @@ const ReferralLinksManager: React.FC<ReferralLinksManagerProps> = ({ referralLin
           />
         ))}
 
-        <Button type="submit">Save Referral Links</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Save Referral Links"}
+        </Button>
       </form>
     </Form>
   );

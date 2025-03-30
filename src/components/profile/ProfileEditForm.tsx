@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileEditFormProps {
   user: User;
@@ -25,6 +26,9 @@ const profileSchema = z.object({
 });
 
 const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+  
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -36,8 +40,23 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof profileSchema>) {
-    onSave(values);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function onSubmit(values: z.infer<typeof profileSchema>) {
+    setIsSubmitting(true);
+    
+    try {
+      await onSave(values);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      toast({
+        title: "Update failed",
+        description: "Failed to update your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const getInitials = (name: string) => {
@@ -48,10 +67,79 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
       .toUpperCase();
   };
 
-  // Placeholder for avatar upload functionality
-  const handleAvatarUpload = () => {
-    // In a real implementation, this would open a file picker and upload the image
-    alert("Avatar upload functionality would be implemented here");
+  // Real avatar upload functionality
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file",
+        description: "Please upload an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "The image must be less than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // Create form data for the upload
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      // Upload the file
+      const response = await fetch('/api/users/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload avatar');
+      }
+      
+      const data = await response.json();
+      
+      // Update the form with the new avatar URL
+      form.setValue('avatarUrl', data.avatarUrl);
+      
+      toast({
+        title: "Avatar uploaded",
+        description: "Your profile picture has been updated",
+      });
+    } catch (error) {
+      console.error('Failed to upload avatar:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload your avatar. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Create a hidden file input for avatar uploads
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // Trigger the file input when the button is clicked
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
@@ -68,8 +156,21 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
                 </AvatarFallback>
               )}
             </Avatar>
-            <Button type="button" variant="outline" size="sm" onClick={handleAvatarUpload}>
-              Change Avatar
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleAvatarUpload} 
+              accept="image/*" 
+              className="hidden" 
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={triggerFileInput}
+              disabled={isUploading}
+            >
+              {isUploading ? "Uploading..." : "Change Avatar"}
             </Button>
           </div>
           
@@ -148,7 +249,9 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
           )}
         />
 
-        <Button type="submit">Save Profile</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Save Profile"}
+        </Button>
       </form>
     </Form>
   );
