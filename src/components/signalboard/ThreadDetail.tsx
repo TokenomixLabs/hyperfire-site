@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { mockThreads } from '@/data/mockThreads';
 import { Thread, Reply, ReactionType } from '@/types/signalboard';
+import { User } from '@/types/user';  // Import correct User type
 import { 
   MessageCircle,
   Heart,

@@ -1,22 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-
-// User interface for our auth system
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  username: string;
-  isNewUser: boolean;
-  referralLinks: {
-    insiderlife: string;
-    insiderdao: string;
-    societi: string;
-    aifc: string;
-  };
-}
+import { User } from '@/types/user';
 
 interface AuthContextType {
   user: User | null;
@@ -30,8 +15,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// This would normally connect to an authentication service
-// For now, we're using localStorage for demo purposes
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +22,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
@@ -56,8 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      // This would normally validate against a backend
-      // For demo, we'll check if user exists in localStorage
       const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
       const foundUser = storedUsers.find((u: any) => u.email === email);
       
@@ -69,7 +49,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Invalid password');
       }
       
-      // Remove password before storing in state
       const { password: _, ...userWithoutPassword } = foundUser;
       
       setUser(userWithoutPassword);
@@ -80,7 +59,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Welcome back!",
       });
       
-      // Redirect based on whether profile is complete
       if (foundUser.isNewUser) {
         navigate('/profile-setup');
       } else {
@@ -101,8 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      // This would normally validate and create a user in a backend
-      // For demo, we'll store in localStorage
       const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
       
       if (storedUsers.some((u: any) => u.email === email)) {
@@ -112,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newUser = {
         id: `user_${Date.now()}`,
         email,
-        password, // In a real app, this would be hashed
+        password,
         name: '',
         username: '',
         isNewUser: true,
@@ -127,7 +103,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       storedUsers.push(newUser);
       localStorage.setItem('users', JSON.stringify(storedUsers));
       
-      // Remove password before storing in state
       const { password: _, ...userWithoutPassword } = newUser;
       
       setUser(userWithoutPassword);
@@ -138,7 +113,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Welcome to InsiderLife!",
       });
       
-      // Redirect to profile setup
       navigate('/profile-setup');
     } catch (error) {
       toast({
@@ -166,7 +140,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const updatedUser = { ...user, ...userData };
     
-    // If this is a complete profile update, mark as not new
     if (userData.name && userData.username) {
       updatedUser.isNewUser = false;
     }
@@ -174,7 +147,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
     
-    // Also update in users array
     const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
     const updatedUsers = storedUsers.map((u: any) => {
       if (u.id === user.id) {
