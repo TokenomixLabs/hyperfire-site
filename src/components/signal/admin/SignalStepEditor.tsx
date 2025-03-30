@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SignalStep } from '@/types/signal';
 import { ContentCTA } from '@/types/referral';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { ContentCTAForm } from '@/components/content-creator/ContentCTAForm';
+import ContentCTAForm from '@/components/content-creator/ContentCTAForm';
 import { ReferralProgram } from '@/types/referral';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 

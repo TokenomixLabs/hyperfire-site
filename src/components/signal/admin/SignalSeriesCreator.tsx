@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -30,7 +29,7 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { PlusCircle, MinusCircle, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
-import { SignalContentType, SignalSeriesWithStats, SignalStep } from '@/types/signal';
+import { SignalContentType, SignalSeriesWithStats, SignalStep, SignalSeries } from '@/types/signal';
 import { useForm } from 'react-hook-form';
 import SignalStepEditor from './SignalStepEditor';
 import { Separator } from "@/components/ui/separator";
@@ -60,7 +59,6 @@ const SignalSeriesCreator: React.FC<SignalSeriesCreatorProps> = ({
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Initialize the form
   const form = useForm({
     defaultValues: {
       name: editingSeries?.name || '',
@@ -72,7 +70,6 @@ const SignalSeriesCreator: React.FC<SignalSeriesCreatorProps> = ({
     }
   });
 
-  // Load steps from editing series
   useEffect(() => {
     if (editingSeries) {
       setSteps(editingSeries.steps.sort((a, b) => a.order - b.order));
@@ -125,10 +122,8 @@ const SignalSeriesCreator: React.FC<SignalSeriesCreatorProps> = ({
     const newSteps = [...steps];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
-    // Swap the steps
     [newSteps[index], newSteps[targetIndex]] = [newSteps[targetIndex], newSteps[index]];
     
-    // Update order property
     newSteps.forEach((step, idx) => {
       step.order = idx;
     });
@@ -140,7 +135,6 @@ const SignalSeriesCreator: React.FC<SignalSeriesCreatorProps> = ({
     const newSteps = [...steps];
     newSteps.splice(index, 1);
     
-    // Update order property
     newSteps.forEach((step, idx) => {
       step.order = idx;
     });
@@ -152,15 +146,12 @@ const SignalSeriesCreator: React.FC<SignalSeriesCreatorProps> = ({
     let newSteps: SignalStep[];
     
     if (editingStepIndex !== null) {
-      // Editing existing step
       newSteps = [...steps];
       newSteps[editingStepIndex] = step;
     } else {
-      // Adding new step
       newSteps = [...steps, step];
     }
     
-    // Sort steps by order
     newSteps.sort((a, b) => a.order - b.order);
     
     setSteps(newSteps);
@@ -189,7 +180,7 @@ const SignalSeriesCreator: React.FC<SignalSeriesCreatorProps> = ({
       contentType: data.contentType,
       thumbnailUrl: data.thumbnailUrl,
       featuredImageUrl: data.featuredImageUrl,
-      createdBy: "admin", // In a real app, this would be the current user
+      createdBy: "admin",
       createdAt: editingSeries?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       published: data.published,

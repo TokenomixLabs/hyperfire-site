@@ -14,6 +14,13 @@ export interface SignalStep {
   ctas: ContentCTA[];
 }
 
+export interface SignalStats {
+  views: number;
+  ctaClicks: number;
+  conversions: number;
+  shares: number;
+}
+
 export interface SignalSeries {
   id: string;
   name: string;
@@ -30,13 +37,7 @@ export interface SignalSeries {
   isDuplicated: boolean;
   originalSeriesId?: string;
   tags?: string[];
-}
-
-export interface SignalStats {
-  views: number;
-  ctaClicks: number;
-  conversions: number;
-  shares: number;
+  stats?: SignalStats;
 }
 
 export interface SignalSeriesWithStats extends SignalSeries {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Copy, Share2, ExternalLink, Play, BookOpen } from 'lucide-react';
 import AnimatedTransition from "@/components/AnimatedTransition";
-import { SignalSeries, SignalStep } from '@/types/signal';
+import { SignalSeries, SignalStep, SignalContentType } from '@/types/signal';
 import { useReferral } from '@/context/ReferralContext';
 import { ReferralProvider } from '@/context/ReferralContext';
 import Header from '@/components/Header';
@@ -22,13 +21,13 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Mock data for series
-const mockSignalSeries = [
+const mockSignalSeries: SignalSeries[] = [
   {
     id: "signal-1",
     name: "AI Freedom Roadmap",
     slug: "ai-freedom-roadmap",
     description: "Master AI tools and build your freedom business in 5 simple steps",
-    contentType: "mixed",
+    contentType: "mixed" as SignalContentType,
     thumbnailUrl: "/thumbnails/ai-freedom.jpg",
     featuredImageUrl: "/featured/ai-freedom-banner.jpg",
     createdBy: "admin",
@@ -92,14 +91,20 @@ const mockSignalSeries = [
         ]
       }
     ],
-    isDuplicated: false
+    isDuplicated: false,
+    stats: {
+      views: 1456,
+      ctaClicks: 328,
+      conversions: 42,
+      shares: 86
+    }
   },
   {
     id: "signal-2",
     name: "Crypto Investing Fundamentals",
     slug: "crypto-investing",
     description: "Learn the foundational principles of cryptocurrency investing",
-    contentType: "video",
+    contentType: "video" as SignalContentType,
     thumbnailUrl: "/thumbnails/crypto-basics.jpg",
     featuredImageUrl: "/featured/crypto-banner.jpg",
     createdBy: "admin",
@@ -127,7 +132,13 @@ const mockSignalSeries = [
         ]
       }
     ],
-    isDuplicated: false
+    isDuplicated: false,
+    stats: {
+      views: 2387,
+      ctaClicks: 542,
+      conversions: 78,
+      shares: 134
+    }
   }
 ];
 
