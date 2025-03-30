@@ -9,6 +9,7 @@ const DesktopNav = () => {
   const navLinks = [
     { path: '/', label: 'Dashboard' },
     { path: '/content', label: 'Content Library' },
+    { path: '/signalboard', label: 'SignalBoard' },
     { path: '/live', label: 'Live Events' },
     { path: '/documents', label: 'Document Vault' },
   ];
@@ -20,7 +21,7 @@ const DesktopNav = () => {
           key={link.path}
           to={link.path}
           label={link.label}
-          isActive={location.pathname === link.path}
+          isActive={location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))}
           className="px-3 py-2 text-sm font-medium rounded-md"
         />
       ))}

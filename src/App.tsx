@@ -18,6 +18,12 @@ import ContentExample from "./pages/ContentExample";
 import SignalSeriesViewer from "./pages/SignalSeriesViewer";
 import BrowseSignalSeries from "./pages/BrowseSignalSeries";
 
+// SignalBoard pages
+import SignalBoardLayout from "./components/signalboard/SignalBoardLayout";
+import SignalBoardPage from "./pages/signalboard/SignalBoardPage";
+import ThreadDetailPage from "./pages/signalboard/ThreadDetailPage";
+import ThreadCreationPage from "./pages/signalboard/ThreadCreationPage";
+
 // Protected pages
 import ProfileSetup from "./pages/auth/ProfileSetup";
 import UserDashboard from "./pages/UserDashboard";
@@ -54,6 +60,20 @@ const App = () => (
               <Route path="/content-example/:contentId" element={<ContentExample />} />
               <Route path="/s/:slug" element={<SignalSeriesViewer />} />
               <Route path="/browse-signals" element={<BrowseSignalSeries />} />
+              
+              {/* SignalBoard Routes */}
+              <Route path="/signalboard" element={<SignalBoardLayout />}>
+                <Route index element={<SignalBoardPage />} />
+                <Route path="thread/:threadId" element={<ThreadDetailPage />} />
+                <Route 
+                  path="create" 
+                  element={
+                    <ProtectedRoute>
+                      <ThreadCreationPage />
+                    </ProtectedRoute>
+                  } 
+                />
+              </Route>
               
               {/* Protected Routes */}
               <Route 

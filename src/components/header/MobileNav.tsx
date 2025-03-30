@@ -13,6 +13,7 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
   const navLinks = [
     { path: '/', label: 'Dashboard' },
     { path: '/content', label: 'Content Library' },
+    { path: '/signalboard', label: 'SignalBoard' },
     { path: '/live', label: 'Live Events' },
     { path: '/documents', label: 'Document Vault' },
   ];
@@ -30,7 +31,7 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
               key={link.path}
               to={link.path}
               label={link.label}
-              isActive={location.pathname === link.path}
+              isActive={location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))}
               className="px-4 py-3 text-sm font-medium rounded-md"
             />
           ))}
