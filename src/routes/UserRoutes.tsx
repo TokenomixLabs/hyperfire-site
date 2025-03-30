@@ -6,7 +6,7 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import ProfileSetup from "../pages/auth/ProfileSetup";
 import ProfileEditPage from "../pages/ProfileEditPage";
 import UserDashboard from "../pages/UserDashboard";
-import ContentLibrary from "../pages/ContentLibrary";
+import ContentLibrary from "../pages/content-library"; // Updated import
 import LiveEvents from "../pages/LiveEvents";
 import DocumentVault from "../pages/DocumentVault";
 import ReferralTrackingStats from "../components/referrals/ReferralTrackingStats";

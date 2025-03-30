@@ -5,9 +5,9 @@ import Header from '@/components/Header';
 import GlobalCTA from '@/components/GlobalCTA';
 import { useContentFilter } from '@/hooks/useContentFilter';
 import { contentData } from '@/data/contentLibraryData';
-import SearchFilterBar from '@/components/content-library/SearchFilterBar';
-import FilterPanel from '@/components/content-library/FilterPanel';
-import ContentTabs from '@/components/content-library/ContentTabs';
+import ContentLibraryHeader from './ContentLibraryHeader';
+import ContentLibraryFilters from './ContentLibraryFilters';
+import ContentLibraryTabs from './ContentLibraryTabs';
 
 const ContentLibrary = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -57,14 +57,9 @@ const ContentLibrary = () => {
       <main className="flex-1 pt-24 pb-16">
         <AnimatedTransition>
           <div className="container mx-auto px-4 sm:px-6">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold tracking-tight mb-2">Content Library</h1>
-              <p className="text-gray-600 dark:text-gray-300">
-                Browse and discover content across all InsiderLife properties
-              </p>
-            </div>
+            <ContentLibraryHeader />
             
-            <SearchFilterBar 
+            <ContentLibraryFilters 
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               handleSearch={handleSearch}
@@ -75,11 +70,6 @@ const ContentLibrary = () => {
               setViewMode={setViewMode}
               sortBy={filters.sortBy || 'date'}
               onSortChange={(value) => updateFilters({ sortBy: value as 'date' | 'views' | 'title' })}
-            />
-            
-            <FilterPanel 
-              showFilterPanel={showFilterPanel}
-              setShowFilterPanel={setShowFilterPanel}
               filters={filters}
               updateFilters={updateFilters}
               clearFilters={clearFilters}
@@ -88,7 +78,7 @@ const ContentLibrary = () => {
               availableTags={availableTags}
             />
             
-            <ContentTabs 
+            <ContentLibraryTabs 
               isLoading={isLoading}
               viewMode={viewMode}
               filteredContent={filteredContent}
