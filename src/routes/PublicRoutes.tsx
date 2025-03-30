@@ -1,5 +1,5 @@
 
-import { Route } from "react-router-dom";
+import { Route, Fragment } from "react-router-dom";
 
 // Public pages
 import Index from "../pages/Index";
@@ -16,7 +16,7 @@ import UserProfilePage from "../pages/UserProfilePage";
 
 const PublicRoutes = () => {
   return (
-    <>
+    <Fragment>
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
@@ -29,7 +29,7 @@ const PublicRoutes = () => {
       <Route path="/signal/:slug" element={<SignalSeriesDetail />} />
       <Route path="/u/:username" element={<UserProfilePage />} />
       <Route path="*" element={<NotFound />} />
-    </>
+    </Fragment>
   );
 };
 

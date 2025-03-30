@@ -1,5 +1,5 @@
 
-import { Route } from "react-router-dom";
+import { Route, Fragment } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 // Protected user pages
@@ -15,7 +15,7 @@ import MySignalDuplicates from "../pages/user/MySignalDuplicates";
 
 const UserRoutes = () => {
   return (
-    <>
+    <Fragment>
       <Route 
         path="/profile-setup" 
         element={
@@ -88,7 +88,7 @@ const UserRoutes = () => {
           </ProtectedRoute>
         } 
       />
-    </>
+    </Fragment>
   );
 };
 

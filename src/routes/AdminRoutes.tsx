@@ -1,5 +1,5 @@
 
-import { Route } from "react-router-dom";
+import { Route, Fragment } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 // Admin pages
@@ -13,7 +13,7 @@ import SignalSeriesAdmin from "../pages/admin/SignalSeriesAdmin";
 
 const AdminRoutes = () => {
   return (
-    <>
+    <Fragment>
       <Route 
         path="/admin" 
         element={
@@ -70,7 +70,7 @@ const AdminRoutes = () => {
           </ProtectedRoute>
         } 
       />
-    </>
+    </Fragment>
   );
 };
 
