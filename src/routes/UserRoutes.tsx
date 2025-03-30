@@ -1,5 +1,6 @@
 
-import { Route, Fragment } from "react-router-dom";
+import { Route } from "react-router-dom";
+import { Fragment } from "react";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 // Protected user pages
