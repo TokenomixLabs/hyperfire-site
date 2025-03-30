@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Menu, X, Search, Sun, Moon } from 'lucide-react';
-import BrandSelector from '../BrandSelector';
 import NotificationCenter from '../NotificationCenter';
 
 interface HeaderActionsProps {
@@ -23,8 +22,6 @@ const HeaderActions = ({
 }: HeaderActionsProps) => {
   return (
     <div className="flex items-center space-x-3">
-      <BrandSelector />
-      
       <NotificationCenter />
 
       <button 
