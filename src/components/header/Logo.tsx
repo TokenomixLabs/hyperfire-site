@@ -10,9 +10,6 @@ const Logo = () => {
         alt="InsiderLife Logo" 
         className="h-8 w-auto" // Reduced size from h-10 to h-8
       />
-      <div className="hidden md:flex px-2 py-1 text-xs font-medium rounded-full bg-insider-100 dark:bg-insider-800 text-insider-700 dark:text-insider-300">
-        CMS
-      </div>
     </Link>
   );
 };

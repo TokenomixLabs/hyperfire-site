@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Menu, X, Search, Sun, Moon } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 import NotificationCenter from '../NotificationCenter';
 
 interface HeaderActionsProps {
@@ -30,14 +30,6 @@ const HeaderActions = ({
         aria-label="Search"
       >
         <Search size={18} />
-      </button>
-
-      <button 
-        onClick={toggleDarkMode}
-        className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      >
-        {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
       </button>
 
       <button 
