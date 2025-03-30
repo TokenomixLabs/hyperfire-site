@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,7 @@ import SignalSeriesViewer from "./pages/SignalSeriesViewer";
 import BrowseSignalSeries from "./pages/BrowseSignalSeries";
 import SignalLibrary from "./pages/SignalLibrary";
 import SignalSeriesDetail from "./pages/SignalSeriesDetail";
+import UserProfilePage from "./pages/UserProfilePage";
 
 // SignalBoard pages
 import SignalBoardLayout from "./components/signalboard/SignalBoardLayout";
@@ -28,6 +28,7 @@ import ThreadCreationPage from "./pages/signalboard/ThreadCreationPage";
 
 // Protected pages
 import ProfileSetup from "./pages/auth/ProfileSetup";
+import ProfileEditPage from "./pages/ProfileEditPage";
 import UserDashboard from "./pages/UserDashboard";
 import ContentLibrary from "./pages/ContentLibrary";
 import LiveEvents from "./pages/LiveEvents";
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/browse-signals" element={<BrowseSignalSeries />} />
               <Route path="/signal-library" element={<SignalLibrary />} />
               <Route path="/signal/:slug" element={<SignalSeriesDetail />} />
+              <Route path="/u/:username" element={<UserProfilePage />} />
               
               {/* SignalBoard Routes */}
               <Route path="/signalboard" element={<SignalBoardLayout />}>
@@ -86,6 +88,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ProfileSetup />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile/edit" 
+                element={
+                  <ProtectedRoute>
+                    <ProfileEditPage />
                   </ProtectedRoute>
                 } 
               />
