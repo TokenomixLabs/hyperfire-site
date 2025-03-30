@@ -1,14 +1,14 @@
 
 import { Routes, Route } from "react-router-dom";
 import PublicRoutes from "./PublicRoutes";
-import SignalBoardRoutes from "./SignalBoardRoutes";
 import UserRoutes from "./UserRoutes";
 import AdminRoutes from "./AdminRoutes";
+import SignalBoardRoutes from "./SignalBoardRoutes";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Spread the route elements from each route component */}
+      {/* Include the route components directly */}
       <PublicRoutes />
       <UserRoutes />
       <AdminRoutes />
