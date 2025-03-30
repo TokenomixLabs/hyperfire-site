@@ -15,6 +15,8 @@ import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import ContentExample from "./pages/ContentExample";
+import SignalSeriesViewer from "./pages/SignalSeriesViewer";
+import BrowseSignalSeries from "./pages/BrowseSignalSeries";
 
 // Protected pages
 import ProfileSetup from "./pages/auth/ProfileSetup";
@@ -29,6 +31,8 @@ import MediaLibrary from "./pages/MediaLibrary";
 import SeoTools from "./pages/SeoTools";
 import IntegrationTools from "./pages/IntegrationTools";
 import ReferralTrackingStats from "./components/referrals/ReferralTrackingStats";
+import SignalSeriesAdmin from "./pages/admin/SignalSeriesAdmin";
+import MySignalFunnels from "./pages/user/MySignalFunnels";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +52,8 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/content-example" element={<ContentExample />} />
               <Route path="/content-example/:contentId" element={<ContentExample />} />
+              <Route path="/s/:slug" element={<SignalSeriesViewer />} />
+              <Route path="/browse-signals" element={<BrowseSignalSeries />} />
               
               {/* Protected Routes */}
               <Route 
@@ -99,6 +105,14 @@ const App = () => (
                 } 
               />
               <Route 
+                path="/admin/signal-series" 
+                element={
+                  <ProtectedRoute>
+                    <SignalSeriesAdmin />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/users" 
                 element={
                   <ProtectedRoute>
@@ -143,6 +157,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ReferralTrackingStats />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/my-signal-funnels" 
+                element={
+                  <ProtectedRoute>
+                    <MySignalFunnels />
                   </ProtectedRoute>
                 } 
               />
