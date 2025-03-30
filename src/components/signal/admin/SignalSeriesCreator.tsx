@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -14,7 +13,7 @@ import { SignalContentType, SignalSeriesWithStats, SignalStep } from '@/types/si
 import { useForm } from 'react-hook-form';
 import SignalSeriesPreview from './SignalSeriesPreview';
 import SeriesForm from './SeriesForm';
-import SeriesStepsManager from './SeriesStepsManager';
+import { SeriesStepsManager } from './steps';
 
 interface SignalSeriesCreatorProps {
   editingSeries: SignalSeriesWithStats | null;
