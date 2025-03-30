@@ -4,9 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Reply, ReactionType } from '@/types/signalboard';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import ThreadReplyForm from './ThreadReplyForm';
 import ReplyCardHeader from './ReplyCardHeader';
 import ReplyActions from './ReplyActions';
+import ReplyContent from './ReplyContent';
+import NestedReplyForm from './NestedReplyForm';
 
 interface ReplyCardProps {
   reply: Reply;
@@ -64,6 +65,14 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, threadLocked }) => {
     });
   };
   
+  const handleUpdateReply = (content: string) => {
+    toast({
+      title: "Reply updated",
+      description: "Your reply has been updated"
+    });
+    setIsEditing(false);
+  };
+  
   return (
     <Card>
       <CardContent className="p-5">
@@ -77,25 +86,12 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, threadLocked }) => {
           onReport={handleReport}
         />
         
-        {isEditing ? (
-          <ThreadReplyForm 
-            onSubmit={(content) => {
-              toast({
-                title: "Reply updated",
-                description: "Your reply has been updated"
-              });
-              setIsEditing(false);
-            }}
-            onCancel={() => setIsEditing(false)}
-            initialContent={reply.content}
-            submitLabel="Update"
-          />
-        ) : (
-          <div 
-            className="prose prose-sm dark:prose-invert max-w-none mt-3"
-            dangerouslySetInnerHTML={{ __html: reply.content }}
-          />
-        )}
+        <ReplyContent
+          content={reply.content}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          onUpdateReply={handleUpdateReply}
+        />
         
         <ReplyActions 
           reply={reply}
@@ -108,13 +104,11 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, threadLocked }) => {
         />
         
         {showReplyForm && (
-          <div className="mt-4 pl-6 border-l-2 border-muted">
-            <ThreadReplyForm 
-              onSubmit={handleReplySubmit} 
-              onCancel={() => setShowReplyForm(false)}
-              placeholder={`Reply to ${reply.author?.name}...`}
-            />
-          </div>
+          <NestedReplyForm
+            authorName={reply.author?.name}
+            onSubmit={handleReplySubmit}
+            onCancel={() => setShowReplyForm(false)}
+          />
         )}
       </CardContent>
     </Card>
