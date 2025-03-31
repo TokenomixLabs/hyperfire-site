@@ -25,7 +25,7 @@ const App = () => (
       <MetaTags 
         title="InsiderLife Signal Hub"
         description="Amplify your reach, build your network, and earn recognition across the entire ecosystem."
-        image="/placeholder.svg"
+        imageUrl="/placeholder.svg"
       />
       <Toaster />
       <Sonner />

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +16,7 @@ interface ReferralLink {
 interface ReferralLinksTabProps {
   referralLinks: ReferralLink[];
   updateReferralLink: (platform: ReferralPlatform, url: string) => void;
+  onCopyLink?: (link: string) => void;
 }
 
 // Helper to get platform display name
@@ -50,7 +50,7 @@ const getPlatformInstructions = (platform: ReferralPlatform): string => {
   }
 };
 
-const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTabProps) => {
+const ReferralLinksTab = ({ referralLinks, updateReferralLink, onCopyLink }: ReferralLinksTabProps) => {
   const [referralInputs, setReferralInputs] = useState<Record<ReferralPlatform, string>>(
     referralLinks.reduce((acc, link) => ({
       ...acc,
@@ -67,6 +67,11 @@ const ReferralLinksTab = ({ referralLinks, updateReferralLink }: ReferralLinksTa
       title: "Link copied",
       description: `${type} referral link copied to clipboard`,
     });
+    
+    // Call the onCopyLink prop if provided
+    if (onCopyLink) {
+      onCopyLink(link);
+    }
   };
 
   const handleUpdateReferralLink = (platform: ReferralPlatform) => {
