@@ -1,5 +1,5 @@
 
-import { Routes, Route } from "react-router-dom";
+import { Route } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import SignalBoardLayout from "../components/signalboard/SignalBoardLayout";
 import SignalBoardPage from "../pages/signalboard/SignalBoardPage";
@@ -8,20 +8,20 @@ import ThreadCreationPage from "../pages/signalboard/ThreadCreationPage";
 
 const SignalBoardRoutes = () => {
   return (
-    <SignalBoardLayout>
-      <Routes>
-        <Route index element={<SignalBoardPage />} />
-        <Route path="thread/:threadId" element={<ThreadDetailPage />} />
-        <Route 
-          path="create" 
-          element={
+    <>
+      <Route path="signalboard" element={<SignalBoardLayout><SignalBoardPage /></SignalBoardLayout>} />
+      <Route path="signalboard/thread/:threadId" element={<SignalBoardLayout><ThreadDetailPage /></SignalBoardLayout>} />
+      <Route 
+        path="signalboard/create" 
+        element={
+          <SignalBoardLayout>
             <ProtectedRoute>
               <ThreadCreationPage />
             </ProtectedRoute>
-          } 
-        />
-      </Routes>
-    </SignalBoardLayout>
+          </SignalBoardLayout>
+        } 
+      />
+    </>
   );
 };
 
