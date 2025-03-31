@@ -33,6 +33,7 @@ import SignalSeriesAdmin from "../pages/admin/SignalSeriesAdmin";
 import CommunityCloningSystem from "../pages/admin/CommunityCloningSystem";
 import SignalBoardRoutes from "./SignalBoardRoutes";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
+import Pricing from "../pages/Pricing";
 
 // Learn pages
 import Learn from "../pages/learn";
@@ -51,6 +52,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/content-example" element={<ContentExample />} />
       <Route path="/content-example/:contentId" element={<ContentExample />} />
       <Route path="/s/:slug" element={<SignalSeriesViewer />} />

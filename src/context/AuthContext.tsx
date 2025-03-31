@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +52,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const { password: _, ...userWithoutPassword } = foundUser;
       
+      // Ensure user has a subscription field
+      if (!userWithoutPassword.subscription) {
+        userWithoutPassword.subscription = {
+          tier: 'free'
+        };
+      }
+      
       setUser(userWithoutPassword);
       localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       
@@ -92,12 +100,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: '',
         username: '',
         isNewUser: true,
+        role: 'user',
         referralLinks: {
           insiderlife: '',
           insiderdao: '',
           societi: '',
           aifc: ''
-        }
+        },
+        subscription: {
+          tier: 'free'
+        },
+        joinDate: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
       
       storedUsers.push(newUser);

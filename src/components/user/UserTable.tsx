@@ -1,5 +1,5 @@
 
-import { Shield, Mail, X, Check, BarChart2 } from "lucide-react";
+import { Shield, Mail, X, Check, BarChart2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { MembershipBadge } from "@/components/membership/MembershipBadge";
+import { TierLevel } from "@/types/membership";
 
 interface UserReferralStats {
   clicks: number;
@@ -28,14 +30,21 @@ interface User {
   referralLink?: string;
   daoReferralLink?: string;
   referralStats?: UserReferralStats;
+  subscription?: {
+    tier: TierLevel;
+    expiresAt?: string;
+    isInTrial?: boolean;
+    trialEndsAt?: string;
+  };
 }
 
 interface UserTableProps {
   users: User[];
   onViewStats?: (user: User) => void;
+  onViewMembership?: (user: User) => void;
 }
 
-const UserTable = ({ users, onViewStats }: UserTableProps) => {
+const UserTable = ({ users, onViewStats, onViewMembership }: UserTableProps) => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "admin":
@@ -72,6 +81,7 @@ const UserTable = ({ users, onViewStats }: UserTableProps) => {
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Tier</TableHead>
             <TableHead>Last Active</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -83,6 +93,13 @@ const UserTable = ({ users, onViewStats }: UserTableProps) => {
               <TableCell>{user.email}</TableCell>
               <TableCell>{getRoleBadge(user.role)}</TableCell>
               <TableCell>{getStatusBadge(user.status)}</TableCell>
+              <TableCell>
+                {user.subscription?.tier && user.subscription.tier !== 'free' ? (
+                  <MembershipBadge tier={user.subscription.tier} />
+                ) : (
+                  <span className="text-muted-foreground text-sm">Free</span>
+                )}
+              </TableCell>
               <TableCell>{user.lastActive}</TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
@@ -95,6 +112,17 @@ const UserTable = ({ users, onViewStats }: UserTableProps) => {
                       title="View Referral Stats"
                     >
                       <BarChart2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {user.status === "active" && onViewMembership && (
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => onViewMembership(user)}
+                      className="text-purple-600 hover:text-purple-700"
+                      title="View Membership Details"
+                    >
+                      <CreditCard className="h-4 w-4" />
                     </Button>
                   )}
                   <Button variant="outline" size="icon">

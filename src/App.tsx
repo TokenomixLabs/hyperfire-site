@@ -1,43 +1,29 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from "@/components/ui/theme-provider"
+import AppRoutes from "./routes/AppRoutes";
+import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "./context/AuthContext";
 import { ReferralProvider } from "./context/ReferralContext";
-import AppRoutes from "./routes/AppRoutes";
-import MetaTags from "./components/MetaTags";
+import { MembershipProvider } from "./context/MembershipContext";
 
-// Create a client for React Query
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <MetaTags 
-        title="InsiderLife Signal Hub"
-        description="Amplify your reach, build your network, and earn recognition across the entire ecosystem."
-        imageUrl="/placeholder.svg"
-      />
-      <Toaster />
-      <Sonner />
+function App() {
+  return (
+    <ThemeProvider defaultTheme="light" storageKey="theme-preference">
       <BrowserRouter>
         <AuthProvider>
-          <ReferralProvider>
-            <AppRoutes />
-          </ReferralProvider>
+          <MembershipProvider>
+            <ReferralProvider>
+              <div className="min-h-screen bg-background font-sans">
+                <AppRoutes />
+                <Toaster />
+              </div>
+            </ReferralProvider>
+          </MembershipProvider>
         </AuthProvider>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </ThemeProvider>
+  );
+}
 
 export default App;

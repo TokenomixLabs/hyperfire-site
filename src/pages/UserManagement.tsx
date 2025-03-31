@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import UserTable from "@/components/user/UserTable";
 import UserInviteDialog from "@/components/user/UserInviteDialog";
 import UserReferralStats from "@/components/user/UserReferralStats";
+import { UserMembershipInfo } from "@/components/user/UserMembershipInfo";
+import { TierLevel } from "@/types/membership";
 
 // Mock data - in a real app, this would come from an API/database
 const mockUsers = [
@@ -24,6 +26,10 @@ const mockUsers = [
       clicks: 156,
       signups: 24,
       sharedContent: 8
+    },
+    subscription: {
+      tier: "vip" as TierLevel,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     }
   },
   { 
@@ -39,6 +45,12 @@ const mockUsers = [
       clicks: 89,
       signups: 12,
       sharedContent: 5
+    },
+    subscription: {
+      tier: "premium" as TierLevel,
+      expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+      isInTrial: true,
+      trialEndsAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     }
   },
   { 
@@ -54,6 +66,9 @@ const mockUsers = [
       clicks: 42,
       signups: 5,
       sharedContent: 3
+    },
+    subscription: {
+      tier: "free" as TierLevel
     }
   },
   { 
@@ -69,6 +84,9 @@ const mockUsers = [
       clicks: 0,
       signups: 0,
       sharedContent: 0
+    },
+    subscription: {
+      tier: "free" as TierLevel
     }
   },
 ];
@@ -76,8 +94,9 @@ const mockUsers = [
 const UserManagement = () => {
   const [users, setUsers] = useState(mockUsers);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<typeof mockUsers[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const [showMembership, setShowMembership] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -100,6 +119,9 @@ const UserManagement = () => {
         clicks: 0,
         signups: 0,
         sharedContent: 0
+      },
+      subscription: {
+        tier: "free" as TierLevel
       }
     };
 
@@ -112,13 +134,20 @@ const UserManagement = () => {
     });
   };
 
-  const handleViewStats = (user: typeof mockUsers[0]) => {
+  const handleViewUser = (type: 'stats' | 'membership', user: any) => {
     setSelectedUser(user);
-    setShowStats(true);
+    if (type === 'stats') {
+      setShowStats(true);
+      setShowMembership(false);
+    } else {
+      setShowMembership(true);
+      setShowStats(false);
+    }
   };
 
-  const handleCloseStats = () => {
+  const handleCloseViewer = () => {
     setShowStats(false);
+    setShowMembership(false);
     setSelectedUser(null);
   };
 
@@ -147,7 +176,8 @@ const UserManagement = () => {
 
       <UserTable 
         users={users} 
-        onViewStats={handleViewStats}
+        onViewStats={(user) => handleViewUser('stats', user)}
+        onViewMembership={(user) => handleViewUser('membership', user)}
       />
 
       <UserInviteDialog 
@@ -159,8 +189,24 @@ const UserManagement = () => {
       {showStats && selectedUser && (
         <UserReferralStats
           user={selectedUser}
-          onClose={handleCloseStats}
+          onClose={handleCloseViewer}
         />
+      )}
+      
+      {showMembership && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-lg w-full p-6">
+            <h2 className="text-xl font-bold mb-4">User Membership Details</h2>
+            <div className="mb-4">
+              <UserMembershipInfo user={selectedUser} showActions={true} />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleCloseViewer}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </AnimatedTransition>
   );
