@@ -30,7 +30,7 @@ const AppRoutes = () => {
         <Route path="/" element={<PublicRoutes />} />
         {AdminRoutes()}
         {UserRoutes()}
-        {SignalBoardRoutes()}
+        <Route path="/*" element={<SignalBoardRoutes />} />
       </Route>
     </Routes>
   );
