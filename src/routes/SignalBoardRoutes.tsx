@@ -9,10 +9,10 @@ import ThreadCreationPage from "../pages/signalboard/ThreadCreationPage";
 const SignalBoardRoutes = () => {
   return (
     <Routes>
-      <Route path="signalboard" element={<SignalBoardLayout><SignalBoardPage /></SignalBoardLayout>} />
-      <Route path="signalboard/thread/:threadId" element={<SignalBoardLayout><ThreadDetailPage /></SignalBoardLayout>} />
+      <Route index element={<SignalBoardLayout><SignalBoardPage /></SignalBoardLayout>} />
+      <Route path="thread/:threadId" element={<SignalBoardLayout><ThreadDetailPage /></SignalBoardLayout>} />
       <Route 
-        path="signalboard/create" 
+        path="create" 
         element={
           <SignalBoardLayout>
             <ProtectedRoute>
