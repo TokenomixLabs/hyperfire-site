@@ -12,6 +12,7 @@ import DesktopNav from './header/DesktopNav';
 import MobileNav from './header/MobileNav';
 import SearchBar from './header/SearchBar';
 import HeaderActions from './header/HeaderActions';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,6 +21,7 @@ const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,7 +47,7 @@ const Header = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Logo />
-          {isAuthenticated && <DesktopNav />}
+          <DesktopNav />
         </div>
 
         <div className="flex items-center space-x-4">
@@ -69,6 +71,21 @@ const Header = () => {
               isDarkMode={isDarkMode}
               toggleDarkMode={() => {}}
             />
+          )}
+          
+          {/* Mobile menu toggle - show for all users */}
+          {isMobile && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden" 
+              onClick={() => setMobileMenuOpen(prev => !prev)}
+            >
+              <span className="sr-only">Open menu</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            </Button>
           )}
         </div>
       </div>

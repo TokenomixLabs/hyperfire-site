@@ -13,7 +13,7 @@ const HeaderContainer = ({ isScrolled, children }: HeaderContainerProps) => {
         isScrolled ? 'backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 shadow-sm' : 'bg-transparent'
       }`}
     >
-      <div className="container mx-auto px-4 sm:px-6 py-3">
+      <div className="container mx-auto px-4 sm:px-6 py-2">
         {children}
       </div>
     </header>

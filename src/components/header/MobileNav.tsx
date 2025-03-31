@@ -3,6 +3,8 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import NavigationLink from './NavigationLink';
 import { Home, LineChart, MessageSquare, BookOpen, Compass, User } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -10,6 +12,7 @@ interface MobileNavProps {
 
 const MobileNav = ({ isOpen }: MobileNavProps) => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   
   const navLinks = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -17,12 +20,16 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
     { path: '/signalboard', label: 'SignalBoard', icon: MessageSquare },
     { path: '/learn', label: 'Education Hub', icon: BookOpen },
     { path: '/explore', label: 'Explore', icon: Compass },
-    { path: '/profile', label: 'Profile', icon: User },
   ];
+  
+  // Add profile link only for authenticated users
+  if (isAuthenticated) {
+    navLinks.push({ path: '/profile', label: 'Profile', icon: User });
+  }
   
   return (
     <div 
-      className={`md:hidden fixed inset-x-0 top-[72px] z-20 transition-all duration-300 overflow-hidden ${
+      className={`md:hidden fixed inset-x-0 top-[60px] z-20 transition-all duration-300 overflow-hidden ${
         isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
       }`}
     >
@@ -38,6 +45,24 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
               className="py-3"
             />
           ))}
+          
+          {!isAuthenticated && (
+            <div className="pt-4 mt-2 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-2">
+              <Button 
+                variant="outline" 
+                className="w-full justify-center" 
+                onClick={() => location.pathname !== '/login' && window.location.assign('/login')}
+              >
+                Log in
+              </Button>
+              <Button 
+                className="w-full justify-center" 
+                onClick={() => location.pathname !== '/signup' && window.location.assign('/signup')}
+              >
+                Sign up
+              </Button>
+            </div>
+          )}
         </nav>
       </div>
     </div>
