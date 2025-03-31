@@ -16,7 +16,7 @@ const DesktopNav = () => {
   ];
   
   return (
-    <nav className="hidden md:flex items-center space-x-4">
+    <nav className="hidden md:flex items-center space-x-1">
       {navLinks.map((link) => (
         <NavigationLink 
           key={link.path}
@@ -24,7 +24,6 @@ const DesktopNav = () => {
           label={link.label}
           icon={<link.icon className="h-4 w-4" />}
           isActive={location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))}
-          className="px-4 py-2 text-sm font-medium rounded-md"
         />
       ))}
     </nav>

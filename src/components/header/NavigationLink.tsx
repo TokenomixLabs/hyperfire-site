@@ -14,14 +14,14 @@ const NavigationLink = ({ to, label, icon, isActive, className = '' }: Navigatio
   return (
     <Link 
       to={to}
-      className={`flex items-center gap-2 p-2 text-sm font-medium transition-colors rounded-md ${
+      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
         isActive 
           ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/40' 
           : 'text-gray-600 dark:text-gray-300 hover:text-purple-500 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-gray-800/30'
       } ${className}`}
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
-      <span className="hidden lg:inline">{label}</span>
+      <span>{label}</span>
     </Link>
   );
 };
