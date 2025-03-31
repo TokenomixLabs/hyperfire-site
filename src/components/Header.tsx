@@ -11,6 +11,7 @@ import MobileNav from './header/MobileNav';
 import SearchBar from './header/SearchBar';
 import HeaderActions from './header/HeaderActions';
 import { useIsMobile } from '@/hooks/use-mobile';
+import NotificationCenter from './NotificationCenter';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -72,14 +73,17 @@ const Header = () => {
             )}
             
             {isAuthenticated && (
-              <HeaderActions 
-                searchOpen={searchOpen}
-                setSearchOpen={setSearchOpen}
-                mobileMenuOpen={mobileMenuOpen}
-                setMobileMenuOpen={setMobileMenuOpen}
-                isDarkMode={isDarkMode}
-                toggleDarkMode={() => {}}
-              />
+              <>
+                <NotificationCenter />
+                <HeaderActions 
+                  searchOpen={searchOpen}
+                  setSearchOpen={setSearchOpen}
+                  mobileMenuOpen={mobileMenuOpen}
+                  setMobileMenuOpen={setMobileMenuOpen}
+                  isDarkMode={isDarkMode}
+                  toggleDarkMode={() => {}}
+                />
+              </>
             )}
             
             {/* Mobile menu toggle - only show for authenticated users */}

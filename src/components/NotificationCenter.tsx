@@ -1,6 +1,7 @@
 
-import { useState } from "react";
-import { Bell, FileText, Calendar, Check, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Bell, FileText, Calendar, Check, User, MessageSquare, Award, Link2, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -10,67 +11,146 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import NotificationList from "./notifications/NotificationList";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock notification data
-const mockNotifications = [
+// Types for our notification system
+export type NotificationType = 
+  | "referral" 
+  | "reply" 
+  | "course_duplicated" 
+  | "cta_clicked" 
+  | "admin_announcement";
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  icon: React.ComponentType<any>;
+  action: string;
+  metadata?: Record<string, any>;
+}
+
+// Function to get icon for notification type
+const getIconForType = (type: NotificationType) => {
+  switch (type) {
+    case "referral":
+      return Award;
+    case "reply":
+      return MessageSquare;
+    case "course_duplicated":
+      return FileText;
+    case "cta_clicked":
+      return Link2;
+    case "admin_announcement":
+      return Volume2;
+    default:
+      return Bell;
+  }
+};
+
+// Mock notification data - structured to represent real system events
+const generateMockNotifications = (): Notification[] => [
   {
     id: "1",
-    type: "approval_request",
-    title: "Content Needs Approval",
-    message: "New article 'Crypto Market Outlook' awaiting your approval",
-    timestamp: "2023-08-15T10:30:00Z",
+    type: "referral",
+    title: "New referral!",
+    message: "Sarah Jones signed up using your referral link",
+    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 minutes ago
     read: false,
-    icon: FileText,
-    action: "/admin/content-approval"
+    icon: getIconForType("referral"),
+    action: "/dashboard/referrals",
+    metadata: {
+      userId: "user123",
+      referralId: "ref789",
+      program: "InsiderDAO"
+    }
   },
   {
     id: "2",
-    type: "scheduled",
-    title: "Content Scheduled",
-    message: "Your document has been scheduled for Aug 25, 2023",
-    timestamp: "2023-08-14T15:45:00Z",
-    read: true,
-    icon: Calendar,
-    action: "#"
+    type: "reply",
+    title: "New reply to your thread",
+    message: "CryptoMaster commented on 'Market Analysis for Q3'",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    read: false,
+    icon: getIconForType("reply"),
+    action: "/signalboard/thread/123",
+    metadata: {
+      threadId: "thread123",
+      replyId: "reply456"
+    }
   },
   {
     id: "3",
-    type: "approval_granted",
-    title: "Content Approved",
-    message: "Your livestream has been approved for publishing",
-    timestamp: "2023-08-13T09:15:00Z",
-    read: false,
-    icon: Check,
-    action: "#"
+    type: "course_duplicated",
+    title: "Course duplicated",
+    message: "Your 'DeFi Basics' course was duplicated by 5 users today",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), // 8 hours ago
+    read: true,
+    icon: getIconForType("course_duplicated"),
+    action: "/dashboard/content",
+    metadata: {
+      courseId: "course123",
+      duplicateCount: 5
+    }
   },
   {
     id: "4",
-    type: "user_invite",
-    title: "New User Invited",
-    message: "You invited sarah@example.com to join as Editor",
-    timestamp: "2023-08-12T14:20:00Z",
+    type: "cta_clicked",
+    title: "CTA getting attention!",
+    message: "Your 'Join Premium' CTA was clicked 12 times yesterday",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
     read: true,
-    icon: User,
-    action: "#"
+    icon: getIconForType("cta_clicked"),
+    action: "/dashboard/stats",
+    metadata: {
+      ctaId: "cta123",
+      clickCount: 12
+    }
   },
   {
     id: "5",
-    type: "approval_request",
-    title: "Content Needs Approval",
-    message: "New document 'DeFi Risk Management' awaiting your approval",
-    timestamp: "2023-08-11T11:10:00Z",
+    type: "admin_announcement",
+    title: "Platform Update",
+    message: "New features available: Enhanced Signal Analytics",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(), // 1.5 days ago
+    read: false,
+    icon: getIconForType("admin_announcement"),
+    action: "/announcements/platform-update",
+    metadata: {
+      announcementId: "ann123",
+      priority: "medium"
+    }
+  },
+  {
+    id: "6",
+    type: "reply",
+    title: "Reply to your comment",
+    message: "BlockchainDev replied to your comment on 'NFT Market Trends'",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
     read: true,
-    icon: FileText,
-    action: "/admin/content-approval"
+    icon: getIconForType("reply"),
+    action: "/signalboard/thread/456?comment=789",
+    metadata: {
+      threadId: "thread456",
+      commentId: "comment789",
+      replyId: "reply101"
+    }
   }
 ];
 
 const NotificationCenter = () => {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   
+  // Calculate unread count
   const unreadCount = notifications.filter(n => !n.read).length;
   
+  // Format timestamps to relative time
   const formatTimeAgo = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -85,20 +165,65 @@ const NotificationCenter = () => {
     return `${days} day${days > 1 ? 's' : ''} ago`;
   };
   
+  // Mark all notifications as read
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
   };
   
+  // Mark a single notification as read
   const markAsRead = (id: string) => {
     setNotifications(notifications.map(n => 
       n.id === id ? { ...n, read: true } : n
     ));
   };
 
+  // Handle notification click
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id);
+    setOpen(false);
+    navigate(notification.action);
+  };
+
+  // Simulate receiving new notifications
+  useEffect(() => {
+    // Load initial notifications
+    setNotifications(generateMockNotifications());
+    
+    // Simulate receiving a new notification after a delay
+    const timer = setTimeout(() => {
+      const newNotification: Notification = {
+        id: Math.random().toString(36).substring(2, 9),
+        type: "referral",
+        title: "New referral just now!",
+        message: "Alex Thompson signed up using your referral link",
+        timestamp: new Date().toISOString(),
+        read: false,
+        icon: getIconForType("referral"),
+        action: "/dashboard/referrals",
+        metadata: {
+          userId: "user456",
+          referralId: "ref123",
+          program: "InsiderLife"
+        }
+      };
+      
+      setNotifications(prev => [newNotification, ...prev]);
+      
+      // Show toast notification
+      toast({
+        title: "🔥 New referral!",
+        description: "Alex Thompson just signed up using your link",
+        duration: 5000,
+      });
+    }, 10000); // Simulate a new notification after 10 seconds
+    
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-[1.2rem] w-[1.2rem]" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
@@ -123,25 +248,55 @@ const NotificationCenter = () => {
         </div>
         
         <Tabs defaultValue="all">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
             <TabsTrigger value="unread" className="text-xs">
               Unread {unreadCount > 0 && `(${unreadCount})`}
             </TabsTrigger>
-            <TabsTrigger value="approval" className="text-xs">Approval</TabsTrigger>
-            <TabsTrigger value="scheduled" className="text-xs">Scheduled</TabsTrigger>
+            <TabsTrigger value="referral" className="text-xs">Referrals</TabsTrigger>
+            <TabsTrigger value="reply" className="text-xs">Replies</TabsTrigger>
+            <TabsTrigger value="other" className="text-xs">Other</TabsTrigger>
           </TabsList>
           
           <ScrollArea className="h-[300px]">
-            {["all", "unread", "approval", "scheduled"].map((tab) => (
-              <NotificationList
-                key={tab}
-                notifications={notifications}
-                tabValue={tab}
-                onMarkAsRead={markAsRead}
-                formatTimeAgo={formatTimeAgo}
-              />
-            ))}
+            {/* Notification lists for different tabs */}
+            <NotificationList
+              notifications={notifications}
+              tabValue="all"
+              onMarkAsRead={markAsRead}
+              formatTimeAgo={formatTimeAgo}
+              onNotificationClick={handleNotificationClick}
+            />
+            <NotificationList
+              notifications={notifications.filter(n => !n.read)}
+              tabValue="unread"
+              onMarkAsRead={markAsRead}
+              formatTimeAgo={formatTimeAgo}
+              onNotificationClick={handleNotificationClick}
+            />
+            <NotificationList
+              notifications={notifications.filter(n => n.type === "referral")}
+              tabValue="referral"
+              onMarkAsRead={markAsRead}
+              formatTimeAgo={formatTimeAgo}
+              onNotificationClick={handleNotificationClick}
+            />
+            <NotificationList
+              notifications={notifications.filter(n => n.type === "reply")}
+              tabValue="reply"
+              onMarkAsRead={markAsRead}
+              formatTimeAgo={formatTimeAgo}
+              onNotificationClick={handleNotificationClick}
+            />
+            <NotificationList
+              notifications={notifications.filter(n => 
+                n.type !== "referral" && n.type !== "reply"
+              )}
+              tabValue="other"
+              onMarkAsRead={markAsRead}
+              formatTimeAgo={formatTimeAgo}
+              onNotificationClick={handleNotificationClick}
+            />
           </ScrollArea>
         </Tabs>
         
@@ -150,7 +305,10 @@ const NotificationCenter = () => {
             variant="ghost" 
             size="sm" 
             className="w-full text-xs h-8"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              navigate("/notifications");
+            }}
           >
             View all notifications
           </Button>

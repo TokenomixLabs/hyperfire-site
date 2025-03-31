@@ -7,6 +7,7 @@ import SignalBoardRoutes from "./SignalBoardRoutes";
 import Header from "../components/header/HeaderContainer";
 import NotFound from "../pages/NotFound";
 import FunnelPage from "../pages/FunnelPage";
+import NotificationsPage from "../pages/NotificationsPage";
 
 const AppRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const AppRoutes = () => {
         <Route path="/content/*" element={<UserRoutes />} />
         <Route path="/learn/*" element={<UserRoutes />} />
         <Route path="/explore/*" element={<UserRoutes />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         
         {/* SignalBoard Routes */}
         <Route path="/signalboard/*" element={<SignalBoardRoutes />} />

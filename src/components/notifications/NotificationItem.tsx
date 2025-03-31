@@ -1,45 +1,47 @@
 
-import { Bell, Check, X, Clock, Calendar, FileText, User } from "lucide-react";
+import { Bell, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Notification } from "../NotificationCenter";
 
 interface NotificationItemProps {
-  notification: {
-    id: string;
-    type: string;
-    title: string;
-    message: string;
-    timestamp: string;
-    read: boolean;
-    icon: React.ComponentType<any>;
-    action: string;
-  };
+  notification: Notification;
   onMarkAsRead: (id: string) => void;
   formatTimeAgo: (timestamp: string) => string;
+  onClick: () => void;
 }
 
-const NotificationItem = ({ notification, onMarkAsRead, formatTimeAgo }: NotificationItemProps) => {
-  const getIconForType = (notification: NotificationItemProps["notification"]) => {
-    const IconComponent = notification.icon;
-    const colorClass = notification.type.includes('approval_request') 
-      ? 'text-amber-500' 
-      : notification.type.includes('approval_granted') 
-        ? 'text-green-500' 
-        : notification.type.includes('scheduled') 
-          ? 'text-blue-500' 
-          : 'text-gray-500';
-    
-    return <IconComponent className={`h-5 w-5 ${colorClass}`} />;
+const NotificationItem = ({ notification, onMarkAsRead, formatTimeAgo, onClick }: NotificationItemProps) => {
+  // Get appropriate style based on notification type
+  const getColorClassForType = (type: string): string => {
+    switch (type) {
+      case "referral":
+        return "text-amber-500";
+      case "reply":
+        return "text-blue-500";
+      case "course_duplicated":
+        return "text-green-500";
+      case "cta_clicked":
+        return "text-purple-500";
+      case "admin_announcement":
+        return "text-red-500";
+      default:
+        return "text-gray-500";
+    }
   };
+
+  const colorClass = getColorClassForType(notification.type);
+  const IconComponent = notification.icon;
 
   return (
     <li 
       key={notification.id}
-      className={`p-4 hover:bg-muted/50 ${!notification.read ? 'bg-muted/20' : ''}`}
+      className={`p-4 hover:bg-muted/50 ${!notification.read ? 'bg-muted/20' : ''} cursor-pointer`}
+      onClick={onClick}
     >
       <div className="flex gap-3">
         <div className="flex-shrink-0 mt-1">
-          {getIconForType(notification)}
+          <IconComponent className={`h-5 w-5 ${colorClass}`} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
@@ -49,7 +51,10 @@ const NotificationItem = ({ notification, onMarkAsRead, formatTimeAgo }: Notific
                 variant="ghost" 
                 size="icon" 
                 className="h-6 w-6 -mt-1 -mr-1"
-                onClick={() => onMarkAsRead(notification.id)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the li's onClick
+                  onMarkAsRead(notification.id);
+                }}
               >
                 <X className="h-3.5 w-3.5" />
                 <span className="sr-only">Mark as read</span>
