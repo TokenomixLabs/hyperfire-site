@@ -2,7 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import NavigationLink from './NavigationLink';
-import { Home, MessageSquare, BookOpen, LineChart, User, Compass } from 'lucide-react';
+import { Home, LineChart, MessageSquare, BookOpen, Compass, User } from 'lucide-react';
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
       }`}
     >
       <div className="container mx-auto px-4 py-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-lg">
-        <nav className="flex flex-col space-y-1">
+        <nav className="flex flex-col space-y-2">
           {navLinks.map((link) => (
             <NavigationLink 
               key={link.path}
