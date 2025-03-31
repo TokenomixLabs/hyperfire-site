@@ -11,6 +11,8 @@ import MediaLibrary from "../pages/MediaLibrary";
 import SeoTools from "../pages/SeoTools";
 import IntegrationTools from "../pages/IntegrationTools";
 import SignalSeriesAdmin from "../pages/admin/SignalSeriesAdmin";
+import Funnels from "../pages/admin/Funnels";
+import FunnelBuilder from "../pages/admin/FunnelBuilder";
 
 const AdminRoutes = () => {
   return (
@@ -28,6 +30,30 @@ const AdminRoutes = () => {
         element={
           <ProtectedRoute>
             <SignalSeriesAdmin />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/funnels" 
+        element={
+          <ProtectedRoute>
+            <Funnels />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/funnels/new" 
+        element={
+          <ProtectedRoute>
+            <FunnelBuilder />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/funnels/:funnelId" 
+        element={
+          <ProtectedRoute>
+            <FunnelBuilder />
           </ProtectedRoute>
         } 
       />

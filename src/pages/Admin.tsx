@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, GraduationCap, Globe, Settings } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, GraduationCap, Globe, Settings, GitFork } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
@@ -50,6 +50,10 @@ const Admin = () => {
   
   const handleNavigateToCourses = () => {
     navigate("/admin/courses");
+  };
+  
+  const handleNavigateToFunnels = () => {
+    navigate("/admin/funnels");
   };
   
   const handleNavigateToCommunityCloningSystem = () => {
@@ -124,6 +128,14 @@ const Admin = () => {
           
           <Button 
             variant="outline"
+            onClick={handleNavigateToFunnels}
+            className="flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600"
+          >
+            <GitFork className="h-4 w-4" /> Funnel Builder
+          </Button>
+          
+          <Button 
+            variant="outline"
             onClick={handleNavigateToCommunityCloningSystem}
             className="flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700"
           >
@@ -144,12 +156,13 @@ const Admin = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-8 mb-8">
+        <TabsList className="grid grid-cols-9 mb-8">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="create-content">Content</TabsTrigger>
           <TabsTrigger value="upload-document">Documents</TabsTrigger>
           <TabsTrigger value="create-event">Events</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="funnels">Funnels</TabsTrigger>
           <TabsTrigger value="referral-programs">Referral Programs</TabsTrigger>
           <TabsTrigger value="cta-manager">CTA Manager</TabsTrigger>
           <TabsTrigger value="community-cloning">Community Cloning</TabsTrigger>
@@ -173,6 +186,69 @@ const Admin = () => {
         
         <TabsContent value="courses" className="mt-4">
           <CoursesAdmin />
+        </TabsContent>
+        
+        <TabsContent value="funnels" className="mt-4">
+          <div className="space-y-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-semibold">Referral Funnel Builder</h2>
+                <p className="text-muted-foreground mt-1">
+                  Create multi-step funnels to convert visitors into members through your referral network.
+                </p>
+              </div>
+              <Button 
+                onClick={handleNavigateToFunnels}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Create New Funnel
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="border hover:border-orange-300 transition-colors cursor-pointer"
+                onClick={() => navigate('/admin/funnels/new')}
+              >
+                <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
+                  <div className="mb-4 p-3 rounded-full bg-orange-100">
+                    <GitFork className="h-8 w-8 text-orange-500" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Create New Funnel</h3>
+                  <p className="text-sm text-center text-muted-foreground">
+                    Build a multi-step referral funnel from scratch with custom steps.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border hover:border-orange-300 transition-colors cursor-pointer"
+                onClick={handleNavigateToFunnels}
+              >
+                <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
+                  <div className="mb-4 p-3 rounded-full bg-green-100">
+                    <BarChart2 className="h-8 w-8 text-green-500" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">View Funnel Analytics</h3>
+                  <p className="text-sm text-center text-muted-foreground">
+                    Track conversions, engagement, and referral activity across all funnels.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border hover:border-purple-300 transition-colors cursor-pointer"
+                onClick={() => setActiveTab("referral-programs")}
+              >
+                <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
+                  <div className="mb-4 p-3 rounded-full bg-purple-100">
+                    <Users className="h-8 w-8 text-purple-500" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Manage Referral Programs</h3>
+                  <p className="text-sm text-center text-muted-foreground">
+                    Configure referral programs that integrate with your funnels.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
         
         <TabsContent value="referral-programs" className="mt-4">
