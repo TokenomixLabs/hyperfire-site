@@ -9,11 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loader2, Upload, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ProfileEditFormProps {
   user: User;
-  onSave: (data: Partial<User>) => void;
+  onSave: (data: Partial<User>) => Promise<void>;
 }
 
 const profileSchema = z.object({
@@ -41,12 +43,19 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [charCount, setCharCount] = useState(user.bio?.length || 0);
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
     
     try {
       await onSave(values);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated.",
+      });
     } catch (error) {
       console.error('Failed to save profile:', error);
       toast({
@@ -67,7 +76,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
       .toUpperCase();
   };
 
-  // Real avatar upload functionality
+  // Avatar upload functionality
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -142,20 +151,45 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
     }
   };
 
+  // Handle bio text change to update character count
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCharCount(e.target.value.length);
+    form.setValue('bio', e.target.value);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="flex flex-col items-center md:items-start md:flex-row gap-6">
           <div className="flex flex-col items-center">
-            <Avatar className="w-24 h-24 border-2 border-purple-200 mb-2">
-              {form.watch('avatarUrl') ? (
-                <AvatarImage src={form.watch('avatarUrl')} alt={form.watch('name')} />
-              ) : (
-                <AvatarFallback className="text-xl bg-purple-100 text-purple-700">
-                  {getInitials(form.watch('name'))}
-                </AvatarFallback>
-              )}
-            </Avatar>
+            <div className="relative">
+              <Avatar className="w-24 h-24 border-2 border-purple-200 mb-2">
+                {form.watch('avatarUrl') ? (
+                  <AvatarImage src={form.watch('avatarUrl')} alt={form.watch('name')} />
+                ) : (
+                  <AvatarFallback className="text-xl bg-purple-100 text-purple-700">
+                    {getInitials(form.watch('name'))}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={triggerFileInput}
+                      disabled={isUploading}
+                      className="absolute bottom-2 right-0 bg-purple-600 hover:bg-purple-700 p-1.5 rounded-full text-white shadow"
+                    >
+                      {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Change profile picture</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -163,15 +197,9 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
               accept="image/*" 
               className="hidden" 
             />
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={triggerFileInput}
-              disabled={isUploading}
-            >
-              {isUploading ? "Uploading..." : "Change Avatar"}
-            </Button>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+              Click the avatar or camera icon to upload a new image
+            </p>
           </div>
           
           <div className="flex-1 space-y-4 w-full">
@@ -216,16 +244,23 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
           name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bio</FormLabel>
+              <div className="flex justify-between items-center">
+                <FormLabel>Bio</FormLabel>
+                <span className={`text-xs ${charCount > 140 ? 'text-amber-500' : 'text-gray-500'} ${charCount > 160 ? 'text-red-500' : ''}`}>
+                  {charCount}/160
+                </span>
+              </div>
               <FormControl>
                 <Textarea 
                   placeholder="Tell others a bit about yourself" 
                   className="resize-none" 
                   {...field} 
+                  onChange={handleBioChange}
+                  rows={3}
                 />
               </FormControl>
               <FormDescription>
-                A short bio about yourself. Max 160 characters.
+                A short bio about yourself.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -249,8 +284,18 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSave }) => {
           )}
         />
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Profile"}
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="w-full md:w-auto bg-purple-600 hover:bg-purple-700"
+        >
+          {isSubmitting ? 
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </> : 
+            'Save Profile'
+          }
         </Button>
       </form>
     </Form>

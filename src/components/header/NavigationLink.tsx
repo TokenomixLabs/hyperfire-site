@@ -1,24 +1,26 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 interface NavigationLinkProps {
   to: string;
   label: string;
+  icon?: ReactNode;
   isActive: boolean;
   className?: string;
 }
 
-const NavigationLink = ({ to, label, isActive, className = '' }: NavigationLinkProps) => {
+const NavigationLink = ({ to, label, icon, isActive, className = '' }: NavigationLinkProps) => {
   return (
     <Link 
       to={to}
       className={`transition-colors rounded-md ${
         isActive 
-          ? 'text-insider-700 dark:text-insider-300 bg-insider-50 dark:bg-insider-900/40' 
-          : 'text-gray-600 dark:text-gray-300 hover:text-insider-600 dark:hover:text-insider-400 hover:bg-gray-100/70 dark:hover:bg-gray-800/30'
+          ? 'text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/40' 
+          : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-gray-800/30'
       } ${className}`}
     >
+      {icon && <span className="flex-shrink-0">{icon}</span>}
       {label}
     </Link>
   );

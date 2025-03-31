@@ -1,17 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Calendar, Clock, User, Play, PlusCircle } from 'lucide-react';
+import { ChevronLeft, Calendar, Clock, User, Play, PlusCircle, Lock, Shield } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { Course } from '@/types/courses';
 import { mockCourses } from '@/data/mockCourses';
 import ContentCTAContainer from '@/components/content/ContentCTAContainer';
 import Loading from '@/components/Loading';
+import { useAuth } from '@/context/AuthContext';
 
 export default function VideoCoursePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +21,21 @@ export default function VideoCoursePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Determine if the user has access to this content
+  const getUserAccessLevel = () => {
+    if (!user) return 'free';
+    return user.subscription?.tier || 'free';
+  };
+  
+  const hasAccess = (requiredLevel: string) => {
+    const accessLevels = ['free', 'premium', 'vip'];
+    const userLevel = accessLevels.indexOf(getUserAccessLevel());
+    const requiredLevelIndex = accessLevels.indexOf(requiredLevel.toLowerCase());
+    
+    return userLevel >= requiredLevelIndex;
+  };
   
   useEffect(() => {
     const fetchCourse = async () => {
@@ -104,14 +121,17 @@ export default function VideoCoursePage() {
   
   // If there are multiple modules but we're on the video course page, use the first module's video
   const videoModule = course.modules[0];
+  const userHasAccess = hasAccess(course.accessLevel);
   
   // Mock CTAs for demonstration (in a real app, these would come from the course's ctaIds)
   const mockCTAs = [
     {
       id: "cta-1",
       campaignId: "insiderlife",
-      buttonText: "Join Insider Life",
-      description: "Get access to all premium courses and exclusive content.",
+      buttonText: userHasAccess ? "Join Insider Life" : "Upgrade to Access",
+      description: userHasAccess 
+        ? "Get access to all premium courses and exclusive content."
+        : `This content requires ${course.accessLevel} access. Upgrade to continue.`,
       theme: "primary" as const,
       placement: "banner" as const,
       position: "bottom" as const,
@@ -142,6 +162,20 @@ export default function VideoCoursePage() {
               <Badge key={cat} variant="outline">{cat}</Badge>
             ))}
             <Badge>{course.level}</Badge>
+            {course.accessLevel !== 'free' && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="ml-auto">
+                      <Shield className="h-3 w-3 mr-1" /> {course.accessLevel}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>This content requires {course.accessLevel} access</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
         
@@ -165,20 +199,46 @@ export default function VideoCoursePage() {
       
       {/* Video Player */}
       <div className="space-y-6">
-        <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
-          {/* This would be replaced with a real video player in a production app */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <img 
-              src={course.thumbnailUrl}
-              alt={course.title}
-              className="w-full h-full object-cover opacity-60"
-            />
-            <div className="absolute inset-0 bg-black/30" />
-            <Button className="absolute inset-0 m-auto h-16 w-16 rounded-full p-0">
-              <Play className="h-8 w-8" />
-            </Button>
+        {!userHasAccess ? (
+          <Card className="bg-gray-50 dark:bg-gray-800 overflow-hidden rounded-lg">
+            <div className="aspect-video bg-gray-100 dark:bg-gray-900 relative">
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mb-4">
+                  <Lock className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 text-center">
+                  {course.accessLevel.toUpperCase()} Access Required
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-4">
+                  This premium content is available to {course.accessLevel} members. Upgrade your membership to access this and other exclusive content.
+                </p>
+                <Button className="bg-purple-600 hover:bg-purple-700">
+                  Upgrade to {course.accessLevel}
+                </Button>
+              </div>
+              <img 
+                src={course.thumbnailUrl}
+                alt={course.title}
+                className="w-full h-full object-cover opacity-10"
+              />
+            </div>
+          </Card>
+        ) : (
+          <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
+            {/* This would be replaced with a real video player in a production app */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <img 
+                src={course.thumbnailUrl}
+                alt={course.title}
+                className="w-full h-full object-cover opacity-60"
+              />
+              <div className="absolute inset-0 bg-black/30" />
+              <Button className="absolute inset-0 m-auto h-16 w-16 rounded-full p-0">
+                <Play className="h-8 w-8" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
         
         <Card>
           <CardContent className="p-6">
@@ -187,7 +247,7 @@ export default function VideoCoursePage() {
             
             <Separator className="my-6" />
             
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center space-x-2">
                 <Button variant="outline" size="sm">
                   <PlusCircle className="h-4 w-4 mr-2" />
@@ -199,9 +259,11 @@ export default function VideoCoursePage() {
                 <Button variant="outline" size="sm" onClick={() => navigate('/learn')}>
                   Browse More Courses
                 </Button>
-                <Button size="sm">
-                  Mark as Completed
-                </Button>
+                {userHasAccess && (
+                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                    Mark as Completed
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>

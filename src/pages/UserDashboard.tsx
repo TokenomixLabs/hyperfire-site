@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Header from '@/components/Header';
@@ -9,10 +9,26 @@ import ReferralsTab from '@/components/user/dashboard/ReferralsTab';
 import ReferralLinksTab from '@/components/user/dashboard/ReferralLinksTab';
 import SharesTab from '@/components/user/dashboard/SharesTab';
 import GlobalCTA from '@/components/GlobalCTA';
+import WelcomeBanner from '@/components/welcome/WelcomeBanner';
+import EmptyState from '@/components/empty-states/EmptyState';
+import { MessageSquare, BookOpen, Share2 } from 'lucide-react';
 import { ReferralPlatform } from '@/context/ReferralContext';
+import { useAuth } from '@/context/AuthContext';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
+  const [isNewUser, setIsNewUser] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Check if the user is new based on registration date or activity
+    // This would typically come from user data
+    const userJoinDate = user?.createdAt ? new Date(user.createdAt) : null;
+    const isRecent = userJoinDate ? 
+      (Date.now() - userJoinDate.getTime()) < (7 * 24 * 60 * 60 * 1000) : false;
+    
+    setIsNewUser(isRecent);
+  }, [user]);
 
   // Mock Data
   const aggregatedStats = {
@@ -62,6 +78,8 @@ const UserDashboard = () => {
     { id: "3", title: "Web3 Development", date: "February 20, 2024", clicks: 110, signups: 12 }
   ];
 
+  const hasNoActivity = shares.length === 0 && referrals.length === 0;
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -73,37 +91,77 @@ const UserDashboard = () => {
               Dashboard
             </h1>
 
-            <DashboardStats 
-              aggregatedStats={aggregatedStats}
-              reachStats={reachStats}
-            />
+            {isNewUser && <WelcomeBanner />}
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-              <TabsList>
-                <TabsTrigger value="stats">Stats</TabsTrigger>
-                <TabsTrigger value="referrals">Referrals</TabsTrigger>
-                <TabsTrigger value="links">Referral Links</TabsTrigger>
-                <TabsTrigger value="shares">Shares</TabsTrigger>
-              </TabsList>
-              <TabsContent value="stats" className="mt-6">
-                <StatsTab 
-                  platformStats={platformStats}
+            {hasNoActivity ? (
+              <div className="space-y-8">
+                <EmptyState
+                  title="Welcome to your Signal Hub!"
+                  description="Start by exploring content, participating in SignalBoard discussions, or checking out our Education Hub."
+                  icon={<Share2 className="h-8 w-8" />}
+                  actionLabel="Explore Content"
+                  actionHref="/content"
+                />
+                <DashboardStats 
+                  aggregatedStats={aggregatedStats}
                   reachStats={reachStats}
                 />
-              </TabsContent>
-              <TabsContent value="referrals" className="mt-6">
-                <ReferralsTab referrals={referrals} />
-              </TabsContent>
-              <TabsContent value="links" className="mt-6">
-                <ReferralLinksTab
-                  referralLinks={referralLinks}
-                  updateReferralLink={updateReferralLink}
+              </div>
+            ) : (
+              <>
+                <DashboardStats 
+                  aggregatedStats={aggregatedStats}
+                  reachStats={reachStats}
                 />
-              </TabsContent>
-              <TabsContent value="shares" className="mt-6">
-                <SharesTab shares={shares} />
-              </TabsContent>
-            </Tabs>
+
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
+                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex md:flex-row">
+                    <TabsTrigger value="stats">Stats</TabsTrigger>
+                    <TabsTrigger value="referrals">Referrals</TabsTrigger>
+                    <TabsTrigger value="links">Referral Links</TabsTrigger>
+                    <TabsTrigger value="shares">Shares</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="stats" className="mt-6">
+                    <StatsTab 
+                      platformStats={platformStats}
+                      reachStats={reachStats}
+                    />
+                  </TabsContent>
+                  <TabsContent value="referrals" className="mt-6">
+                    {referrals.length > 0 ? (
+                      <ReferralsTab referrals={referrals} />
+                    ) : (
+                      <EmptyState
+                        title="No Referrals Yet"
+                        description="Share your referral links with your network to start earning rewards."
+                        icon={<Share2 className="h-8 w-8" />}
+                        actionLabel="View Referral Links"
+                        onAction={() => setActiveTab('links')}
+                      />
+                    )}
+                  </TabsContent>
+                  <TabsContent value="links" className="mt-6">
+                    <ReferralLinksTab
+                      referralLinks={referralLinks}
+                      updateReferralLink={updateReferralLink}
+                    />
+                  </TabsContent>
+                  <TabsContent value="shares" className="mt-6">
+                    {shares.length > 0 ? (
+                      <SharesTab shares={shares} />
+                    ) : (
+                      <EmptyState
+                        title="No Shares Yet"
+                        description="Start sharing content with your network to track engagement."
+                        icon={<Share2 className="h-8 w-8" />}
+                        actionLabel="Browse Content"
+                        actionHref="/content"
+                      />
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
 
             <div className="mt-12">
               <GlobalCTA

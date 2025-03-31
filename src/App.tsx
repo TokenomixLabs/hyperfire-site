@@ -7,12 +7,14 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ReferralProvider } from "./context/ReferralContext";
 import AppRoutes from "./routes/AppRoutes";
+import MetaTags from "./components/MetaTags";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <MetaTags />
       <Toaster />
       <Sonner />
       <BrowserRouter>
