@@ -9,12 +9,24 @@ import { ReferralProvider } from "./context/ReferralContext";
 import AppRoutes from "./routes/AppRoutes";
 import MetaTags from "./components/MetaTags";
 
-const queryClient = new QueryClient();
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <MetaTags />
+      <MetaTags 
+        title="InsiderLife Signal Hub"
+        description="Amplify your reach, build your network, and earn recognition across the entire ecosystem."
+        image="/placeholder.svg"
+      />
       <Toaster />
       <Sonner />
       <BrowserRouter>

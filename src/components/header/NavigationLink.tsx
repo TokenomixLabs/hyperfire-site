@@ -14,14 +14,14 @@ const NavigationLink = ({ to, label, icon, isActive, className = '' }: Navigatio
   return (
     <Link 
       to={to}
-      className={`transition-colors rounded-md ${
+      className={`flex items-center gap-2 p-2 text-sm font-medium transition-colors rounded-md ${
         isActive 
           ? 'text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/40' 
           : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100/70 dark:hover:bg-gray-800/30'
       } ${className}`}
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
-      {label}
+      <span>{label}</span>
     </Link>
   );
 };

@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Header from '@/components/Header';
 import DashboardStats from '@/components/user/dashboard/DashboardStats';
@@ -11,14 +12,17 @@ import SharesTab from '@/components/user/dashboard/SharesTab';
 import GlobalCTA from '@/components/GlobalCTA';
 import WelcomeBanner from '@/components/welcome/WelcomeBanner';
 import EmptyState from '@/components/empty-states/EmptyState';
-import { MessageSquare, BookOpen, Share2 } from 'lucide-react';
+import { MessageSquare, BookOpen, Share2, BarChart2, Link, Users, RefreshCw } from 'lucide-react';
 import { ReferralPlatform } from '@/context/ReferralContext';
 import { useAuth } from '@/context/AuthContext';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [isNewUser, setIsNewUser] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if the user is new based on registration date or activity
@@ -68,6 +72,11 @@ const UserDashboard = () => {
   // Mock updateReferralLink function
   const updateReferralLink = (platform: ReferralPlatform, url: string) => {
     console.log(`Updating ${platform} referral link to ${url}`);
+    toast({
+      title: "Link Updated",
+      description: `Your ${platform} referral link has been updated.`,
+      duration: 3000,
+    });
     // In a real app, this would update the state or call an API
   };
 
@@ -80,6 +89,16 @@ const UserDashboard = () => {
 
   const hasNoActivity = shares.length === 0 && referrals.length === 0;
 
+  const handleCopyLink = (link: string) => {
+    navigator.clipboard.writeText(link).then(() => {
+      toast({
+        title: "Link Copied",
+        description: "Referral link copied to clipboard!",
+        duration: 3000,
+      });
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -87,9 +106,17 @@ const UserDashboard = () => {
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
         <AnimatedTransition>
           <div className="container mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">
-              Dashboard
-            </h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Dashboard
+              </h1>
+              
+              {user?.isTopReferrer && (
+                <Badge variant="outline" className="ml-0 mt-2 sm:mt-0 sm:ml-4 bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 border-amber-300">
+                  <RefreshCw className="h-3 w-3 mr-1 text-amber-700" /> Top Referrer
+                </Badge>
+              )}
+            </div>
 
             {isNewUser && <WelcomeBanner />}
 
@@ -101,6 +128,7 @@ const UserDashboard = () => {
                   icon={<Share2 className="h-8 w-8" />}
                   actionLabel="Explore Content"
                   actionHref="/content"
+                  size="lg"
                 />
                 <DashboardStats 
                   aggregatedStats={aggregatedStats}
@@ -115,11 +143,23 @@ const UserDashboard = () => {
                 />
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex md:flex-row">
-                    <TabsTrigger value="stats">Stats</TabsTrigger>
-                    <TabsTrigger value="referrals">Referrals</TabsTrigger>
-                    <TabsTrigger value="links">Referral Links</TabsTrigger>
-                    <TabsTrigger value="shares">Shares</TabsTrigger>
+                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex md:flex-row bg-gray-100 dark:bg-gray-800/50 p-1 rounded-lg">
+                    <TabsTrigger value="stats" className="flex items-center gap-1.5">
+                      <BarChart2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Stats</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="referrals" className="flex items-center gap-1.5">
+                      <Users className="h-4 w-4" />
+                      <span className="hidden sm:inline">Referrals</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="links" className="flex items-center gap-1.5">
+                      <Link className="h-4 w-4" />
+                      <span className="hidden sm:inline">Referral Links</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="shares" className="flex items-center gap-1.5">
+                      <Share2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Shares</span>
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="stats" className="mt-6">
                     <StatsTab 
@@ -134,17 +174,21 @@ const UserDashboard = () => {
                       <EmptyState
                         title="No Referrals Yet"
                         description="Share your referral links with your network to start earning rewards."
-                        icon={<Share2 className="h-8 w-8" />}
+                        icon={<Users className="h-8 w-8" />}
                         actionLabel="View Referral Links"
                         onAction={() => setActiveTab('links')}
+                        size="md"
                       />
                     )}
                   </TabsContent>
                   <TabsContent value="links" className="mt-6">
-                    <ReferralLinksTab
-                      referralLinks={referralLinks}
-                      updateReferralLink={updateReferralLink}
-                    />
+                    <TooltipProvider>
+                      <ReferralLinksTab
+                        referralLinks={referralLinks}
+                        updateReferralLink={updateReferralLink}
+                        onCopyLink={handleCopyLink}
+                      />
+                    </TooltipProvider>
                   </TabsContent>
                   <TabsContent value="shares" className="mt-6">
                     {shares.length > 0 ? (
@@ -156,6 +200,7 @@ const UserDashboard = () => {
                         icon={<Share2 className="h-8 w-8" />}
                         actionLabel="Browse Content"
                         actionHref="/content"
+                        size="md"
                       />
                     )}
                   </TabsContent>
