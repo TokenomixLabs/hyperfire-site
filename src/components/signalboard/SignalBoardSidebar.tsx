@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { PlusCircle, Bookmark, TrendingUp, Clock, Tag } from 'lucide-react';
 import { mockTags } from '@/data/mockThreads';
+import ActivitySidebar from '../activity/ActivitySidebar';
 
 const SignalBoardSidebar = () => {
   const { isAuthenticated } = useAuth();
@@ -66,6 +67,8 @@ const SignalBoardSidebar = () => {
           </div>
         </CardContent>
       </Card>
+      
+      <ActivitySidebar />
     </div>
   );
 };

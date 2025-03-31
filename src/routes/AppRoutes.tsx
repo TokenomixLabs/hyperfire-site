@@ -8,6 +8,7 @@ import Header from "../components/header/HeaderContainer";
 import NotFound from "../pages/NotFound";
 import FunnelPage from "../pages/FunnelPage";
 import NotificationsPage from "../pages/NotificationsPage";
+import ActivityFeedPage from "../pages/ActivityFeedPage";
 
 const AppRoutes = () => {
   return (
@@ -31,6 +32,7 @@ const AppRoutes = () => {
         <Route path="/learn/*" element={<UserRoutes />} />
         <Route path="/explore/*" element={<UserRoutes />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/activity" element={<ActivityFeedPage />} />
         
         {/* SignalBoard Routes */}
         <Route path="/signalboard/*" element={<SignalBoardRoutes />} />

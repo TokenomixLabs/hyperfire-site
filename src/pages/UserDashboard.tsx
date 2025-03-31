@@ -12,15 +12,17 @@ import SharesTab from '@/components/user/dashboard/SharesTab';
 import GlobalCTA from '@/components/GlobalCTA';
 import WelcomeBanner from '@/components/welcome/WelcomeBanner';
 import EmptyState from '@/components/empty-states/EmptyState';
-import { MessageSquare, BookOpen, Share2, BarChart2, Link, Users, RefreshCw } from 'lucide-react';
+import { MessageSquare, BookOpen, Share2, BarChart2, Link, Users, RefreshCw, Zap } from 'lucide-react';
 import { ReferralPlatform } from '@/context/ReferralContext';
 import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import DashboardActivityWidget from '@/components/activity/DashboardActivityWidget';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [isNewUser, setIsNewUser] = useState(false);
+  const [showActivityFeed, setShowActivityFeed] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -134,13 +136,32 @@ const UserDashboard = () => {
                   aggregatedStats={aggregatedStats}
                   reachStats={reachStats}
                 />
+                
+                {showActivityFeed && (
+                  <DashboardActivityWidget 
+                    className="mt-8" 
+                    onHide={() => setShowActivityFeed(false)}
+                  />
+                )}
               </div>
             ) : (
               <>
-                <DashboardStats 
-                  aggregatedStats={aggregatedStats}
-                  reachStats={reachStats}
-                />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2">
+                    <DashboardStats 
+                      aggregatedStats={aggregatedStats}
+                      reachStats={reachStats}
+                    />
+                  </div>
+                  
+                  {showActivityFeed && (
+                    <div className="lg:col-span-1">
+                      <DashboardActivityWidget 
+                        onHide={() => setShowActivityFeed(false)}
+                      />
+                    </div>
+                  )}
+                </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
                   <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex md:flex-row bg-gray-100 dark:bg-gray-800/50 p-1 rounded-lg">
@@ -160,13 +181,19 @@ const UserDashboard = () => {
                       <Share2 className="h-4 w-4" />
                       <span className="hidden sm:inline">Shares</span>
                     </TabsTrigger>
+                    <TabsTrigger value="activity" className="flex items-center gap-1.5">
+                      <Zap className="h-4 w-4" />
+                      <span className="hidden sm:inline">Activity</span>
+                    </TabsTrigger>
                   </TabsList>
+                  
                   <TabsContent value="stats" className="mt-6">
                     <StatsTab 
                       platformStats={platformStats}
                       reachStats={reachStats}
                     />
                   </TabsContent>
+                  
                   <TabsContent value="referrals" className="mt-6">
                     {referrals.length > 0 ? (
                       <ReferralsTab referrals={referrals} />
@@ -181,6 +208,7 @@ const UserDashboard = () => {
                       />
                     )}
                   </TabsContent>
+                  
                   <TabsContent value="links" className="mt-6">
                     <TooltipProvider>
                       <ReferralLinksTab
@@ -190,6 +218,7 @@ const UserDashboard = () => {
                       />
                     </TooltipProvider>
                   </TabsContent>
+                  
                   <TabsContent value="shares" className="mt-6">
                     {shares.length > 0 ? (
                       <SharesTab shares={shares} />
@@ -203,6 +232,10 @@ const UserDashboard = () => {
                         size="md"
                       />
                     )}
+                  </TabsContent>
+                  
+                  <TabsContent value="activity" className="mt-6">
+                    <DashboardActivityWidget />
                   </TabsContent>
                 </Tabs>
               </>
