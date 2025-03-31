@@ -105,7 +105,18 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
     const courseData: Course = {
       id: initialCourse?.id || `course-${Date.now()}`,
       slug,
-      ...values,
+      title: values.title, // Explicitly add title
+      description: values.description,
+      summary: values.summary,
+      thumbnailUrl: values.thumbnailUrl,
+      format: values.format,
+      category: values.category as CourseCategory[],
+      level: values.level,
+      isPublished: values.isPublished,
+      isGated: values.isGated,
+      accessLevel: values.accessLevel,
+      ctaIds: values.ctaIds,
+      tags: values.tags,
       modules,
       totalDuration,
       creator: initialCourse?.creator || {

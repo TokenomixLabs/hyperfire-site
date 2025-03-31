@@ -1,5 +1,4 @@
-
-import { Course, CourseModule } from '@/types/courses';
+import { Course, CourseModule, CourseLevel, CourseCategory } from '@/types/courses';
 
 // Helper function to create a course module
 const createModule = (
@@ -331,6 +330,8 @@ for (let i = 7; i <= 15; i++) {
     }
   }
   
+  const courseLevels: CourseLevel[] = ['Beginner', 'Intermediate', 'Advanced', 'All Levels'];
+  
   mockCourses.push({
     id: `course-${i}`,
     slug: `sample-course-${i}`,
@@ -339,8 +340,8 @@ for (let i = 7; i <= 15; i++) {
     summary: `A brief summary for sample course ${i}.`,
     thumbnailUrl: `https://picsum.photos/seed/course${i}/800/600`,
     format: isSeries ? 'series' : 'video',
-    category: categories as any,
-    level: allCategories[Math.floor(Math.random() * 4)],
+    category: categories as CourseCategory[],
+    level: courseLevels[Math.floor(Math.random() * courseLevels.length)],
     creator: {
       id: `user-${(i % 3) + 1}`,
       name: ['Alex Morrison', 'Sarah Johnson', 'David Park'][(i % 3)],
@@ -348,7 +349,7 @@ for (let i = 7; i <= 15; i++) {
     },
     modules,
     totalDuration,
-    createdAt: new Date(Date.now() - i * 86400000 * 10).toISOString(), // Each 10 days back
+    createdAt: new Date(Date.now() - i * 86400000 * 10).toISOString(),
     updatedAt: new Date(Date.now() - i * 86400000 * 8).toISOString(),
     publishedAt: new Date(Date.now() - i * 86400000 * 7).toISOString(),
     isPublished: true,
