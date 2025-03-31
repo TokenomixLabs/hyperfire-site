@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -26,8 +27,15 @@ export interface User {
   signalRank?: number;
   createdAt?: string;
   subscription?: {
-    tier: 'free' | 'premium' | 'vip';
+    tier: 'free' | 'premium' | 'vip' | 'pro' | 'lifetime' | 'founders';
     expiresAt?: string;
+    isInTrial?: boolean;
+    trialEndsAt?: string;
+    stripeCustId?: string;
+    stripeSubId?: string;
+    willDowngradeTo?: 'free' | 'premium' | 'vip' | 'pro' | 'lifetime' | 'founders';
+    purchasedAt?: string;
+    updatedAt?: string;
   };
 }
 

@@ -59,7 +59,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
       
-      setUser(userWithoutPassword);
+      // Make sure the role is one of the allowed values
+      if (userWithoutPassword.role && !['user', 'admin', 'moderator'].includes(userWithoutPassword.role)) {
+        userWithoutPassword.role = 'user';
+      }
+      
+      setUser(userWithoutPassword as User);
       localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       
       toast({
@@ -93,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Email already in use');
       }
       
-      const newUser = {
+      const newUser: User & { password: string } = {
         id: `user_${Date.now()}`,
         email,
         password,

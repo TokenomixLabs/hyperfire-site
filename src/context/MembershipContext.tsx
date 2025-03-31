@@ -37,8 +37,8 @@ export const MembershipProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const tierDetails = membershipTiers.tiers[currentTier] || membershipTiers.tiers.free;
   
   const isInTrial = !!userMembership.isInTrial;
-  const trialEndsAt = userMembership?.trialEndsAt;
-  const expiresAt = userMembership?.expiresAt;
+  const trialEndsAt = userMembership.trialEndsAt;
+  const expiresAt = userMembership.expiresAt;
   
   // Check if user has a specific permission
   const hasPermission = (permission: keyof TierPermissions): boolean => {
