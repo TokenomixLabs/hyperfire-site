@@ -19,7 +19,7 @@ const HeaderContainer = ({ isScrolled, children }: HeaderContainerProps) => {
           {/* This is where the header content will be rendered */}
         </div>
       </header>
-      <div className="pt-16">
+      <div className="min-h-screen">
         {children || <Outlet />}
       </div>
     </>

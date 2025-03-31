@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Import components
@@ -43,57 +42,66 @@ const Header = () => {
   }, []);
 
   return (
-    <HeaderContainer isScrolled={isScrolled}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Logo />
-          {isAuthenticated && <DesktopNav />}
+    <div className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent">
+      <div className="container mx-auto px-4 sm:px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Logo />
+            {isAuthenticated && <DesktopNav />}
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {!isAuthenticated && (
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="ghost" 
+                  className="text-white hover:text-white hover:bg-white/10"
+                  onClick={() => location.pathname !== '/login' && window.location.assign('/login')}
+                >
+                  Log in
+                </Button>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => location.pathname !== '/signup' && window.location.assign('/signup')}
+                >
+                  Sign up
+                </Button>
+              </div>
+            )}
+            
+            {isAuthenticated && (
+              <HeaderActions 
+                searchOpen={searchOpen}
+                setSearchOpen={setSearchOpen}
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
+                isDarkMode={isDarkMode}
+                toggleDarkMode={() => {}}
+              />
+            )}
+            
+            {/* Mobile menu toggle - only show for authenticated users */}
+            {isMobile && isAuthenticated && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden" 
+                onClick={() => setMobileMenuOpen(prev => !prev)}
+              >
+                <span className="sr-only">Open menu</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          {!isAuthenticated && (
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" onClick={() => location.pathname !== '/login' && window.location.assign('/login')}>
-                Log in
-              </Button>
-              <Button onClick={() => location.pathname !== '/signup' && window.location.assign('/signup')}>
-                Sign up
-              </Button>
-            </div>
-          )}
-          
-          {isAuthenticated && (
-            <HeaderActions 
-              searchOpen={searchOpen}
-              setSearchOpen={setSearchOpen}
-              mobileMenuOpen={mobileMenuOpen}
-              setMobileMenuOpen={setMobileMenuOpen}
-              isDarkMode={isDarkMode}
-              toggleDarkMode={() => {}}
-            />
-          )}
-          
-          {/* Mobile menu toggle - only show for authenticated users */}
-          {isMobile && isAuthenticated && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="md:hidden" 
-              onClick={() => setMobileMenuOpen(prev => !prev)}
-            >
-              <span className="sr-only">Open menu</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-              </svg>
-            </Button>
-          )}
-        </div>
+        <SearchBar isOpen={searchOpen} />
+        
+        {isAuthenticated && <MobileNav isOpen={mobileMenuOpen} />}
       </div>
-
-      <SearchBar isOpen={searchOpen} />
-      
-      {isAuthenticated && <MobileNav isOpen={mobileMenuOpen} />}
-    </HeaderContainer>
+    </div>
   );
 };
 

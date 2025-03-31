@@ -16,20 +16,18 @@ const AppRoutes = () => {
       <Route path="/vip-invite" element={<FunnelPage />} />
       
       {/* Routes with Header */}
-      <Route 
-        element={<Header isScrolled={false} />} 
-      >
+      <Route element={<Header isScrolled={false} />}>
         {/* Public Routes */}
-        <Route path="/*" element={<PublicRoutes />} />
+        <Route path="/" element={<PublicRoutes />} />
         
         {/* Admin Routes */}
-        <Route path="admin/*" element={<AdminRoutes />} />
+        <Route path="/admin/*" element={<AdminRoutes />} />
         
         {/* User Routes */}
         <Route path="/*" element={<UserRoutes />} />
         
         {/* SignalBoard Routes */}
-        <Route path="signalboard/*" element={<SignalBoardRoutes />} />
+        <Route path="/signalboard/*" element={<SignalBoardRoutes />} />
       </Route>
       
       {/* Not Found Route - Must be last */}
