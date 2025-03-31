@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -25,6 +24,11 @@ export interface User {
   aiSummary?: string;
   guardianTagline?: string;
   signalRank?: number;
+  createdAt?: string;
+  subscription?: {
+    tier: 'free' | 'premium' | 'vip';
+    expiresAt?: string;
+  };
 }
 
 export interface UserStats {

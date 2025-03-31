@@ -23,7 +23,7 @@ const UserDashboard = () => {
   useEffect(() => {
     // Check if the user is new based on registration date or activity
     // This would typically come from user data
-    const userJoinDate = user?.createdAt ? new Date(user.createdAt) : null;
+    const userJoinDate = user?.createdAt ? new Date(user.createdAt) : user?.joinDate ? new Date(user.joinDate) : null;
     const isRecent = userJoinDate ? 
       (Date.now() - userJoinDate.getTime()) < (7 * 24 * 60 * 60 * 1000) : false;
     
