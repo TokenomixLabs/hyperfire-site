@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, GraduationCap } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, GraduationCap, Globe } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
@@ -49,6 +50,10 @@ const Admin = () => {
   
   const handleNavigateToCourses = () => {
     navigate("/admin/courses");
+  };
+  
+  const handleNavigateToCommunityCloningSystem = () => {
+    navigate("/admin/community-cloning");
   };
 
   return (
@@ -118,6 +123,14 @@ const Admin = () => {
           </Button>
           
           <Button 
+            variant="outline"
+            onClick={handleNavigateToCommunityCloningSystem}
+            className="flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700"
+          >
+            <Globe className="h-4 w-4" /> Community Cloning
+          </Button>
+          
+          <Button 
             onClick={() => setActiveTab("create-content")} 
             className="bg-purple-600 hover:bg-purple-700"
           >
@@ -131,7 +144,7 @@ const Admin = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-7 mb-8">
+        <TabsList className="grid grid-cols-8 mb-8">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="create-content">Content</TabsTrigger>
           <TabsTrigger value="upload-document">Documents</TabsTrigger>
@@ -139,6 +152,7 @@ const Admin = () => {
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="referral-programs">Referral Programs</TabsTrigger>
           <TabsTrigger value="cta-manager">CTA Manager</TabsTrigger>
+          <TabsTrigger value="community-cloning">Community Cloning</TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard" className="mt-4">
@@ -167,6 +181,95 @@ const Admin = () => {
         
         <TabsContent value="cta-manager" className="mt-4">
           <CTAManager />
+        </TabsContent>
+        
+        <TabsContent value="community-cloning" className="mt-4">
+          <div className="space-y-8">
+            <div className="flex justify-between">
+              <h2 className="text-2xl font-semibold">Community Cloning System</h2>
+              <Button className="bg-purple-600 hover:bg-purple-700">
+                <Plus className="mr-2 h-4 w-4" /> Create Template Community
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="rounded-lg border p-6 space-y-4">
+                  <h3 className="text-xl font-medium">Community Templates</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Manage the templates that users can clone to create their own SignalFire communities.
+                  </p>
+                  <Button className="w-full">Manage Templates</Button>
+                </div>
+                
+                <div className="rounded-lg border p-6 space-y-4">
+                  <h3 className="text-xl font-medium">Default Settings</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Configure default settings for newly cloned communities including starter threads, 
+                    signal series, and education hub structure.
+                  </p>
+                  <Button className="w-full">Configure Defaults</Button>
+                </div>
+              </div>
+              
+              <div className="rounded-lg border p-6 space-y-4">
+                <h3 className="text-xl font-medium">Cloned Communities</h3>
+                <p className="text-sm text-muted-foreground">
+                  View and manage all communities that have been cloned from your templates.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="font-medium">Total Communities</span>
+                    <span className="text-purple-600 font-bold">12</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="font-medium">Active Communities</span>
+                    <span className="text-green-600 font-bold">8</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="font-medium">Pending Verification</span>
+                    <span className="text-amber-600 font-bold">3</span>
+                  </div>
+                </div>
+                <Button className="w-full">View All Communities</Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="rounded-lg border p-6 space-y-4">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 text-purple-800 mb-4">
+                  <Globe className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-medium">Custom Domains</h3>
+                <p className="text-sm text-muted-foreground">
+                  Manage custom domain settings and DNS verification for community owners.
+                </p>
+                <Button variant="outline" className="w-full">Manage Domains</Button>
+              </div>
+              
+              <div className="rounded-lg border p-6 space-y-4">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-800 mb-4">
+                  <BarChart2 className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-medium">Analytics</h3>
+                <p className="text-sm text-muted-foreground">
+                  Track growth, engagement, and referrals across all cloned communities.
+                </p>
+                <Button variant="outline" className="w-full">View Analytics</Button>
+              </div>
+              
+              <div className="rounded-lg border p-6 space-y-4">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 text-amber-800 mb-4">
+                  <Settings className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-medium">Global Settings</h3>
+                <p className="text-sm text-muted-foreground">
+                  Configure global settings for community cloning and branding options.
+                </p>
+                <Button variant="outline" className="w-full">Configure Settings</Button>
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </AnimatedTransition>

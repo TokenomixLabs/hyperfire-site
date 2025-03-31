@@ -30,6 +30,7 @@ import MediaLibrary from "../pages/MediaLibrary";
 import SeoTools from "../pages/SeoTools";
 import IntegrationTools from "../pages/IntegrationTools";
 import SignalSeriesAdmin from "../pages/admin/SignalSeriesAdmin";
+import CommunityCloningSystem from "../pages/admin/CommunityCloningSystem";
 import SignalBoardRoutes from "./SignalBoardRoutes";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
@@ -185,6 +186,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CourseAnalytics />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/community-cloning" 
+        element={
+          <ProtectedRoute>
+            <CommunityCloningSystem />
           </ProtectedRoute>
         } 
       />

@@ -2,7 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import NavigationLink from './NavigationLink';
-import { Home, LineChart, MessageSquare, BookOpen, Compass, User } from 'lucide-react';
+import { Home, LineChart, MessageSquare, BookOpen, Compass, User, Settings } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 
@@ -12,7 +12,7 @@ interface MobileNavProps {
 
 const MobileNav = ({ isOpen }: MobileNavProps) => {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   const navLinks = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -25,6 +25,15 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
   // Add profile link only for authenticated users
   if (isAuthenticated) {
     navLinks.push({ path: '/profile', label: 'Profile', icon: User });
+  }
+  
+  // Add Admin link for admin users
+  if (user?.role === 'admin') {
+    navLinks.push({ 
+      path: '/admin', 
+      label: 'Admin', 
+      icon: Settings 
+    });
   }
   
   return (
