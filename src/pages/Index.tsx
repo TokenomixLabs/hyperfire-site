@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -25,12 +24,6 @@ const Index = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
         <AnimatedTransition>
           <div className="max-w-4xl mx-auto text-center">
-            <div className="mb-8 flex justify-center">
-              <div className="p-4 rounded-full bg-purple-900/30">
-                <LineChart className="h-16 w-16 text-purple-400" />
-              </div>
-            </div>
-            
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500 mb-6">
               InsiderLife Signal Hub
             </h1>
