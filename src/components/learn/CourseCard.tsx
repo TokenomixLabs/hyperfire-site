@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Clock, Users, BookOpen, Play } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Course } from '@/types/courses';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import ProgressRing from './ProgressRing';
+import { Play, Layers } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CourseCardProps {
   course: Course;
@@ -13,70 +13,88 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course, onClick }: CourseCardProps) {
-  // Format duration from seconds to minutes
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.round(seconds / 60);
-    return `${minutes} min`;
-  };
-
-  // Calculate progress percentage
+  // Calculate minutes from seconds
+  const durationMinutes = Math.ceil(course.totalDuration / 60);
+  
+  // Determine progress if available
   const progress = course.progress?.percentComplete || 0;
-
+  
   return (
-    <Card className="overflow-hidden h-full flex flex-col transition-all hover:shadow-md cursor-pointer" onClick={onClick}>
+    <Card className="overflow-hidden group hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <div className="relative">
         <img 
-          src={course.thumbnailUrl || '/placeholder.svg'} 
+          src={course.thumbnailUrl} 
           alt={course.title} 
-          className="h-48 w-full object-cover"
+          className="w-full aspect-video object-cover"
         />
-        <div className="absolute top-2 right-2">
-          <Badge variant={course.format === 'video' ? 'secondary' : 'default'}>
-            {course.format === 'video' ? 'Single Video' : 'Multi-Part'}
+        
+        {/* Format badge */}
+        <div className="absolute top-2 left-2">
+          <Badge variant="secondary" className="flex items-center gap-1 bg-black/70 text-white hover:bg-black/70">
+            {course.format === 'video' ? (
+              <>
+                <Play className="h-3 w-3" />
+                <span>Single Video</span>
+              </>
+            ) : (
+              <>
+                <Layers className="h-3 w-3" />
+                <span>Series</span>
+              </>
+            )}
           </Badge>
         </div>
-        {course.isGated && (
-          <div className="absolute top-2 left-2">
-            <Badge variant="outline" className="bg-black/70 text-white border-none">
-              {course.accessLevel.toUpperCase()}
-            </Badge>
+        
+        {/* Category badge */}
+        {course.category && course.category.length > 0 && (
+          <div className="absolute top-2 right-2">
+            <Badge className="bg-primary/80 hover:bg-primary">{course.category[0]}</Badge>
           </div>
         )}
-        {progress > 0 && (
+        
+        {/* Access level badge */}
+        {course.isGated && (
           <div className="absolute bottom-2 right-2">
-            <ProgressRing progress={progress} size={40} />
+            <Badge variant="outline" className="bg-black/70 text-white border-none hover:bg-black/70">
+              {course.accessLevel === 'premium' ? 'Premium' : course.accessLevel === 'vip' ? 'VIP' : 'Free'}
+            </Badge>
           </div>
         )}
       </div>
       
-      <CardContent className="flex flex-col flex-grow p-4">
-        <div className="flex-grow">
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2">{course.title}</h3>
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{course.summary}</p>
-        </div>
+      <CardContent className="p-4">
+        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{course.title}</h3>
+        <p className="text-sm text-muted-foreground line-clamp-3 mb-2">{course.summary}</p>
         
-        <div className="flex justify-between items-center text-xs text-muted-foreground mt-auto">
-          <div className="flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            <span>{formatDuration(course.totalDuration)}</span>
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center">
+              {course.format === 'video' ? (
+                <span>{durationMinutes} min</span>
+              ) : (
+                <span>{course.modules.length} modules</span>
+              )}
+            </span>
           </div>
-          <div className="flex items-center">
-            <Users className="h-3 w-3 mr-1" />
-            <span>{course.viewCount}</span>
-          </div>
-          {course.modules.length > 1 && (
-            <div className="flex items-center">
-              <BookOpen className="h-3 w-3 mr-1" />
-              <span>{course.modules.length} modules</span>
-            </div>
-          )}
+          
+          <span className="inline-flex items-center gap-1">
+            <span>Level: {course.level}</span>
+          </span>
         </div>
-        
-        <Button className="w-full mt-4" size="sm">
-          {progress > 0 ? 'Continue Learning' : 'Start Learning'}
-          <Play className="h-3 w-3 ml-2" />
-        </Button>
       </CardContent>
+      
+      <CardFooter className="px-4 pb-4 pt-0 flex justify-between items-center">
+        <Button variant="default" className="w-full" onClick={onClick}>
+          {progress > 0 ? 'Continue Learning' : 'Start Learning'}
+        </Button>
+        
+        {/* Progress indicator */}
+        {progress > 0 && (
+          <div className="ml-2">
+            <ProgressRing progress={progress} />
+          </div>
+        )}
+      </CardFooter>
     </Card>
   );
 }

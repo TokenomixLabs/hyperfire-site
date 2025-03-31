@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Clock, Users, BookOpen, Play, ChevronRight } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Course } from '@/types/courses';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import ProgressRing from './ProgressRing';
+import { Play, Layers, Clock, Users, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CourseListItemProps {
   course: Course;
@@ -13,76 +13,98 @@ interface CourseListItemProps {
 }
 
 export default function CourseListItem({ course, onClick }: CourseListItemProps) {
-  // Format duration from seconds to minutes
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.round(seconds / 60);
-    return `${minutes} min`;
-  };
-
-  // Calculate progress percentage
+  // Calculate minutes from seconds
+  const durationMinutes = Math.ceil(course.totalDuration / 60);
+  
+  // Determine progress if available
   const progress = course.progress?.percentComplete || 0;
-
+  
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md cursor-pointer" onClick={onClick}>
+    <Card 
+      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" 
+      onClick={onClick}
+    >
       <CardContent className="p-0">
-        <div className="flex flex-col sm:flex-row">
-          <div className="relative sm:w-56 h-40 sm:h-auto">
+        <div className="flex flex-col md:flex-row">
+          <div className="relative md:w-1/3 lg:w-1/4">
             <img 
-              src={course.thumbnailUrl || '/placeholder.svg'} 
+              src={course.thumbnailUrl} 
               alt={course.title} 
-              className="h-full w-full object-cover"
+              className="w-full h-48 md:h-full object-cover"
             />
-            <div className="absolute top-2 right-2">
-              <Badge variant={course.format === 'video' ? 'secondary' : 'default'}>
-                {course.format === 'video' ? 'Single Video' : 'Multi-Part'}
+            
+            {/* Format badge */}
+            <div className="absolute top-2 left-2">
+              <Badge variant="secondary" className="flex items-center gap-1 bg-black/70 text-white hover:bg-black/70">
+                {course.format === 'video' ? (
+                  <>
+                    <Play className="h-3 w-3" />
+                    <span>Single Video</span>
+                  </>
+                ) : (
+                  <>
+                    <Layers className="h-3 w-3" />
+                    <span>Series</span>
+                  </>
+                )}
               </Badge>
             </div>
+            
+            {/* Access level badge */}
             {course.isGated && (
-              <div className="absolute top-2 left-2">
-                <Badge variant="outline" className="bg-black/70 text-white border-none">
-                  {course.accessLevel.toUpperCase()}
+              <div className="absolute bottom-2 left-2">
+                <Badge variant="outline" className="bg-black/70 text-white border-none hover:bg-black/70">
+                  {course.accessLevel === 'premium' ? 'Premium' : course.accessLevel === 'vip' ? 'VIP' : 'Free'}
                 </Badge>
               </div>
             )}
           </div>
           
-          <div className="p-4 flex flex-col flex-grow">
-            <div className="flex justify-between mb-2">
-              <h3 className="font-semibold text-lg">{course.title}</h3>
-              {progress > 0 && (
-                <ProgressRing progress={progress} size={36} />
-              )}
+          <div className="flex flex-col p-4 md:w-2/3 lg:w-3/4">
+            <div className="flex flex-col md:flex-row md:justify-between">
+              <div className="mb-2 md:mb-0">
+                <h3 className="font-semibold text-lg mb-1">{course.title}</h3>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {course.category.map((cat, index) => (
+                    <Badge key={index} className="bg-primary/80 hover:bg-primary">{cat}</Badge>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                {progress > 0 && <ProgressRing progress={progress} />}
+              </div>
             </div>
             
             <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{course.summary}</p>
             
-            <div className="flex flex-wrap gap-2 mb-3">
-              {course.category.map(cat => (
-                <Badge key={cat} variant="outline">{cat}</Badge>
-              ))}
-            </div>
-            
-            <div className="flex mt-auto items-center justify-between">
-              <div className="flex space-x-4 text-xs text-muted-foreground">
-                <div className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  <span>{formatDuration(course.totalDuration)}</span>
-                </div>
-                <div className="flex items-center">
-                  <Users className="h-3 w-3 mr-1" />
-                  <span>{course.viewCount}</span>
-                </div>
-                {course.modules.length > 1 && (
-                  <div className="flex items-center">
-                    <BookOpen className="h-3 w-3 mr-1" />
-                    <span>{course.modules.length} modules</span>
-                  </div>
-                )}
+            <div className="flex flex-wrap justify-between items-center mt-auto">
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-2 md:mb-0">
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{durationMinutes} min</span>
+                </span>
+                
+                <span className="inline-flex items-center gap-1">
+                  <BookOpen className="h-4 w-4" />
+                  <span>{course.format === 'series' ? `${course.modules.length} modules` : 'Single video'}</span>
+                </span>
+                
+                <span className="inline-flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  <span>{course.completionCount} completed</span>
+                </span>
               </div>
               
-              <Button size="sm">
-                {progress > 0 ? 'Continue' : 'Start Learning'}
-                <ChevronRight className="h-3 w-3 ml-1" />
+              <Button 
+                variant="default" 
+                className="ml-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClick();
+                }}
+              >
+                {progress > 0 ? 'Continue Learning' : 'Start Learning'}
               </Button>
             </div>
           </div>
