@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { ActivityItem, ActivityType, ActivityFeedState } from "@/types/activity";
-import { generateMockActivityData } from "@/data/mockActivityData";
+import { ActivityItem, ActivityType, ActivityFeedState, ActivityPreferences } from "@/types/activity";
+import { generateMockActivityData, generateMilestoneActivity, generateAiSummaryForThread } from "@/data/mockActivityData";
 import { useToast } from "@/hooks/use-toast";
 
 interface ActivityFeedContextType {
@@ -10,7 +10,21 @@ interface ActivityFeedContextType {
   filterActivities: (types?: ActivityType[], username?: string) => void;
   resetFilters: () => void;
   reactToActivity: (id: string, reactionType: "fire" | "heart" | "clap") => void;
+  setFeedMode: (mode: "all" | "for_you" | "following" | "top_signals") => void;
+  togglePreference: (key: keyof ActivityPreferences) => void;
+  savePreferences: (preferences: ActivityPreferences) => void;
 }
+
+const defaultPreferences: ActivityPreferences = {
+  showReferrals: true,
+  showCourses: true,
+  showThreads: true,
+  showReplies: true,
+  showAnnouncements: true,
+  showMilestones: true,
+  muteOldThreadReplies: false,
+  muteNonFollowingActivity: false,
+};
 
 const ActivityFeedContext = createContext<ActivityFeedContextType | undefined>(undefined);
 
@@ -36,9 +50,11 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
     filters: {
       types: [],
       username: "",
+      feedMode: "all",
     },
     page: 1,
     hasMore: true,
+    preferences: defaultPreferences,
   });
 
   // Load initial mock data
@@ -76,7 +92,7 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
       setAllActivities(prev => [newActivity, ...prev]);
       
       // Apply current filters
-      if (shouldIncludeActivity(newActivity, activityState.filters)) {
+      if (shouldIncludeActivity(newActivity, activityState.filters, activityState.preferences)) {
         setActivityState(prev => ({
           ...prev,
           items: [newActivity, ...prev.items],
@@ -92,27 +108,117 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
     }, 30000); // Every 30 seconds
     
     return () => clearInterval(interval);
-  }, [activityState.filters, toast]);
+  }, [activityState.filters, activityState.preferences, toast]);
 
-  // Helper to check if an activity matches the current filters
+  // Simulate generating personal milestones
+  useEffect(() => {
+    const milestoneInterval = setInterval(() => {
+      // 20% chance to generate a milestone
+      if (Math.random() < 0.2) {
+        const milestone = generateMilestoneActivity();
+        
+        if (activityState.preferences?.showMilestones !== false) {
+          setAllActivities(prev => [milestone, ...prev]);
+          
+          if (shouldIncludeActivity(milestone, activityState.filters, activityState.preferences)) {
+            setActivityState(prev => ({
+              ...prev,
+              items: [milestone, ...prev.items],
+            }));
+            
+            // Show celebratory toast notification for milestone
+            toast({
+              title: `🎉 ${milestone.title}`,
+              description: milestone.message,
+              duration: 8000,
+            });
+          }
+        }
+      }
+    }, 120000); // Every 2 minutes
+    
+    return () => clearInterval(milestoneInterval);
+  }, [activityState.filters, activityState.preferences, toast]);
+
+  // Simulate generating AI summaries for popular threads
+  useEffect(() => {
+    // One-time effect to add AI summaries to some existing threads
+    const threadActivities = allActivities.filter(
+      activity => activity.type === "thread_created" && !activity.aiSummary
+    );
+    
+    if (threadActivities.length > 0) {
+      // Add AI summaries to 30% of thread activities
+      const updatedActivities = [...allActivities];
+      
+      threadActivities.forEach((activity, index) => {
+        if (index % 3 === 0) { // Every third thread gets a summary
+          const activityIndex = updatedActivities.findIndex(a => a.id === activity.id);
+          if (activityIndex !== -1) {
+            updatedActivities[activityIndex] = {
+              ...updatedActivities[activityIndex],
+              aiSummary: generateAiSummaryForThread(activity.title),
+            };
+          }
+        }
+      });
+      
+      setAllActivities(updatedActivities);
+      
+      // Update current items if needed
+      setActivityState(prev => ({
+        ...prev,
+        items: prev.items.map(item => {
+          const updatedItem = updatedActivities.find(a => a.id === item.id);
+          return updatedItem || item;
+        }),
+      }));
+    }
+  }, [allActivities.length]);
+
+  // Helper to check if an activity matches the current filters and preferences
   const shouldIncludeActivity = (
     activity: ActivityItem,
-    filters: ActivityFeedState["filters"]
+    filters: ActivityFeedState["filters"],
+    preferences?: ActivityPreferences
   ) => {
+    // Apply feed mode filter
+    if (filters.feedMode === "for_you" && !activity.forYou) {
+      return false;
+    }
+    
+    if (filters.feedMode === "following" && activity.metadata?.following !== true) {
+      return false;
+    }
+    
+    if (filters.feedMode === "top_signals" && 
+        (activity.type !== "thread_created" || (activity.relevanceScore || 0) < 70)) {
+      return false;
+    }
+    
     // If there are type filters and this type isn't included, filter it out
-    if (
-      filters.types.length > 0 &&
-      !filters.types.includes(activity.type)
-    ) {
+    if (filters.types.length > 0 && !filters.types.includes(activity.type)) {
       return false;
     }
     
     // If there's a username filter and this username doesn't match, filter it out
-    if (
-      filters.username &&
-      !activity.username.toLowerCase().includes(filters.username.toLowerCase())
-    ) {
+    if (filters.username && !activity.username.toLowerCase().includes(filters.username.toLowerCase())) {
       return false;
+    }
+    
+    // Apply preference-based filtering
+    if (preferences) {
+      // Filter based on activity type preferences
+      if (!preferences.showReferrals && activity.type === "referral") return false;
+      if (!preferences.showCourses && (activity.type === "course_duplicated" || activity.type === "course_completed")) return false;
+      if (!preferences.showThreads && activity.type === "thread_created") return false;
+      if (!preferences.showReplies && activity.type === "reply_added") return false;
+      if (!preferences.showAnnouncements && activity.type === "admin_announcement") return false;
+      if (!preferences.showMilestones && (activity.type === "milestone_reached" || activity.type === "personal_milestone")) return false;
+      
+      // Additional mute preferences
+      if (preferences.muteOldThreadReplies && activity.type === "reply_added" && activity.metadata?.isOldThread) return false;
+      if (preferences.muteNonFollowingActivity && activity.metadata?.following !== true && activity.userId !== "current-user") return false;
     }
     
     return true;
@@ -131,7 +237,7 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
       
       // Filter activities based on current filters
       const filteredActivities = allActivities.filter(activity =>
-        shouldIncludeActivity(activity, activityState.filters)
+        shouldIncludeActivity(activity, activityState.filters, activityState.preferences)
       );
       
       const moreActivities = filteredActivities.slice(startIndex, endIndex);
@@ -155,13 +261,14 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
   // Filter activities by type and/or username
   const filterActivities = (types?: ActivityType[], username?: string) => {
     const newFilters = {
+      ...activityState.filters,
       types: types || activityState.filters.types,
       username: username !== undefined ? username : activityState.filters.username,
     };
     
     // Apply filters to all activities
     const filteredActivities = allActivities.filter(activity =>
-      shouldIncludeActivity(activity, newFilters)
+      shouldIncludeActivity(activity, newFilters, activityState.preferences)
     );
     
     setActivityState(prev => ({
@@ -173,6 +280,64 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
     }));
   };
 
+  // Set feed mode
+  const setFeedMode = (mode: "all" | "for_you" | "following" | "top_signals") => {
+    const newFilters = {
+      ...activityState.filters,
+      feedMode: mode,
+    };
+    
+    // Apply filters to all activities with the new feed mode
+    const filteredActivities = allActivities.filter(activity =>
+      shouldIncludeActivity(activity, newFilters, activityState.preferences)
+    );
+    
+    setActivityState(prev => ({
+      ...prev,
+      items: filteredActivities.slice(0, 10),
+      filters: newFilters,
+      page: 1,
+      hasMore: filteredActivities.length > 10,
+    }));
+  };
+
+  // Toggle a single preference
+  const togglePreference = (key: keyof ActivityPreferences) => {
+    const newPreferences = {
+      ...activityState.preferences,
+      [key]: !activityState.preferences?.[key],
+    } as ActivityPreferences;
+    
+    // Re-filter based on new preferences
+    const filteredActivities = allActivities.filter(activity =>
+      shouldIncludeActivity(activity, activityState.filters, newPreferences)
+    );
+    
+    setActivityState(prev => ({
+      ...prev,
+      items: filteredActivities.slice(0, 10),
+      page: 1,
+      hasMore: filteredActivities.length > 10,
+      preferences: newPreferences,
+    }));
+  };
+
+  // Save all preferences at once
+  const savePreferences = (preferences: ActivityPreferences) => {
+    // Re-filter based on new preferences
+    const filteredActivities = allActivities.filter(activity =>
+      shouldIncludeActivity(activity, activityState.filters, preferences)
+    );
+    
+    setActivityState(prev => ({
+      ...prev,
+      items: filteredActivities.slice(0, 10),
+      page: 1,
+      hasMore: filteredActivities.length > 10,
+      preferences,
+    }));
+  };
+
   // Reset all filters
   const resetFilters = () => {
     setActivityState(prev => ({
@@ -181,6 +346,7 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
       filters: {
         types: [],
         username: "",
+        feedMode: "all",
       },
       page: 1,
       hasMore: allActivities.length > 10,
@@ -248,6 +414,9 @@ export const ActivityFeedProvider = ({ children }: ActivityFeedProviderProps) =>
         filterActivities,
         resetFilters,
         reactToActivity,
+        setFeedMode,
+        togglePreference,
+        savePreferences,
       }}
     >
       {children}

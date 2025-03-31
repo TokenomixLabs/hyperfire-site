@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Flame, ThumbsUp } from 'lucide-react';
+import { Heart, Flame, ThumbsUp, Sparkles, Lightbulb } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,7 @@ const ActivityItem = ({ activity, onReaction, variant = 'standard' }: ActivityIt
       case "admin_announcement":
         return "text-red-500 bg-red-50 dark:bg-red-900/20";
       case "milestone_reached":
+      case "personal_milestone":
         return "text-pink-500 bg-pink-50 dark:bg-pink-900/20";
       default:
         return "text-gray-500 bg-gray-50 dark:bg-gray-900/20";
@@ -43,13 +44,18 @@ const ActivityItem = ({ activity, onReaction, variant = 'standard' }: ActivityIt
   
   const colorClass = getColorClassForType(activity.type);
   
+  // Special styling for milestone achievements
+  const isMilestone = activity.type === "milestone_reached" || activity.type === "personal_milestone";
+  
   if (variant === 'compact') {
     return (
       <Link 
         to={activity.targetUrl} 
         className={cn(
           "block p-3 hover:bg-muted/50 rounded-lg transition-colors",
-          activity.pinned && "border-l-2 border-l-primary pl-2"
+          activity.pinned && "border-l-2 border-l-primary pl-2",
+          isMilestone && "bg-gradient-to-r from-amber-50/50 to-pink-50/50 dark:from-amber-900/10 dark:to-pink-900/10",
+          activity.forYou && "border-r-2 border-r-blue-400"
         )}
       >
         <div className="flex items-start gap-3">
@@ -59,8 +65,24 @@ const ActivityItem = ({ activity, onReaction, variant = 'standard' }: ActivityIt
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate">{activity.title}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs font-medium truncate">{activity.title}</p>
+              {activity.forYou && (
+                <Badge variant="outline" className="h-4 text-[10px] px-1 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                  For You
+                </Badge>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground truncate mt-0.5">{activity.message}</p>
+            {activity.aiSummary && (
+              <div className="mt-1 p-1 bg-muted/60 rounded text-[10px] border-l-2 border-amber-400 pl-2">
+                <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                  <Lightbulb className="h-2.5 w-2.5" />
+                  <span className="font-medium">AI Summary</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{activity.aiSummary}</p>
+              </div>
+            )}
             <div className="flex justify-between items-center mt-1">
               <span className="text-[10px] text-muted-foreground">
                 {formatTimeAgo(activity.timestamp)}
@@ -77,7 +99,9 @@ const ActivityItem = ({ activity, onReaction, variant = 'standard' }: ActivityIt
       className={cn(
         "p-4 rounded-lg hover:bg-muted/30 transition-colors border border-border/40",
         activity.featured && "bg-muted/20",
-        activity.pinned && "border-l-4 border-l-primary"
+        activity.pinned && "border-l-4 border-l-primary",
+        isMilestone && "bg-gradient-to-r from-amber-50/50 to-pink-50/50 dark:from-amber-950/20 dark:to-pink-950/20 border-amber-200 dark:border-amber-800",
+        activity.forYou && "border-r-4 border-r-blue-400"
       )}
     >
       <div className="flex gap-4">
@@ -103,10 +127,36 @@ const ActivityItem = ({ activity, onReaction, variant = 'standard' }: ActivityIt
                 {activity.featured && (
                   <Badge variant="secondary" className="ml-2 text-xs">Featured</Badge>
                 )}
+                {activity.forYou && (
+                  <Badge variant="outline" className="ml-2 text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                    For You
+                  </Badge>
+                )}
+                {activity.relevanceScore && activity.relevanceScore > 80 && (
+                  <Badge variant="outline" className="ml-2 text-xs bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
+                    <Sparkles className="h-3 w-3 mr-1" /> Top Signal
+                  </Badge>
+                )}
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 {activity.message}
               </p>
+              
+              {activity.aiSummary && (
+                <div className="mt-2 p-2 bg-muted/60 rounded text-xs border-l-2 border-amber-400 pl-3">
+                  <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                    <Lightbulb className="h-3.5 w-3.5" />
+                    <span className="font-medium">AI Summary</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{activity.aiSummary}</p>
+                </div>
+              )}
+              
+              {isMilestone && (
+                <div className="mt-2 flex items-center justify-center">
+                  <div className="animate-pulse w-full h-1.5 rounded-full bg-gradient-to-r from-amber-300 via-pink-400 to-purple-500"></div>
+                </div>
+              )}
             </div>
             
             <span className="text-xs text-muted-foreground whitespace-nowrap">
