@@ -44,7 +44,19 @@ export default function FunnelSettings({ funnel, onSave }: FunnelSettingsProps) 
   });
 
   function onSubmit(values: z.infer<typeof settingsSchema>) {
-    onSave(values);
+    // Ensure we're passing non-optional properties to match the Funnel type
+    const referralParams = {
+      trackReferrals: values.referralParams.trackReferrals,
+      defaultPlatform: values.referralParams.defaultPlatform as ReferralPlatform,
+      affiliateEnabled: values.referralParams.affiliateEnabled,
+    };
+    
+    onSave({
+      requiresAuth: values.requiresAuth,
+      redirectLoggedInTo: values.redirectLoggedInTo,
+      redirectLoggedInUrl: values.redirectLoggedInUrl,
+      referralParams
+    });
   }
 
   // Track form state changes for conditional fields

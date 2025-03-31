@@ -6,19 +6,27 @@ import UserRoutes from "./UserRoutes";
 import SignalBoardRoutes from "./SignalBoardRoutes";
 import Header from "../components/header/HeaderContainer";
 import NotFound from "../pages/NotFound";
-import FunnelPage from "../pages/FunnelPage"; 
+import FunnelPage from "../pages/FunnelPage";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="*" element={<><Header /><NotFound /></>} />
+      <Route path="*" element={
+        <Header isScrolled={false}>
+          <NotFound />
+        </Header>
+      } />
       
       {/* Funnel Route - No Header for Clean Funnel Experience */}
       <Route path="/funnel/:slug" element={<FunnelPage />} />
       <Route path="/vip-invite" element={<FunnelPage />} />
       
       {/* Public, Admin, User, and SignalBoard Routes with Header */}
-      <Route element={<><Header /></>}>
+      <Route element={
+        <Header isScrolled={false}>
+          {/* Header will render its children here */}
+        </Header>
+      }>
         <Route path="/" element={<PublicRoutes />} />
         {AdminRoutes()}
         {UserRoutes()}

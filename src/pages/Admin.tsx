@@ -14,6 +14,7 @@ import ReferralProgramManager from "@/components/admin/referrals/ReferralProgram
 import CTAManager from "@/components/admin/referrals/CTAManager";
 import CoursesAdmin from "./admin/CoursesAdmin";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
