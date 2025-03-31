@@ -18,13 +18,17 @@ const AppRoutes = () => {
       {/* Routes with Header */}
       <Route element={<Header isScrolled={false} />}>
         {/* Public Routes */}
-        <Route path="/" element={<PublicRoutes />} />
+        <Route path="/*" element={<PublicRoutes />} />
         
         {/* Admin Routes */}
         <Route path="/admin/*" element={<AdminRoutes />} />
         
-        {/* User Routes */}
-        <Route path="/*" element={<UserRoutes />} />
+        {/* User Routes - All authenticated routes */}
+        <Route path="/dashboard/*" element={<UserRoutes />} />
+        <Route path="/profile/*" element={<UserRoutes />} />
+        <Route path="/content/*" element={<UserRoutes />} />
+        <Route path="/learn/*" element={<UserRoutes />} />
+        <Route path="/explore/*" element={<UserRoutes />} />
         
         {/* SignalBoard Routes */}
         <Route path="/signalboard/*" element={<SignalBoardRoutes />} />

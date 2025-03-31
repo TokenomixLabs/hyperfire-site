@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import Header from '@/components/Header';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import LogoutButton from '@/components/auth/LogoutButton';
 import { MessageSquare, BookOpen, LineChart } from 'lucide-react';
@@ -22,8 +21,8 @@ const Index = () => {
   }, [isAuthenticated, user, navigate]);
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-950 to-gray-900 text-white">
-      <main className="flex-1 flex flex-col items-center justify-center px-4 pt-16 pb-16">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-950 to-gray-900 text-white pt-20">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
         <AnimatedTransition>
           <div className="max-w-4xl mx-auto text-center">
             <div className="mb-8 flex justify-center">

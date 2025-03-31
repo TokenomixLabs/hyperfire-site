@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 
 // Import components
-import HeaderContainer from './header/HeaderContainer';
 import Logo from './header/Logo';
 import DesktopNav from './header/DesktopNav';
 import MobileNav from './header/MobileNav';
@@ -19,6 +18,7 @@ const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const isMobile = useIsMobile();
 
@@ -42,7 +42,9 @@ const Header = () => {
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent">
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      isScrolled ? 'backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 shadow-sm' : 'bg-transparent'
+    }`}>
       <div className="container mx-auto px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -56,13 +58,13 @@ const Header = () => {
                 <Button 
                   variant="ghost" 
                   className="text-white hover:text-white hover:bg-white/10"
-                  onClick={() => location.pathname !== '/login' && window.location.assign('/login')}
+                  onClick={() => navigate('/login')}
                 >
                   Log in
                 </Button>
                 <Button 
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => location.pathname !== '/signup' && window.location.assign('/signup')}
+                  className="bg-purple-600 hover:bg-purple-700"
+                  onClick={() => navigate('/signup')}
                 >
                   Sign up
                 </Button>
@@ -85,7 +87,7 @@ const Header = () => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="md:hidden" 
+                className="md:hidden text-white" 
                 onClick={() => setMobileMenuOpen(prev => !prev)}
               >
                 <span className="sr-only">Open menu</span>
