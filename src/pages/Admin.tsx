@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, Graduation } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, GraduationCap } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
@@ -115,7 +114,7 @@ const Admin = () => {
             onClick={handleNavigateToCourses}
             className="flex items-center gap-2"
           >
-            <Graduation className="h-4 w-4" /> Education
+            <GraduationCap className="h-4 w-4" /> Education
           </Button>
           
           <Button 

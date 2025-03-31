@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, Grip, Edit, Trash2, ExternalLink, Video, Clock, Save, X, FilePdf, Mic, Link2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Grip, Edit, Trash2, ExternalLink, Video, Clock, Save, X, FileText, Mic, Link2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -70,7 +69,6 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
     
-    // Update order property
     const updatedModules = items.map((item, index) => ({
       ...item,
       order: index + 1,
@@ -103,7 +101,7 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
       videoUrl: module.videoUrl,
       thumbnailUrl: module.thumbnailUrl || '',
       duration: module.duration,
-      isVisible: module.isVisible !== false, // Default to true if not specified
+      isVisible: module.isVisible !== false,
       pdfUrl: module.pdfUrl || '',
       audioUrl: module.audioUrl || '',
       ctaId: module.ctaId || '',
@@ -127,7 +125,6 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
   };
   
   const handleSubmit = () => {
-    // Basic validation
     if (!formData.title || !formData.videoUrl) {
       toast({
         title: 'Missing required fields',
@@ -138,7 +135,6 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
     }
     
     if (editingModule) {
-      // Update existing module
       const updatedModules = modules.map(module =>
         module.id === editingModule.id
           ? {
@@ -162,7 +158,6 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
         description: `"${formData.title}" has been updated successfully`,
       });
     } else {
-      // Add new module
       const newModule: CourseModule = {
         id: `module-${Date.now()}`,
         courseId,
@@ -191,7 +186,6 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
   };
   
   const handleDelete = (moduleId: string) => {
-    // Ask for confirmation
     if (window.confirm('Are you sure you want to delete this module?')) {
       const updatedModules = modules
         .filter(module => module.id !== moduleId)
@@ -224,14 +218,12 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
     });
   };
   
-  // Helper function to convert seconds to minutes for display
   const formatDuration = (seconds: number) => {
     if (!seconds) return '0 min';
     const minutes = Math.floor(seconds / 60);
     return `${minutes} min`;
   };
   
-  // Mock CTAs for the dropdown
   const mockCTAs = [
     { id: 'cta-1', name: 'Free Training CTA' },
     { id: 'cta-2', name: 'Premium Membership CTA' },
@@ -372,7 +364,7 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
                               
                               {module.pdfUrl && (
                                 <div className="flex items-center text-muted-foreground">
-                                  <FilePdf className="h-3.5 w-3.5 mr-1" />
+                                  <FileText className="h-3.5 w-3.5 mr-1" />
                                   <a 
                                     href={module.pdfUrl} 
                                     target="_blank" 
