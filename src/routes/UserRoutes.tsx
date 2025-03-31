@@ -1,13 +1,10 @@
 
-import { Route } from "react-router-dom";
-import { Fragment } from "react";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
-
-// Protected user pages
 import ProfileSetup from "../pages/auth/ProfileSetup";
 import ProfileEditPage from "../pages/ProfileEditPage";
 import UserDashboard from "../pages/UserDashboard";
-import ContentLibrary from "../pages/content-library"; // Updated import
+import ContentLibrary from "../pages/content-library"; 
 import LiveEvents from "../pages/LiveEvents";
 import DocumentVault from "../pages/DocumentVault";
 import ReferralTrackingStats from "../components/referrals/ReferralTrackingStats";
@@ -16,9 +13,9 @@ import MySignalDuplicates from "../pages/user/MySignalDuplicates";
 
 const UserRoutes = () => {
   return (
-    <Fragment>
+    <Routes>
       <Route 
-        path="/profile-setup" 
+        path="profile-setup" 
         element={
           <ProtectedRoute>
             <ProfileSetup />
@@ -26,7 +23,7 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/profile/edit" 
+        path="profile/edit" 
         element={
           <ProtectedRoute>
             <ProfileEditPage />
@@ -34,7 +31,7 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/dashboard" 
+        path="dashboard" 
         element={
           <ProtectedRoute>
             <UserDashboard />
@@ -42,7 +39,7 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/content" 
+        path="content" 
         element={
           <ProtectedRoute>
             <ContentLibrary />
@@ -50,7 +47,7 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/live" 
+        path="live" 
         element={
           <ProtectedRoute>
             <LiveEvents />
@@ -58,7 +55,7 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/documents" 
+        path="documents" 
         element={
           <ProtectedRoute>
             <DocumentVault />
@@ -66,7 +63,7 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/referral-stats" 
+        path="referral-stats" 
         element={
           <ProtectedRoute>
             <ReferralTrackingStats />
@@ -74,7 +71,7 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/my-signal-funnels" 
+        path="my-signal-funnels" 
         element={
           <ProtectedRoute>
             <MySignalFunnels />
@@ -82,14 +79,14 @@ const UserRoutes = () => {
         } 
       />
       <Route 
-        path="/my-signal-duplicates" 
+        path="my-signal-duplicates" 
         element={
           <ProtectedRoute>
             <MySignalDuplicates />
           </ProtectedRoute>
         } 
       />
-    </Fragment>
+    </Routes>
   );
 };
 

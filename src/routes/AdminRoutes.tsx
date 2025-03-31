@@ -1,9 +1,6 @@
 
-import { Route } from "react-router-dom";
-import { Fragment } from "react";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
-
-// Admin pages
 import Admin from "../pages/Admin";
 import UserManagement from "../pages/UserManagement";
 import ContentApproval from "../pages/ContentApproval";
@@ -16,9 +13,9 @@ import FunnelBuilder from "../pages/admin/FunnelBuilder";
 
 const AdminRoutes = () => {
   return (
-    <Fragment>
+    <Routes>
       <Route 
-        path="/admin" 
+        path="admin" 
         element={
           <ProtectedRoute>
             <Admin />
@@ -26,7 +23,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/signal-series" 
+        path="admin/signal-series" 
         element={
           <ProtectedRoute>
             <SignalSeriesAdmin />
@@ -34,7 +31,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/funnels" 
+        path="admin/funnels" 
         element={
           <ProtectedRoute>
             <Funnels />
@@ -42,7 +39,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/funnels/new" 
+        path="admin/funnels/new" 
         element={
           <ProtectedRoute>
             <FunnelBuilder />
@@ -50,7 +47,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/funnels/:funnelId" 
+        path="admin/funnels/:funnelId" 
         element={
           <ProtectedRoute>
             <FunnelBuilder />
@@ -58,7 +55,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/users" 
+        path="users" 
         element={
           <ProtectedRoute>
             <UserManagement />
@@ -66,7 +63,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/content-approval" 
+        path="content-approval" 
         element={
           <ProtectedRoute>
             <ContentApproval />
@@ -74,7 +71,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/media-library" 
+        path="media-library" 
         element={
           <ProtectedRoute>
             <MediaLibrary />
@@ -82,7 +79,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/seo-tools" 
+        path="seo-tools" 
         element={
           <ProtectedRoute>
             <SeoTools />
@@ -90,14 +87,14 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/integration-tools" 
+        path="integration-tools" 
         element={
           <ProtectedRoute>
             <IntegrationTools />
           </ProtectedRoute>
         } 
       />
-    </Fragment>
+    </Routes>
   );
 };
 

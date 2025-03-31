@@ -16,11 +16,11 @@ const HeaderContainer = ({ isScrolled, children }: HeaderContainerProps) => {
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 py-3">
-          {children}
+          {/* This is where the header content will be rendered */}
         </div>
       </header>
       <div className="pt-16">
-        <Outlet />
+        {children || <Outlet />}
       </div>
     </>
   );

@@ -7,10 +7,12 @@ import SignalBoardRoutes from "./SignalBoardRoutes";
 import Header from "../components/header/HeaderContainer";
 import NotFound from "../pages/NotFound";
 import FunnelPage from "../pages/FunnelPage";
+import { Outlet } from "react-router-dom";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Not Found Route */}
       <Route path="*" element={
         <Header isScrolled={false}>
           <NotFound />
@@ -21,15 +23,22 @@ const AppRoutes = () => {
       <Route path="/funnel/:slug" element={<FunnelPage />} />
       <Route path="/vip-invite" element={<FunnelPage />} />
       
-      {/* Public, Admin, User, and SignalBoard Routes with Header */}
+      {/* Routes with Header */}
       <Route element={
         <Header isScrolled={false}>
-          {/* Header will render its children here */}
+          <Outlet />
         </Header>
       }>
-        <Route path="/" element={<PublicRoutes />} />
-        {AdminRoutes()}
-        {UserRoutes()}
+        {/* Public Routes */}
+        <Route path="/*" element={<PublicRoutes />} />
+        
+        {/* Admin Routes */}
+        <Route path="/*" element={<AdminRoutes />} />
+        
+        {/* User Routes */}
+        <Route path="/*" element={<UserRoutes />} />
+        
+        {/* SignalBoard Routes */}
         <Route path="/*" element={<SignalBoardRoutes />} />
       </Route>
     </Routes>
