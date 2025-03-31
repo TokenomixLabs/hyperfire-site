@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, Grip, Edit, Trash2, ExternalLink, Video, Clock, Save, X } from 'lucide-react';
+import { Plus, Grip, Edit, Trash2, ExternalLink, Video, Clock, Save, X, FilePdf, Mic, Link2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { CourseModule, CourseFormat } from '@/types/courses';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +41,10 @@ interface ModuleFormData {
   videoUrl: string;
   thumbnailUrl: string;
   duration: number;
+  isVisible: boolean;
+  pdfUrl: string;
+  audioUrl: string;
+  ctaId: string;
 }
 
 export default function ModuleEditor({ modules, setModules, courseId, format }: ModuleEditorProps) {
@@ -44,6 +56,10 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
     videoUrl: '',
     thumbnailUrl: '',
     duration: 0,
+    isVisible: true,
+    pdfUrl: '',
+    audioUrl: '',
+    ctaId: '',
   });
   const { toast } = useToast();
   
@@ -71,6 +87,10 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
       videoUrl: '',
       thumbnailUrl: '',
       duration: 0,
+      isVisible: true,
+      pdfUrl: '',
+      audioUrl: '',
+      ctaId: '',
     });
     setIsDialogOpen(true);
   };
@@ -83,6 +103,10 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
       videoUrl: module.videoUrl,
       thumbnailUrl: module.thumbnailUrl || '',
       duration: module.duration,
+      isVisible: module.isVisible !== false, // Default to true if not specified
+      pdfUrl: module.pdfUrl || '',
+      audioUrl: module.audioUrl || '',
+      ctaId: module.ctaId || '',
     });
     setIsDialogOpen(true);
   };
@@ -92,6 +116,13 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
     setFormData(prev => ({
       ...prev,
       [name]: name === 'duration' ? parseInt(value) || 0 : value,
+    }));
+  };
+  
+  const handleSwitchChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      isVisible: checked,
     }));
   };
   
@@ -117,6 +148,10 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
               videoUrl: formData.videoUrl,
               thumbnailUrl: formData.thumbnailUrl,
               duration: formData.duration,
+              isVisible: formData.isVisible,
+              pdfUrl: formData.pdfUrl,
+              audioUrl: formData.audioUrl,
+              ctaId: formData.ctaId,
             }
           : module
       );
@@ -138,6 +173,10 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
         duration: formData.duration,
         order: modules.length + 1,
         resources: [],
+        isVisible: formData.isVisible,
+        pdfUrl: formData.pdfUrl,
+        audioUrl: formData.audioUrl,
+        ctaId: formData.ctaId,
       };
       
       setModules([...modules, newModule]);
@@ -170,12 +209,36 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
     }
   };
   
+  const handleToggleVisibility = (moduleId: string, currentVisibility: boolean | undefined) => {
+    const updatedModules = modules.map(module =>
+      module.id === moduleId
+        ? { ...module, isVisible: !(currentVisibility !== false) }
+        : module
+    );
+    
+    setModules(updatedModules);
+    
+    toast({
+      title: 'Module visibility updated',
+      description: `Module is now ${(currentVisibility !== false) ? 'hidden' : 'visible'}`,
+    });
+  };
+  
   // Helper function to convert seconds to minutes for display
   const formatDuration = (seconds: number) => {
     if (!seconds) return '0 min';
     const minutes = Math.floor(seconds / 60);
     return `${minutes} min`;
   };
+  
+  // Mock CTAs for the dropdown
+  const mockCTAs = [
+    { id: 'cta-1', name: 'Free Training CTA' },
+    { id: 'cta-2', name: 'Premium Membership CTA' },
+    { id: 'cta-3', name: 'VIP Upsell CTA' },
+    { id: 'cta-4', name: 'Consultation Booking CTA' },
+    { id: 'cta-5', name: 'Join Community CTA' },
+  ];
   
   return (
     <div className="space-y-6">
@@ -214,7 +277,7 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className="border rounded-md p-4 bg-card"
+                        className={`border rounded-md p-4 ${module.isVisible === false ? 'bg-muted/40' : 'bg-card'}`}
                       >
                         <div className="flex items-start gap-3">
                           <div
@@ -226,15 +289,35 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                              <h3 className="font-medium truncate">
+                              <h3 className={`font-medium truncate ${module.isVisible === false ? 'text-muted-foreground' : ''}`}>
                                 {module.order}. {module.title}
                               </h3>
                               
                               <div className="flex items-center space-x-2">
+                                {module.isVisible === false && (
+                                  <Badge variant="outline" className="flex items-center text-muted-foreground">
+                                    <EyeOff className="h-3 w-3 mr-1" />
+                                    Hidden
+                                  </Badge>
+                                )}
+                                
                                 <Badge variant="outline" className="flex items-center">
                                   <Clock className="h-3 w-3 mr-1" />
                                   {formatDuration(module.duration)}
                                 </Badge>
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleToggleVisibility(module.id, module.isVisible)}
+                                  title={module.isVisible === false ? "Make visible" : "Hide module"}
+                                >
+                                  {module.isVisible === false ? (
+                                    <Eye className="h-4 w-4" />
+                                  ) : (
+                                    <EyeOff className="h-4 w-4" />
+                                  )}
+                                </Button>
                                 
                                 <Button
                                   variant="ghost"
@@ -286,6 +369,43 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
                                   </a>
                                 </div>
                               )}
+                              
+                              {module.pdfUrl && (
+                                <div className="flex items-center text-muted-foreground">
+                                  <FilePdf className="h-3.5 w-3.5 mr-1" />
+                                  <a 
+                                    href={module.pdfUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="hover:underline flex items-center"
+                                  >
+                                    PDF
+                                    <ExternalLink className="h-3 w-3 ml-1" />
+                                  </a>
+                                </div>
+                              )}
+                              
+                              {module.audioUrl && (
+                                <div className="flex items-center text-muted-foreground">
+                                  <Mic className="h-3.5 w-3.5 mr-1" />
+                                  <a 
+                                    href={module.audioUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="hover:underline flex items-center"
+                                  >
+                                    Audio
+                                    <ExternalLink className="h-3 w-3 ml-1" />
+                                  </a>
+                                </div>
+                              )}
+                              
+                              {module.ctaId && (
+                                <div className="flex items-center text-muted-foreground">
+                                  <Link2 className="h-3.5 w-3.5 mr-1" />
+                                  <span>CTA: {mockCTAs.find(cta => cta.id === module.ctaId)?.name || module.ctaId}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -301,7 +421,7 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
       )}
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingModule ? 'Edit Module' : 'Add Module'}</DialogTitle>
             <DialogDescription>
@@ -312,15 +432,32 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
           </DialogHeader>
           
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleFormChange}
-                placeholder="Enter module title"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleFormChange}
+                  placeholder="Enter module title"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration (in seconds)</Label>
+                <Input
+                  id="duration"
+                  name="duration"
+                  type="number"
+                  value={formData.duration.toString()}
+                  onChange={handleFormChange}
+                  placeholder="Enter duration in seconds"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formatDuration(formData.duration)}
+                </p>
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -335,6 +472,20 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
               />
             </div>
             
+            <div className="flex items-center justify-between space-y-0 rounded-md border p-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="isVisible">Module Visibility</Label>
+                <p className="text-sm text-muted-foreground">
+                  When enabled, this module will be visible to users
+                </p>
+              </div>
+              <Switch
+                id="isVisible"
+                checked={formData.isVisible}
+                onCheckedChange={handleSwitchChange}
+              />
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="videoUrl">Video URL</Label>
               <Input
@@ -344,6 +495,9 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
                 onChange={handleFormChange}
                 placeholder="https://example.com/video.mp4"
               />
+              <p className="text-xs text-muted-foreground">
+                YouTube, Vimeo, or direct video URL
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -358,17 +512,48 @@ export default function ModuleEditor({ modules, setModules, courseId, format }: 
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration (in seconds)</Label>
+              <Label htmlFor="pdfUrl">PDF URL (Optional)</Label>
               <Input
-                id="duration"
-                name="duration"
-                type="number"
-                value={formData.duration.toString()}
+                id="pdfUrl"
+                name="pdfUrl"
+                value={formData.pdfUrl}
                 onChange={handleFormChange}
-                placeholder="Enter duration in seconds"
+                placeholder="https://example.com/document.pdf"
               />
               <p className="text-xs text-muted-foreground">
-                {formatDuration(formData.duration)}
+                Downloadable resources for this module
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="audioUrl">Audio URL (Optional)</Label>
+              <Input
+                id="audioUrl"
+                name="audioUrl"
+                value={formData.audioUrl}
+                onChange={handleFormChange}
+                placeholder="https://example.com/audio.mp3"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="ctaId">CTA Selection</Label>
+              <Select 
+                value={formData.ctaId} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, ctaId: value }))}
+              >
+                <SelectTrigger id="ctaId">
+                  <SelectValue placeholder="Select a CTA for this module" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {mockCTAs.map(cta => (
+                    <SelectItem key={cta.id} value={cta.id}>{cta.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Call-to-action to display with this module
               </p>
             </div>
           </div>

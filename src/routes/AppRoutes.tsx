@@ -39,6 +39,8 @@ import CoursePage from "../pages/learn/CoursePage";
 import VideoCoursePage from "../pages/learn/VideoCoursePage";
 import CourseSeriesPage from "../pages/learn/CourseSeriesPage";
 import CoursesAdmin from "../pages/admin/CoursesAdmin";
+import CourseAnalytics from "../pages/admin/CourseAnalytics";
+import CourseEditor from "../pages/admin/CourseEditor";
 
 const AppRoutes = () => {
   return (
@@ -159,6 +161,30 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CoursesAdmin />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/courses/new" 
+        element={
+          <ProtectedRoute>
+            <CourseEditor />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/courses/edit/:courseId" 
+        element={
+          <ProtectedRoute>
+            <CourseEditor />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/courses/analytics/:courseId" 
+        element={
+          <ProtectedRoute>
+            <CourseAnalytics />
           </ProtectedRoute>
         } 
       />

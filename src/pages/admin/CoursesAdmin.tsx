@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Trash2, BookOpen, Play, Filter, ArrowUpDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, BookOpen, Play, Filter, ArrowUpDown, BarChart2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,18 +28,17 @@ import { format } from 'date-fns';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { Course } from '@/types/courses';
 import { mockCourses } from '@/data/mockCourses';
-import CourseForm from '@/components/admin/courses/CourseForm';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CoursesAdmin() {
   const [courses, setCourses] = useState<Course[]>(mockCourses);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>(mockCourses);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [courseToEdit, setCourseToEdit] = useState<Course | null>(null);
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,8 +80,19 @@ export default function CoursesAdmin() {
   };
   
   const handleEdit = (course: Course) => {
-    setCourseToEdit(course);
-    setIsCreateDialogOpen(true);
+    navigate(`/admin/courses/edit/${course.id}`);
+  };
+  
+  const handleViewAnalytics = (course: Course) => {
+    navigate(`/admin/courses/analytics/${course.id}`);
+  };
+  
+  const handleCreateNew = () => {
+    navigate('/admin/courses/new');
+  };
+  
+  const handlePreview = (course: Course) => {
+    navigate(`/learn/${course.slug}`);
   };
   
   const handleDelete = (course: Course) => {
@@ -98,28 +108,13 @@ export default function CoursesAdmin() {
     setCourses(updatedCourses);
     setFilteredCourses(filterCoursesByTab(updatedCourses, activeTab));
     
+    toast({
+      title: 'Course deleted',
+      description: `"${courseToDelete.title}" has been deleted successfully`,
+    });
+    
     setIsDeleteDialogOpen(false);
     setCourseToDelete(null);
-  };
-  
-  const handleCreateOrUpdate = (course: Course) => {
-    // In a real app, this would be an API call to create or update the course
-    
-    let updatedCourses: Course[];
-    
-    if (courseToEdit) {
-      // Update existing course
-      updatedCourses = courses.map(c => c.id === course.id ? course : c);
-    } else {
-      // Create new course
-      updatedCourses = [...courses, course];
-    }
-    
-    setCourses(updatedCourses);
-    setFilteredCourses(filterCoursesByTab(updatedCourses, activeTab));
-    
-    setIsCreateDialogOpen(false);
-    setCourseToEdit(null);
   };
   
   const formatDate = (dateString: string) => {
@@ -138,10 +133,7 @@ export default function CoursesAdmin() {
           <p className="text-muted-foreground">Create and manage courses in the Education Hub</p>
         </div>
         
-        <Button onClick={() => {
-          setCourseToEdit(null);
-          setIsCreateDialogOpen(true);
-        }}>
+        <Button onClick={handleCreateNew}>
           <Plus className="h-4 w-4 mr-2" />
           Create New Course
         </Button>
@@ -279,6 +271,11 @@ export default function CoursesAdmin() {
                                 </div>
                               )}
                             </Badge>
+                            {course.isGated && (
+                              <Badge variant="outline" className="text-amber-600 border-amber-600">
+                                {course.accessLevel === 'premium' ? 'Premium' : course.accessLevel === 'vip' ? 'VIP' : 'Free'}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                         
@@ -300,7 +297,25 @@ export default function CoursesAdmin() {
                           </div>
                         </div>
                         
-                        <div className="flex justify-end mt-3 space-x-2">
+                        <div className="flex flex-wrap justify-end mt-3 space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handlePreview(course)}
+                          >
+                            <Eye className="h-3.5 w-3.5 mr-1" />
+                            Preview
+                          </Button>
+                          
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewAnalytics(course)}
+                          >
+                            <BarChart2 className="h-3.5 w-3.5 mr-1" />
+                            Analytics
+                          </Button>
+                          
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -309,6 +324,7 @@ export default function CoursesAdmin() {
                             <Pencil className="h-3.5 w-3.5 mr-1" />
                             Edit
                           </Button>
+                          
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -328,29 +344,6 @@ export default function CoursesAdmin() {
           </Card>
         </div>
       </div>
-      
-      {/* Create/Edit Course Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{courseToEdit ? 'Edit Course' : 'Create New Course'}</DialogTitle>
-            <DialogDescription>
-              {courseToEdit 
-                ? 'Edit the details of your existing course.' 
-                : 'Fill out the form below to create a new course.'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <CourseForm 
-            initialCourse={courseToEdit} 
-            onSubmit={handleCreateOrUpdate}
-            onCancel={() => {
-              setIsCreateDialogOpen(false);
-              setCourseToEdit(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

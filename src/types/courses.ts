@@ -17,12 +17,18 @@ export interface CourseModule {
   resources?: CourseResource[];
   isCompleted?: boolean;
   guardianCommentary?: string;
+  isVisible?: boolean;
+  pdfUrl?: string;
+  audioUrl?: string;
+  ctaId?: string;
+  viewCount?: number;
+  completionCount?: number;
 }
 
 export interface CourseResource {
   id: string;
   title: string;
-  type: 'pdf' | 'link' | 'file';
+  type: 'pdf' | 'link' | 'file' | 'audio';
   url: string;
   description?: string;
 }
@@ -65,6 +71,9 @@ export interface Course {
   progress?: CourseProgress; // User-specific progress data
   viewCount: number;
   completionCount: number;
+  ctaClickCount?: number;
+  previewVideoUrl?: string;
+  lockedMessage?: string;
 }
 
 export interface CourseFilters {
@@ -80,4 +89,35 @@ export interface CourseSortOption {
   label: string;
   value: 'newest' | 'popular' | 'title' | 'duration';
   direction: 'asc' | 'desc';
+}
+
+export interface CourseAnalyticsData {
+  courseId: string;
+  viewsOverTime: {
+    date: string;
+    count: number;
+  }[];
+  completionsOverTime: {
+    date: string;
+    count: number;
+  }[];
+  moduleViews: {
+    moduleId: string;
+    moduleName: string;
+    views: number;
+  }[];
+  moduleCompletions: {
+    moduleId: string;
+    moduleName: string;
+    completions: number;
+  }[];
+  ctaClicks: {
+    ctaId: string;
+    ctaName: string;
+    clicks: number;
+  }[];
+  avgCompletionRate: number;
+  totalViews: number;
+  totalCompletions: number;
+  totalCtaClicks: number;
 }

@@ -29,6 +29,7 @@ const courseSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters'),
   summary: z.string().min(10, 'Summary must be at least 10 characters').max(200, 'Summary must be at most 200 characters'),
   thumbnailUrl: z.string().url('Please enter a valid URL'),
+  previewVideoUrl: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
   format: z.enum(['video', 'series']),
   category: z.array(z.string()).min(1, 'Please select at least one category'),
   level: z.enum(['Beginner', 'Intermediate', 'Advanced', 'All Levels']),
@@ -37,6 +38,7 @@ const courseSchema = z.object({
   accessLevel: z.enum(['free', 'vip', 'premium']),
   ctaIds: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  lockedMessage: z.string().optional().or(z.literal('')),
 });
 
 type CourseFormValues = z.infer<typeof courseSchema>;
@@ -52,6 +54,7 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
     description: initialCourse?.description || '',
     summary: initialCourse?.summary || '',
     thumbnailUrl: initialCourse?.thumbnailUrl || '',
+    previewVideoUrl: initialCourse?.previewVideoUrl || '',
     format: initialCourse?.format || 'video',
     category: initialCourse?.category || [],
     level: initialCourse?.level || 'Beginner',
@@ -60,6 +63,7 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
     accessLevel: initialCourse?.accessLevel || 'free',
     ctaIds: initialCourse?.ctaIds || [],
     tags: initialCourse?.tags || [],
+    lockedMessage: initialCourse?.lockedMessage || '',
   };
   
   const form = useForm<CourseFormValues>({
@@ -105,10 +109,11 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
     const courseData: Course = {
       id: initialCourse?.id || `course-${Date.now()}`,
       slug,
-      title: values.title, // Explicitly add title
+      title: values.title,
       description: values.description,
       summary: values.summary,
       thumbnailUrl: values.thumbnailUrl,
+      previewVideoUrl: values.previewVideoUrl,
       format: values.format,
       category: values.category as CourseCategory[],
       level: values.level,
@@ -117,6 +122,7 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
       accessLevel: values.accessLevel,
       ctaIds: values.ctaIds,
       tags: values.tags,
+      lockedMessage: values.lockedMessage,
       modules,
       totalDuration,
       creator: initialCourse?.creator || {
@@ -130,6 +136,7 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
         : undefined,
       viewCount: initialCourse?.viewCount || 0,
       completionCount: initialCourse?.completionCount || 0,
+      ctaClickCount: initialCourse?.ctaClickCount || 0,
     };
     
     onSubmit(courseData);
@@ -192,6 +199,23 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
                       )}
                     />
                   </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="previewVideoUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preview Video URL (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://example.com/preview.mp4" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          A short preview video for this course
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   
                   <FormField
                     control={form.control}
@@ -411,34 +435,57 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
                   </div>
                   
                   {watchIsGated && (
-                    <FormField
-                      control={form.control}
-                      name="accessLevel"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Access Level</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            value={field.value}
-                          >
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="accessLevel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Access Level</FormLabel>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select access level" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="free">Free</SelectItem>
+                                <SelectItem value="vip">VIP</SelectItem>
+                                <SelectItem value="premium">Premium</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Required membership level to access this course
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="lockedMessage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Access Restriction Message</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select access level" />
-                              </SelectTrigger>
+                              <Textarea 
+                                placeholder="Message to show to users who don't have access" 
+                                {...field} 
+                                rows={3}
+                              />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="free">Free</SelectItem>
-                              <SelectItem value="vip">VIP</SelectItem>
-                              <SelectItem value="premium">Premium</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Required membership level to access this course
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormDescription>
+                              Displayed when users without sufficient access try to view the course
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   )}
                   
                   <FormField
@@ -525,6 +572,15 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
                       <span className="px-2 py-1 bg-muted rounded-full text-sm">
                         {form.getValues('format') === 'video' ? 'Single Video' : 'Multi-Part Series'}
                       </span>
+                      {form.getValues('isGated') && (
+                        <span className="px-2 py-1 bg-orange-500/10 rounded-full text-sm text-orange-700">
+                          {form.getValues('accessLevel') === 'premium' 
+                            ? 'Premium Access' 
+                            : form.getValues('accessLevel') === 'vip' 
+                              ? 'VIP Access' 
+                              : 'Free Access'}
+                        </span>
+                      )}
                     </div>
                     
                     <Separator className="my-4" />
@@ -546,10 +602,15 @@ export default function CourseForm({ initialCourse, onSubmit, onCancel }: Course
                         <div className="space-y-2">
                           {modules.map((module, index) => (
                             <div key={module.id} className="text-sm p-2 border rounded-md">
-                              <span className="font-medium">{index + 1}. {module.title}</span>
+                              <div className="flex justify-between">
+                                <span className="font-medium">{index + 1}. {module.title}</span>
+                                {module.isVisible === false && (
+                                  <span className="text-xs text-muted-foreground border px-2 py-0.5 rounded-full">Hidden</span>
+                                )}
+                              </div>
                               {module.duration > 0 && (
-                                <span className="text-muted-foreground ml-2">
-                                  ({Math.floor(module.duration / 60)} min)
+                                <span className="text-muted-foreground text-xs">
+                                  Duration: {Math.floor(module.duration / 60)} min
                                 </span>
                               )}
                             </div>
