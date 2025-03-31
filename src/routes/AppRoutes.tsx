@@ -33,6 +33,13 @@ import SignalSeriesAdmin from "../pages/admin/SignalSeriesAdmin";
 import SignalBoardRoutes from "./SignalBoardRoutes";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
+// Learn pages
+import Learn from "../pages/learn";
+import CoursePage from "../pages/learn/CoursePage";
+import VideoCoursePage from "../pages/learn/VideoCoursePage";
+import CourseSeriesPage from "../pages/learn/CourseSeriesPage";
+import CoursesAdmin from "../pages/admin/CoursesAdmin";
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -49,6 +56,12 @@ const AppRoutes = () => {
       <Route path="/signal/:slug" element={<SignalSeriesDetail />} />
       <Route path="/u/:username" element={<UserProfilePage />} />
       <Route path="*" element={<NotFound />} />
+
+      {/* Education Hub Routes */}
+      <Route path="/learn" element={<Learn />} />
+      <Route path="/learn/:slug" element={<CoursePage />} />
+      <Route path="/learn/video/:slug" element={<VideoCoursePage />} />
+      <Route path="/learn/series/:slug" element={<CourseSeriesPage />} />
 
       {/* User Routes */}
       <Route 
@@ -138,6 +151,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <SignalSeriesAdmin />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/courses" 
+        element={
+          <ProtectedRoute>
+            <CoursesAdmin />
           </ProtectedRoute>
         } 
       />
