@@ -47,7 +47,7 @@ const Header = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Logo />
-          <DesktopNav />
+          {isAuthenticated && <DesktopNav />}
         </div>
 
         <div className="flex items-center space-x-4">
@@ -73,8 +73,8 @@ const Header = () => {
             />
           )}
           
-          {/* Mobile menu toggle - show for all users */}
-          {isMobile && (
+          {/* Mobile menu toggle - only show for authenticated users */}
+          {isMobile && isAuthenticated && (
             <Button 
               variant="ghost" 
               size="icon" 
@@ -92,7 +92,7 @@ const Header = () => {
 
       <SearchBar isOpen={searchOpen} />
       
-      <MobileNav isOpen={mobileMenuOpen} />
+      {isAuthenticated && <MobileNav isOpen={mobileMenuOpen} />}
     </HeaderContainer>
   );
 };

@@ -16,7 +16,7 @@ const DesktopNav = () => {
   ];
   
   return (
-    <nav className="hidden md:flex items-center space-x-2">
+    <nav className="hidden md:flex items-center space-x-4">
       {navLinks.map((link) => (
         <NavigationLink 
           key={link.path}

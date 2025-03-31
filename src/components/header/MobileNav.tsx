@@ -45,24 +45,6 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
               className="py-3"
             />
           ))}
-          
-          {!isAuthenticated && (
-            <div className="pt-4 mt-2 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-center" 
-                onClick={() => location.pathname !== '/login' && window.location.assign('/login')}
-              >
-                Log in
-              </Button>
-              <Button 
-                className="w-full justify-center" 
-                onClick={() => location.pathname !== '/signup' && window.location.assign('/signup')}
-              >
-                Sign up
-              </Button>
-            </div>
-          )}
         </nav>
       </div>
     </div>
