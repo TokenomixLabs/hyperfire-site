@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Flame, Clap } from 'lucide-react';
+import { Heart, Flame, HandClap } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -150,7 +150,7 @@ const ActivityItem = ({ activity, onReaction, variant = 'standard' }: ActivityIt
               )}
               onClick={() => onReaction(activity.id, "clap")}
             >
-              <Clap className="h-3.5 w-3.5" />
+              <HandClap className="h-3.5 w-3.5" />
               <span className="text-xs">{activity.reactions?.clap || 0}</span>
             </Button>
             
