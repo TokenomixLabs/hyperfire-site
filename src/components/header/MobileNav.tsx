@@ -2,7 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import NavigationLink from './NavigationLink';
-import { Home, LineChart, MessageSquare, BookOpen, Compass, User, Settings } from 'lucide-react';
+import { Home, LineChart, MessageSquare, BookOpen, Compass, User, Settings, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 
@@ -20,6 +20,7 @@ const MobileNav = ({ isOpen }: MobileNavProps) => {
     { path: '/signalboard', label: 'SignalBoard', icon: MessageSquare },
     { path: '/learn', label: 'Education Hub', icon: BookOpen },
     { path: '/explore', label: 'Explore', icon: Compass },
+    { path: '/pricing', label: 'Pricing', icon: Zap },
   ];
   
   // Add profile link only for authenticated users

@@ -1,10 +1,11 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import LogoutButton from '@/components/auth/LogoutButton';
-import { MessageSquare, BookOpen, LineChart } from 'lucide-react';
+import { MessageSquare, BookOpen, LineChart, Zap, Flame } from 'lucide-react';
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -62,6 +63,17 @@ const Index = () => {
               )}
             </div>
             
+            <div className="mt-6">
+              <Button
+                variant="ghost"
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
+                onClick={() => navigate('/pricing')}
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                View Pricing Plans
+              </Button>
+            </div>
+            
             <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 shadow-sm">
                 <div className="mb-4 flex justify-center">
@@ -97,6 +109,25 @@ const Index = () => {
                 <p className="text-gray-400">
                   One-click sharing with your referral code automatically embedded.
                 </p>
+              </div>
+            </div>
+            
+            <div className="mt-16 p-6 bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl border border-purple-500/20">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center">
+                  <Flame className="h-8 w-8 text-amber-500 mr-4" />
+                  <div className="text-left">
+                    <h3 className="text-xl font-semibold">Ready to level up?</h3>
+                    <p className="text-gray-300">Upgrade to HyperFIRE and unlock all premium features</p>
+                  </div>
+                </div>
+                <Button 
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-2"
+                  onClick={() => navigate('/pricing')}
+                >
+                  <Zap className="mr-2 h-4 w-4" />
+                  View Pricing
+                </Button>
               </div>
             </div>
           </div>

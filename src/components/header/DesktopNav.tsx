@@ -2,7 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import NavigationLink from './NavigationLink';
-import { Home, LineChart, MessageSquare, BookOpen, Compass, Settings } from 'lucide-react';
+import { Home, LineChart, MessageSquare, BookOpen, Compass, Settings, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const DesktopNav = () => {
@@ -15,6 +15,7 @@ const DesktopNav = () => {
     { path: '/signalboard', label: 'SignalBoard', icon: MessageSquare },
     { path: '/learn', label: 'Education Hub', icon: BookOpen },
     { path: '/explore', label: 'Explore', icon: Compass },
+    { path: '/pricing', label: 'Pricing', icon: Zap },
   ];
   
   // Add Admin link for admin users

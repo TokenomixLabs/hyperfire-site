@@ -1,218 +1,207 @@
 
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, X } from 'lucide-react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Check, X, Zap, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { PageTitle } from '@/components/ui/page-headers';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import Header from '@/components/Header';
 import { useMembership } from '@/context/MembershipContext';
-import { TierLevel } from '@/types/membership';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/AuthContext';
 
 const Pricing = () => {
-  const [searchParams] = useSearchParams();
-  const initialTier = searchParams.get('tier') as TierLevel | null;
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { tiersList, currentTier, canUpgrade } = useMembership();
-  const { isAuthenticated } = useAuth();
+  const { currentTier } = useMembership();
   
-  const [yearlyBilling, setYearlyBilling] = useState(true);
-  
-  // Filter out free tier and hidden tiers
-  const paidTiers = tiersList.filter(tier => tier.id !== 'free' && !tier.isHidden);
-  
-  const handlePurchase = (tierId: TierLevel) => {
-    // If not authenticated, redirect to login
-    if (!isAuthenticated) {
-      toast({
-        title: "Login Required",
-        description: "Please log in or sign up to subscribe",
-        duration: 3000,
-      });
-      navigate(`/login?redirect=${encodeURIComponent(`/pricing?tier=${tierId}`)}`);
-      return;
-    }
-    
-    // If user is already on this tier or higher
-    if (tierId === currentTier || !canUpgrade(tierId)) {
-      toast({
-        title: "Already Subscribed",
-        description: `You already have access to ${tierId} features`,
-        duration: 3000,
-      });
-      return;
-    }
-    
-    // In a real app, this would redirect to a checkout page
-    // For now, just show a toast
-    toast({
-      title: "Checkout Initiated",
-      description: `Starting checkout for ${tierId} ${yearlyBilling ? 'yearly' : 'monthly'} plan`,
-      duration: 3000,
-    });
-    
-    // Simulate a redirect to checkout
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1500);
+  const scrollToCheckout = () => {
+    document.getElementById('checkout-section')?.scrollIntoView({ behavior: 'smooth' });
   };
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
-      
-      <AnimatedTransition className="container max-w-7xl mx-auto px-4 py-12">
+    <AnimatedTransition>
+      <div className="container mx-auto px-4 py-16 max-w-6xl">
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Choose Your SignalFire Plan</h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Unlock powerful features to amplify your signal and build your community
+          <PageTitle>Choose Your Plan</PageTitle>
+          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+            Unlock advanced AI tools, exclusive content, and premium community features with HyperFIRE subscription
           </p>
-          
-          <div className="flex items-center justify-center mt-8">
-            <Label htmlFor="billing-toggle" className={!yearlyBilling ? "font-semibold" : ""}>
-              Monthly
-            </Label>
-            <Switch
-              id="billing-toggle"
-              checked={yearlyBilling}
-              onCheckedChange={setYearlyBilling}
-              className="mx-4"
-            />
-            <div className="flex items-center">
-              <Label htmlFor="billing-toggle" className={yearlyBilling ? "font-semibold" : ""}>
-                Yearly
-              </Label>
-              <span className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs py-0.5 px-2 rounded-full">
-                Save 16%
-              </span>
-            </div>
-          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Free Tier */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-1">Free</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Get started with basic features</p>
-              
-              <div className="mb-6">
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          {/* Free Plan */}
+          <Card className="border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                InsiderLife Free Access
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Essential access to get started</p>
+              <div className="mt-4">
                 <span className="text-3xl font-bold">$0</span>
-                <span className="text-gray-600 dark:text-gray-400">/forever</span>
+                <span className="text-muted-foreground">/month</span>
               </div>
-              
-              <Button 
-                className="w-full mb-6" 
-                variant="outline"
-                onClick={() => navigate('/signup')}
-                disabled={isAuthenticated && currentTier !== 'free'}
-              >
-                {isAuthenticated && currentTier === 'free' ? 'Current Plan' : 'Get Started'}
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Access to limited AI tools</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Access to community content</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Limited daily credits</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Basic onboarding</span>
+                </li>
+                <li className="flex items-start gap-2 text-muted-foreground">
+                  <span className="mt-0.5 text-red-500 shrink-0"><X className="h-5 w-5" /></span>
+                  <span>No custom dashboards</span>
+                </li>
+                <li className="flex items-start gap-2 text-muted-foreground">
+                  <span className="mt-0.5 text-red-500 shrink-0"><X className="h-5 w-5" /></span>
+                  <span>No tokenized tools or gated drops</span>
+                </li>
+                <li className="flex items-start gap-2 text-muted-foreground">
+                  <span className="mt-0.5 text-red-500 shrink-0"><X className="h-5 w-5" /></span>
+                  <span>No HyperFIRE exclusive content</span>
+                </li>
+                <li className="flex items-start gap-2 text-muted-foreground">
+                  <span className="mt-0.5 text-red-500 shrink-0"><X className="h-5 w-5" /></span>
+                  <span>No private community sessions</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/signup')}>
+                {currentTier === 'free' ? 'Current Plan' : 'Get Started'}
               </Button>
-              
-              <div className="space-y-3">
-                {tiersList[0].features.map((feature, i) => (
-                  <div key={i} className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+            </CardFooter>
+          </Card>
           
-          {/* Paid Tiers */}
-          {paidTiers.map((tier) => {
-            const price = yearlyBilling ? tier.yearlyPrice : tier.monthlyPrice;
-            const isCurrentTier = currentTier === tier.id;
-            const isHighlighted = initialTier === tier.id || 
-              (!initialTier && tier.id === 'premium');
-            
-            return (
-              <div 
-                key={tier.id}
-                className={`bg-white dark:bg-gray-800 rounded-xl overflow-hidden 
-                  ${isHighlighted 
-                    ? 'ring-2 ring-purple-500 shadow-xl scale-105 lg:scale-100 lg:transform lg:translate-y-[-20px]' 
-                    : 'shadow-md border border-gray-200 dark:border-gray-700'
-                  }`}
-              >
-                {isHighlighted && (
-                  <div className="bg-purple-500 text-white py-2 text-center font-medium">
-                    Most Popular
-                  </div>
-                )}
-                
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-1">
-                    <h2 className="text-2xl font-bold">{tier.name}</h2>
-                    <div className={`${tier.color} text-xs text-white py-1 px-2 rounded-full`}>
-                      {tier.badge || tier.name}
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">{tier.description}</p>
-                  
-                  <div className="mb-6">
-                    <span className="text-3xl font-bold">${price}</span>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      /{yearlyBilling ? 'year' : 'month'}
-                    </span>
-                  </div>
-                  
-                  <Button 
-                    className={`w-full mb-6 ${isHighlighted ? tier.color : ''}`}
-                    variant={isHighlighted ? "default" : "outline"}
-                    onClick={() => handlePurchase(tier.id as TierLevel)}
-                    disabled={isCurrentTier}
-                  >
-                    {isCurrentTier ? 'Current Plan' : `Upgrade to ${tier.name}`}
-                  </Button>
-                  
-                  <div className="space-y-3">
-                    {tier.features.map((feature, i) => (
-                      <div key={i} className="flex items-center">
-                        <Check className="h-5 w-5 text-green-500 mr-2" />
-                        <span>{feature}</span>
-                      </div>
-                    ))}
-                    
-                    {/* Show what's not included from higher tiers */}
-                    {paidTiers
-                      .filter(t => t.order > tier.order)
-                      .flatMap(t => t.features)
-                      .filter((feature, i, arr) => !tier.features.includes(feature) && arr.indexOf(feature) === i)
-                      .slice(0, 2)
-                      .map((feature, i) => (
-                        <div key={`not-${i}`} className="flex items-center text-gray-400">
-                          <X className="h-5 w-5 text-gray-400 mr-2" />
-                          <span>{feature}</span>
-                        </div>
-                      ))
-                    }
+          {/* Premium Plan */}
+          <Card className="border-purple-500/50 bg-gradient-to-b from-card to-card/95 shadow-lg relative hover:shadow-xl transition-shadow">
+            <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs px-3 py-1 rounded-bl-md rounded-tr-md font-medium">
+              RECOMMENDED
+            </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Flame className="h-5 w-5 text-amber-500" />
+                HyperFIRE Subscription
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Unlock the full potential</p>
+              <div className="mt-4">
+                <span className="text-3xl font-bold">$49</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Full access to HyperFIRE AI platform</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Unlimited daily credits</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Advanced dashboards & toolkits</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Early access to tokenized drops</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Private live streams & content unlocks</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Affiliate + monetization features</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Premium community sessions</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>First access to GOD MODE performance stack</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-green-500 shrink-0"><Check className="h-5 w-5" /></span>
+                  <span>Priority support</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={scrollToCheckout}>
+                <Zap className="mr-1 h-4 w-4" />
+                Subscribe Now
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+        
+        {/* Checkout Section Placeholder */}
+        <div id="checkout-section" className="py-12">
+          <div className="max-w-md mx-auto text-center">
+            <h2 className="text-2xl font-bold mb-4">Ready to upgrade?</h2>
+            <p className="text-muted-foreground mb-8">
+              Join HyperFIRE today and unlock the full suite of premium features, exclusive content, and community benefits.
+            </p>
+            <Card className="bg-card/50 backdrop-blur-sm border border-purple-500/30">
+              <CardContent className="pt-6">
+                <div className="flex justify-center mb-4">
+                  <div className="h-12 w-12 bg-purple-600/20 rounded-full flex items-center justify-center">
+                    <Flame className="h-6 w-6 text-purple-500" />
                   </div>
                 </div>
-              </div>
-            );
-          })}
+                <h3 className="text-lg font-semibold mb-2">HyperFIRE Premium</h3>
+                <p className="text-sm text-muted-foreground mb-4">Billed monthly</p>
+                <div className="text-2xl font-bold mb-6">$49/month</div>
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                  <Zap className="mr-1 h-4 w-4" />
+                  Checkout
+                </Button>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Secure payment powered by Stripe. Cancel anytime.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
         
-        <div className="mt-16 text-center">
-          <h3 className="text-xl font-semibold mb-4">Looking for a custom solution?</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
-            Need specific features or have custom requirements? Contact us to discuss
-            a tailored solution for your community or organization.
-          </p>
-          <Button variant="outline" size="lg" onClick={() => navigate('/contact')}>
-            Contact Us
-          </Button>
+        {/* FAQ Section */}
+        <div className="mt-20 max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-lg font-medium mb-2">What is HyperFIRE?</h3>
+                <p className="text-muted-foreground">HyperFIRE is our premium subscription tier that gives you full access to all AI tools, advanced dashboards, exclusive content, and priority community features.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-lg font-medium mb-2">Can I cancel my subscription?</h3>
+                <p className="text-muted-foreground">Yes, you can cancel your subscription at any time. Your benefits will continue until the end of your billing cycle.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-lg font-medium mb-2">What are tokenized drops?</h3>
+                <p className="text-muted-foreground">Tokenized drops are exclusive digital assets and tools that are available first to our premium members before wider release.</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </AnimatedTransition>
-    </div>
+      </div>
+    </AnimatedTransition>
   );
 };
 
