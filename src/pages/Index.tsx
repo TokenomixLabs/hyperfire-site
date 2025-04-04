@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -138,7 +139,10 @@ const Index = () => {
             © 2024 InsiderLife. All rights reserved.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
-            <a href="#" className="text-gray-400 hover:text-purple-400 text-sm">
+            <a 
+              onClick={() => navigate('/terms-of-use')} 
+              className="text-gray-400 hover:text-purple-400 text-sm cursor-pointer"
+            >
               Terms
             </a>
             <a 
