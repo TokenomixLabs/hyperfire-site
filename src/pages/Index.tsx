@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ const Index = () => {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Build powerful community-driven campaigns with real-time analytics, social sharing, and performance-based growth.
+              Build powerful, community-driven campaigns with real-time analytics, viral sharing, and performance-based growth.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
