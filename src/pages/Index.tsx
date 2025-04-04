@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -26,11 +25,11 @@ const Index = () => {
         <AnimatedTransition>
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500 mb-6">
-              InsiderLife Signal Hub
+              Launch Your Movement. Track Your Impact. Amplify the Signal.
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Amplify your reach, build your network, and earn recognition across the entire ecosystem.
+              Build powerful community-driven campaigns with real-time analytics, social sharing, and performance-based growth.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
