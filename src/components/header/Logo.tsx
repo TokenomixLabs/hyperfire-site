@@ -6,9 +6,9 @@ const Logo = () => {
   return (
     <Link to="/" className="flex items-center">
       <img 
-        src="/lovable-uploads/8655c6e0-d7ef-402e-8442-68e1fa1b706a.png" 
-        alt="InsiderLife Logo" 
-        className="h-8 w-auto" // Reduced size from h-10 to h-8
+        src="/lovable-uploads/b9d22a42-f61c-4dc2-84b3-6c4c0660df62.png" 
+        alt="HyperFIRE Logo" 
+        className="h-8 w-auto" 
       />
     </Link>
   );
