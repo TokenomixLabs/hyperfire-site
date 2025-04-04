@@ -1,10 +1,11 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import LogoutButton from '@/components/auth/LogoutButton';
-import { MessageSquare, BookOpen, LineChart, Zap, Flame, Globe } from 'lucide-react';
+import { MessageSquare, BookOpen, LineChart, Zap, Flame } from 'lucide-react';
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -61,7 +62,7 @@ const Index = () => {
               )}
             </div>
             
-            <div className="mt-6 flex gap-4 justify-center">
+            <div className="mt-6">
               <Button
                 variant="ghost"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
@@ -69,15 +70,6 @@ const Index = () => {
               >
                 <Zap className="mr-2 h-4 w-4" />
                 View Pricing Plans
-              </Button>
-              
-              <Button
-                variant="ghost"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
-                onClick={() => navigate('/domain-setup')}
-              >
-                <Globe className="mr-2 h-4 w-4" />
-                Custom Domain Setup
               </Button>
             </div>
             
@@ -160,10 +152,10 @@ const Index = () => {
               Privacy
             </a>
             <a 
-              onClick={() => navigate('/domain-setup')}
-              className="text-gray-400 hover:text-purple-400 text-sm cursor-pointer"
+              href="mailto:support@insiderlife.com" 
+              className="text-gray-400 hover:text-purple-400 text-sm"
             >
-              Domain Setup
+              Contact
             </a>
           </div>
         </div>

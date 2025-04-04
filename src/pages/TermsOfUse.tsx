@@ -121,7 +121,10 @@ const TermsOfUse = () => {
             >
               Privacy
             </a>
-            <a href="#" className="text-gray-400 hover:text-purple-400 text-sm">
+            <a 
+              href="mailto:support@insiderlife.com" 
+              className="text-gray-400 hover:text-purple-400 text-sm"
+            >
               Contact
             </a>
           </div>
