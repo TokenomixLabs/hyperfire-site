@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,6 @@ const Index = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect authenticated users to dashboard
   useEffect(() => {
     if (isAuthenticated && !user?.isNewUser) {
       navigate('/dashboard');
@@ -143,7 +141,10 @@ const Index = () => {
             <a href="#" className="text-gray-400 hover:text-purple-400 text-sm">
               Terms
             </a>
-            <a href="#" className="text-gray-400 hover:text-purple-400 text-sm">
+            <a 
+              onClick={() => navigate('/privacy-policy')} 
+              className="text-gray-400 hover:text-purple-400 text-sm cursor-pointer"
+            >
               Privacy
             </a>
             <a href="#" className="text-gray-400 hover:text-purple-400 text-sm">

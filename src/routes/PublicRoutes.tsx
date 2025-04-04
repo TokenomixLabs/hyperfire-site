@@ -12,6 +12,7 @@ import SignalLibrary from "../pages/SignalLibrary";
 import SignalSeriesDetail from "../pages/SignalSeriesDetail";
 import UserProfilePage from "../pages/UserProfilePage";
 import Pricing from "../pages/Pricing";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
 
 const PublicRoutes = () => {
   return (
@@ -28,6 +29,7 @@ const PublicRoutes = () => {
       <Route path="signal/:slug" element={<SignalSeriesDetail />} />
       <Route path="u/:username" element={<UserProfilePage />} />
       <Route path="pricing" element={<Pricing />} />
+      <Route path="privacy-policy" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
