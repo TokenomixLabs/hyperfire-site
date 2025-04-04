@@ -14,6 +14,7 @@ import UserProfilePage from "../pages/UserProfilePage";
 import Pricing from "../pages/Pricing";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsOfUse from "../pages/TermsOfUse";
+import CustomDomainSetupPage from "../pages/CustomDomainSetupPage";
 
 const PublicRoutes = () => {
   return (
@@ -32,6 +33,7 @@ const PublicRoutes = () => {
       <Route path="pricing" element={<Pricing />} />
       <Route path="privacy-policy" element={<PrivacyPolicy />} />
       <Route path="terms-of-use" element={<TermsOfUse />} />
+      <Route path="domain-setup" element={<CustomDomainSetupPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
