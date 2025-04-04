@@ -8,7 +8,7 @@ const Logo = () => {
       <img 
         src="/lovable-uploads/b9d22a42-f61c-4dc2-84b3-6c4c0660df62.png" 
         alt="HyperFIRE Logo" 
-        className="h-8 w-auto" 
+        className="h-12 w-auto" 
       />
     </Link>
   );
