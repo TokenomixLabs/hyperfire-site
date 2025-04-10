@@ -12,10 +12,15 @@ const Index = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    if (isAuthenticated && !user?.isNewUser) {
-      navigate('/dashboard');
-    } else if (isAuthenticated && user?.isNewUser) {
-      navigate('/profile-setup');
+    if (isAuthenticated) {
+      if (user?.role === 'admin') {
+        navigate('/admin');
+        console.log('✅ Admin user detected, redirecting to admin dashboard');
+      } else if (user?.isNewUser) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [isAuthenticated, user, navigate]);
   

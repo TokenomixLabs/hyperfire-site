@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -9,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -17,13 +16,19 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, ensureAdminExists } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get the redirect path from location state
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Ensure admin account exists on page load
+  useEffect(() => {
+    ensureAdminExists();
+    console.log('✅ Login page loaded, admin account verified');
+  }, [ensureAdminExists]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -37,9 +42,27 @@ const Login = () => {
     try {
       setIsSubmitting(true);
       await login(values.email, values.password);
-      // Navigate is handled inside the login function based on user.isNewUser
+      // If it's the admin account, redirect to admin dashboard
+      if (values.email === 'admin@insiderlife.com') {
+        console.log('✅ Admin login successful');
+        navigate('/admin');
+      }
+      // Otherwise, navigation is handled in the login function based on user.isNewUser
     } catch (error) {
       console.error('Login error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAdminLogin = async () => {
+    try {
+      setIsSubmitting(true);
+      await login('admin@insiderlife.com', '773Pdq8908$#');
+      console.log('✅ Quick admin login successful');
+      navigate('/admin');
+    } catch (error) {
+      console.error('Admin login error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -126,6 +149,18 @@ const Login = () => {
                 Sign up
               </Link>
             </p>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button 
+                onClick={handleAdminLogin}
+                variant="outline"
+                className="w-full mt-2 flex items-center justify-center"
+                size="sm"
+              >
+                <Shield className="mr-2 h-4 w-4 text-amber-500" />
+                <span className="text-xs">Admin Access</span>
+              </Button>
+            </div>
           </div>
         </div>
       </AnimatedTransition>

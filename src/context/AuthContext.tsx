@@ -12,6 +12,7 @@ interface AuthContextType {
   signup: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUserProfile: (userData: Partial<User>) => void;
+  ensureAdminExists: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +22,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Ensure admin account exists
+  const ensureAdminExists = () => {
+    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    // Check if admin account already exists
+    const adminExists = storedUsers.some((u: any) => u.email === 'admin@insiderlife.com');
+    
+    if (!adminExists) {
+      // Create admin account if it doesn't exist
+      const adminUser = {
+        id: `admin_${Date.now()}`,
+        email: 'admin@insiderlife.com',
+        password: '773Pdq8908$#',
+        name: 'Admin User',
+        username: 'admin',
+        role: 'admin',
+        subscription: {
+          tier: 'founders'
+        },
+        joinDate: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        isVerified: true,
+        referralLinks: {
+          insiderlife: '',
+          insiderdao: '',
+          societi: '',
+          aifc: ''
+        }
+      };
+      
+      storedUsers.push(adminUser);
+      localStorage.setItem('users', JSON.stringify(storedUsers));
+      console.log('✅ Admin account created successfully');
+    } else {
+      // Update admin password if account already exists
+      const updatedUsers = storedUsers.map((u: any) => {
+        if (u.email === 'admin@insiderlife.com') {
+          console.log('✅ Admin account password updated');
+          return { ...u, password: '773Pdq8908$#', role: 'admin' };
+        }
+        return u;
+      });
+      
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -32,6 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('user');
       }
     }
+    
+    // Ensure admin exists on initial load
+    ensureAdminExists();
+    
     setIsLoading(false);
   }, []);
 
@@ -191,7 +243,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login, 
         signup, 
         logout,
-        updateUserProfile
+        updateUserProfile,
+        ensureAdminExists
       }}
     >
       {children}
