@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@/types/user';
+import { loginUser, signupUser, updateProfile, ensureAdminExists } from '@/utils/authUtils';
+import { useAdmin } from '@/hooks/useAdmin';
 
 interface AuthContextType {
   user: User | null;
@@ -22,52 +24,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { verifyAdminAccount } = useAdmin();
 
   // Ensure admin account exists
-  const ensureAdminExists = () => {
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // Check if admin account already exists
-    const adminExists = storedUsers.some((u: any) => u.email === 'admin@insiderlife.com');
-    
-    if (!adminExists) {
-      // Create admin account if it doesn't exist
-      const adminUser = {
-        id: `admin_${Date.now()}`,
-        email: 'admin@insiderlife.com',
-        password: '773Pdq8908$#',
-        name: 'Admin User',
-        username: 'admin',
-        role: 'admin',
-        subscription: {
-          tier: 'founders'
-        },
-        joinDate: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        isVerified: true,
-        referralLinks: {
-          insiderlife: '',
-          insiderdao: '',
-          societi: '',
-          aifc: ''
-        }
-      };
-      
-      storedUsers.push(adminUser);
-      localStorage.setItem('users', JSON.stringify(storedUsers));
-      console.log('✅ Admin account created successfully');
-    } else {
-      // Update admin password if account already exists
-      const updatedUsers = storedUsers.map((u: any) => {
-        if (u.email === 'admin@insiderlife.com') {
-          console.log('✅ Admin account password updated');
-          return { ...u, password: '773Pdq8908$#', role: 'admin' };
-        }
-        return u;
-      });
-      
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-    }
+  const handleEnsureAdminExists = () => {
+    verifyAdminAccount();
   };
 
   useEffect(() => {
@@ -82,115 +43,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     // Ensure admin exists on initial load
-    ensureAdminExists();
+    handleEnsureAdminExists();
     
     setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      const foundUser = storedUsers.find((u: any) => u.email === email);
-      
-      if (!foundUser) {
-        throw new Error('User not found');
-      }
-      
-      if (foundUser.password !== password) {
-        throw new Error('Invalid password');
-      }
-      
-      const { password: _, ...userWithoutPassword } = foundUser;
-      
-      // Ensure user has a subscription field
-      if (!userWithoutPassword.subscription) {
-        userWithoutPassword.subscription = {
-          tier: 'free'
-        };
-      }
-      
-      // Make sure the role is one of the allowed values
-      if (userWithoutPassword.role && !['user', 'admin', 'moderator'].includes(userWithoutPassword.role)) {
-        userWithoutPassword.role = 'user';
-      }
-      
-      setUser(userWithoutPassword as User);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-      
-      if (foundUser.isNewUser) {
-        navigate('/profile-setup');
-      } else {
-        navigate('/dashboard');
-      }
+      await loginUser(email, password, setUser, navigate);
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
+      console.error('Login failed:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const signup = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      if (storedUsers.some((u: any) => u.email === email)) {
-        throw new Error('Email already in use');
-      }
-      
-      const newUser: User & { password: string } = {
-        id: `user_${Date.now()}`,
-        email,
-        password,
-        name: '',
-        username: '',
-        isNewUser: true,
-        role: 'user',
-        referralLinks: {
-          insiderlife: '',
-          insiderdao: '',
-          societi: '',
-          aifc: ''
-        },
-        subscription: {
-          tier: 'free'
-        },
-        joinDate: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-      };
-      
-      storedUsers.push(newUser);
-      localStorage.setItem('users', JSON.stringify(storedUsers));
-      
-      const { password: _, ...userWithoutPassword } = newUser;
-      
-      setUser(userWithoutPassword);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      
-      toast({
-        title: "Account created",
-        description: "Welcome to InsiderLife!",
-      });
-      
-      navigate('/profile-setup');
+      await signupUser(email, password, setUser, navigate);
     } catch (error) {
-      toast({
-        title: "Signup failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
+      console.error('Signup failed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -208,30 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUserProfile = (userData: Partial<User>) => {
     if (!user) return;
-    
-    const updatedUser = { ...user, ...userData };
-    
-    if (userData.name && userData.username) {
-      updatedUser.isNewUser = false;
-    }
-    
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    const updatedUsers = storedUsers.map((u: any) => {
-      if (u.id === user.id) {
-        return { ...u, ...userData, isNewUser: updatedUser.isNewUser };
-      }
-      return u;
-    });
-    
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-    
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been successfully updated.",
-    });
+    updateProfile(user, userData, setUser);
   };
 
   return (
@@ -244,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup, 
         logout,
         updateUserProfile,
-        ensureAdminExists
+        ensureAdminExists: handleEnsureAdminExists
       }}
     >
       {children}
