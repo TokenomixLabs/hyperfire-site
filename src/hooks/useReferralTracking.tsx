@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+
+import { useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 // Helper functions for cookie management
@@ -41,6 +42,8 @@ const useReferralTracking = ({
     const platform = urlParams.get('platform') || 'insiderlife'; // Default to InsiderLife
     
     if (referralCode) {
+      console.log('✅ Referral detected in URL:', referralCode, 'platform:', platform);
+      
       // Check for existing referral in localStorage (more persistent than cookies)
       let shouldTrack = true;
       
@@ -55,6 +58,7 @@ const useReferralTracking = ({
           // Only override if explicitly requested or if the cookie has expired
           if (daysSinceReferral < cookieDuration && !urlParams.get('override')) {
             shouldTrack = false;
+            console.log('📝 Using existing referral data:', referralData);
           }
         }
         
@@ -70,6 +74,7 @@ const useReferralTracking = ({
           };
           
           localStorage.setItem('referralData', JSON.stringify(referralData));
+          console.log('✅ Saved referral data to localStorage:', referralData);
           
           if (onReferralDetected) {
             onReferralDetected(referralCode, platform);
@@ -82,7 +87,7 @@ const useReferralTracking = ({
           });
         }
       } catch (error) {
-        console.error('Error storing referral data:', error);
+        console.error('❌ Error storing referral data:', error);
         
         // Fallback to just setting the cookie
         setCookie('referrer', referralCode, cookieDuration);
@@ -90,14 +95,37 @@ const useReferralTracking = ({
     }
   }, [onReferralDetected, cookieDuration, toast]);
   
-  // Functions to expose to components using this hook
-  const trackContentClick = (contentId: string, referralCode: string, platform: string = 'insiderlife') => {
-    // In a real app, this would call an API to track the click
-    console.log(`Content ${contentId} clicked via ${platform} referral code ${referralCode}`);
-    // This is a mock implementation - in a real app you'd send this to your backend
-  };
+  // Check if a user has visited via a referral link
+  const hasReferral = useCallback((): boolean => {
+    try {
+      const storedReferralData = localStorage.getItem('referralData');
+      return !!storedReferralData;
+    } catch (error) {
+      return false;
+    }
+  }, []);
   
-  const getCurrentReferrer = (): string | null => {
+  // Functions to expose to components using this hook
+  const trackContentClick = useCallback((contentId: string, referralCode: string, platform: string = 'insiderlife') => {
+    // In a real app, this would call an API to track the click
+    console.log(`✅ Content ${contentId} clicked via ${platform} referral code ${referralCode}`);
+    
+    // Save click to localStorage for testing
+    try {
+      const clicks = JSON.parse(localStorage.getItem('referralClicks') || '[]');
+      clicks.push({
+        timestamp: new Date().toISOString(),
+        contentId,
+        referralCode,
+        platform
+      });
+      localStorage.setItem('referralClicks', JSON.stringify(clicks));
+    } catch (error) {
+      console.error('❌ Error tracking click:', error);
+    }
+  }, []);
+  
+  const getCurrentReferrer = useCallback((): string | null => {
     // Try localStorage first (more persistent)
     try {
       const storedReferralData = localStorage.getItem('referralData');
@@ -106,14 +134,14 @@ const useReferralTracking = ({
         return referralData.referrer;
       }
     } catch (error) {
-      console.error('Error retrieving referral data from localStorage:', error);
+      console.error('❌ Error retrieving referral data from localStorage:', error);
     }
     
     // Fall back to cookie
     return getCookie('referrer');
-  };
+  }, []);
   
-  const getReferralPlatform = (): string | null => {
+  const getReferralPlatform = useCallback((): string | null => {
     try {
       const storedReferralData = localStorage.getItem('referralData');
       if (storedReferralData) {
@@ -121,16 +149,17 @@ const useReferralTracking = ({
         return referralData.platform || 'insiderlife';
       }
     } catch (error) {
-      console.error('Error retrieving referral platform from localStorage:', error);
+      console.error('❌ Error retrieving referral platform from localStorage:', error);
     }
     
     return 'insiderlife'; // Default if not found
-  };
+  }, []);
   
   return {
     trackContentClick,
     getCurrentReferrer,
-    getReferralPlatform
+    getReferralPlatform,
+    hasReferral
   };
 };
 

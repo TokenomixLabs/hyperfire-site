@@ -7,6 +7,7 @@ export interface User {
   avatarUrl?: string;
   role?: 'user' | 'admin' | 'moderator';
   isNewUser?: boolean;
+  referredBy?: string; // Track who referred this user
   referralLinks?: {
     insiderlife: string;
     insiderdao: string;

@@ -93,17 +93,26 @@ export const loginUser = async (
     setUser(userWithoutPassword as User);
     localStorage.setItem('user', JSON.stringify(userWithoutPassword));
     
+    console.log('✅ Login successful for user:', email);
     toast({
       title: "Login successful",
       description: "Welcome back!",
     });
     
     if (foundUser.isNewUser) {
+      console.log('✅ Redirecting new user to profile setup');
       navigate('/profile-setup');
     } else {
-      navigate('/dashboard');
+      if (userWithoutPassword.role === 'admin') {
+        console.log('✅ Redirecting admin to admin dashboard');
+        navigate('/admin');
+      } else {
+        console.log('✅ Redirecting user to dashboard');
+        navigate('/dashboard');
+      }
     }
   } catch (error) {
+    console.error('❌ Login failed:', error);
     toast({
       title: "Login failed",
       description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -120,7 +129,8 @@ export const signupUser = async (
   email: string,
   password: string,
   setUser: (user: User) => void,
-  navigate: (path: string) => void
+  navigate: (path: string) => void,
+  referralCode?: string | null
 ): Promise<void> => {
   try {
     const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
@@ -129,6 +139,7 @@ export const signupUser = async (
       throw new Error('Email already in use');
     }
     
+    // Create new user object with referral data if provided
     const newUser: User & { password: string } = {
       id: `user_${Date.now()}`,
       email,
@@ -137,6 +148,7 @@ export const signupUser = async (
       username: '',
       isNewUser: true,
       role: 'user',
+      referredBy: referralCode || undefined,
       referralLinks: {
         insiderlife: '',
         insiderdao: '',
@@ -150,6 +162,22 @@ export const signupUser = async (
       createdAt: new Date().toISOString()
     };
     
+    // Store referral data in analytics logs
+    if (referralCode) {
+      const referralLog = {
+        timestamp: new Date().toISOString(),
+        referralCode,
+        newUserId: newUser.id,
+        event: 'signup_with_referral'
+      };
+      
+      // Store referral analytics
+      const referralLogs = JSON.parse(localStorage.getItem('referralLogs') || '[]');
+      referralLogs.push(referralLog);
+      localStorage.setItem('referralLogs', JSON.stringify(referralLogs));
+      console.log('✅ Referral tracking saved:', referralLog);
+    }
+    
     storedUsers.push(newUser);
     localStorage.setItem('users', JSON.stringify(storedUsers));
     
@@ -158,13 +186,17 @@ export const signupUser = async (
     setUser(userWithoutPassword);
     localStorage.setItem('user', JSON.stringify(userWithoutPassword));
     
+    console.log('✅ Account created successfully for:', email);
     toast({
       title: "Account created",
       description: "Welcome to InsiderLife!",
     });
     
+    // Redirect to profile setup
+    console.log('✅ Redirecting to profile setup');
     navigate('/profile-setup');
   } catch (error) {
+    console.error('❌ Signup failed:', error);
     toast({
       title: "Signup failed",
       description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -203,8 +235,39 @@ export const updateProfile = (
   
   localStorage.setItem('users', JSON.stringify(updatedUsers));
   
+  console.log('✅ Profile updated successfully for user:', user.email);
   toast({
     title: "Profile updated",
     description: "Your profile has been successfully updated.",
   });
+};
+
+/**
+ * Check if an email is already registered
+ */
+export const isEmailRegistered = (email: string): boolean => {
+  const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+  return storedUsers.some((u: any) => u.email === email);
+};
+
+/**
+ * Get all registered users (for admin purposes)
+ */
+export const getAllUsers = (): Omit<User, 'password'>[] => {
+  const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+  return storedUsers.map(({ password, ...user }: any) => user);
+};
+
+/**
+ * Get total count of users and referred users
+ */
+export const getUserStats = () => {
+  const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+  const totalUsers = storedUsers.length;
+  const referredUsers = storedUsers.filter((u: any) => u.referredBy).length;
+  
+  return {
+    totalUsers,
+    referredUsers
+  };
 };

@@ -11,7 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, referralCode?: string | null) => Promise<void>;
   logout: () => void;
   updateUserProfile: (userData: Partial<User>) => void;
   ensureAdminExists: () => void;
@@ -54,17 +54,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await loginUser(email, password, setUser, navigate);
     } catch (error) {
       console.error('Login failed:', error);
+      throw error; // Rethrow to handle in the component
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signup = async (email: string, password: string) => {
+  const signup = async (email: string, password: string, referralCode?: string | null) => {
     setIsLoading(true);
     try {
-      await signupUser(email, password, setUser, navigate);
+      await signupUser(email, password, setUser, navigate, referralCode);
     } catch (error) {
       console.error('Signup failed:', error);
+      throw error; // Rethrow to handle in the component
     } finally {
       setIsLoading(false);
     }

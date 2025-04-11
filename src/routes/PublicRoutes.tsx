@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Index from "../pages/Index";
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
+import ProfileSetup from "../pages/auth/ProfileSetup";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import NotFound from "../pages/NotFound";
 import ContentExample from "../pages/ContentExample";
@@ -23,6 +24,7 @@ const PublicRoutes = () => {
       <Route index element={<Index />} />
       <Route path="login" element={<Login />} />
       <Route path="signup" element={<Signup />} />
+      <Route path="profile-setup" element={<ProfileSetup />} />
       <Route path="forgot-password" element={<ForgotPassword />} />
       <Route path="content-example" element={<ContentExample />} />
       <Route path="content-example/:contentId" element={<ContentExample />} />

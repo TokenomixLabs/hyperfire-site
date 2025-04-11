@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -28,20 +28,39 @@ const ProfileForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  // For easy testing, prefill form with some data in development
+  const defaultName = user?.name || '';
+  const defaultUsername = user?.username || '';
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user?.name || '',
-      username: user?.username || '',
+      name: defaultName,
+      username: defaultUsername,
       insiderdao: user?.referralLinks?.insiderdao || '',
       societi: user?.referralLinks?.societi || '',
       aifc: user?.referralLinks?.aifc || '',
     }
   });
 
+  // Effect to validate if the user should be here
+  useEffect(() => {
+    if (user && !user.isNewUser) {
+      // User has already completed profile setup
+      console.log('✅ User has already set up profile, redirecting to dashboard');
+      navigate('/dashboard');
+    }
+
+    // Log referral data if present
+    if (user?.referredBy) {
+      console.log('✅ User was referred by:', user.referredBy);
+    }
+  }, [user, navigate]);
+
   const onSubmit = async (values: ProfileFormValues) => {
     try {
       setIsSubmitting(true);
+      console.log('🔄 Submitting profile data:', values);
       
       // Prepare the user data object
       const userData = {
@@ -52,7 +71,16 @@ const ProfileForm = () => {
           insiderdao: values.insiderdao || '',
           societi: values.societi || '',
           aifc: values.aifc || '',
-        }
+        },
+        // Generate default InsiderLife referral link based on username
+        ...(values.username && {
+          referralLinks: {
+            insiderlife: `insiderlife.com/?ref=${values.username}`,
+            insiderdao: values.insiderdao || '',
+            societi: values.societi || '',
+            aifc: values.aifc || '',
+          }
+        })
       };
       
       // Call the API to update the user profile
@@ -77,10 +105,12 @@ const ProfileForm = () => {
         description: "Your profile has been successfully set up.",
       });
 
+      console.log('✅ Profile setup completed successfully');
+      
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
-      console.error('Profile setup error:', error);
+      console.error('❌ Profile setup error:', error);
       toast({
         title: "Setup failed",
         description: error instanceof Error ? error.message : "Failed to set up your profile. Please try again.",
@@ -95,6 +125,15 @@ const ProfileForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <BasicInfoFields control={form.control} />
+        
+        {user?.referredBy && (
+          <div className="px-4 py-3 bg-purple-100 dark:bg-purple-900/30 rounded-md mb-4">
+            <p className="text-sm text-purple-800 dark:text-purple-300">
+              You were referred by: <strong>{user.referredBy}</strong>
+            </p>
+          </div>
+        )}
+        
         <ReferralLinksSection control={form.control} />
         
         <div className="pt-4">
@@ -103,7 +142,14 @@ const ProfileForm = () => {
             className="w-full bg-purple-600 hover:bg-purple-700"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Saving profile..." : "Complete Setup"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving profile...
+              </>
+            ) : (
+              "Complete Setup"
+            )}
           </Button>
         </div>
       </form>

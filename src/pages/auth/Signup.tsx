@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { ArrowLeft } from 'lucide-react';
+import useReferralTracking from '@/hooks/useReferralTracking';
 
 const signupSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -23,7 +24,21 @@ const signupSchema = z.object({
 const Signup = () => {
   const { signup } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { getCurrentReferrer } = useReferralTracking();
+
+  // Get referral code from URL if present
+  const urlParams = new URLSearchParams(location.search);
+  const referralCode = urlParams.get('ref');
+
+  useEffect(() => {
+    // Log referral code if present for debugging
+    if (referralCode) {
+      console.log('✅ Referral detected:', referralCode);
+    }
+  }, [referralCode]);
 
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -35,11 +50,15 @@ const Signup = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
+    setGeneralError(null);
     try {
       setIsSubmitting(true);
-      await signup(values.email, values.password);
+      // Pass referral code to signup function
+      await signup(values.email, values.password, referralCode);
+      console.log('✅ Registration successful');
     } catch (error) {
       console.error('Signup error:', error);
+      setGeneralError(error instanceof Error ? error.message : "Registration failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -70,6 +89,12 @@ const Signup = () => {
           </div>
 
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+            {generalError && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md text-sm">
+                {generalError}
+              </div>
+            )}
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -132,6 +157,14 @@ const Signup = () => {
                 Log in
               </Link>
             </p>
+            
+            {referralCode && (
+              <div className="mt-4 p-2 bg-purple-100 dark:bg-purple-800/30 rounded-md">
+                <p className="text-center text-xs text-purple-700 dark:text-purple-300">
+                  You were referred by: {referralCode}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </AnimatedTransition>
