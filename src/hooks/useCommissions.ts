@@ -29,9 +29,6 @@ export interface User {
   email: string;
 }
 
-// Define a generic response type for RPC calls
-type RPCResponse<T> = PostgrestResponse<T>;
-
 export const useCommissions = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -42,10 +39,10 @@ export const useCommissions = () => {
   const fetchCommissionRules = async () => {
     setIsLoading(true);
     try {
-      // Type the RPC function call with the CommissionRule[] return type
+      // Use proper type handling for the RPC call
       const { data: rules, error: rulesError } = await supabase
         .rpc('get_commission_rules')
-        .then(res => res as PostgrestResponse<CommissionRule[]>);
+        .returns<CommissionRule[]>();
       
       if (rulesError) throw rulesError;
       
@@ -53,36 +50,35 @@ export const useCommissions = () => {
       const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select("id, name, description")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .returns<Product[]>();
       
       if (productsError) throw productsError;
       
-      // Fetch users with type assertion for the return type
+      // Fetch users with proper type handling
       const { data: usersData, error: usersError } = await supabase
         .rpc('get_all_users')
-        .then(res => res as PostgrestResponse<User[]>);
+        .returns<User[]>();
       
       if (usersError) throw usersError;
       
-      // Enhance rules with user and product names, with proper type handling
-      const enhancedRules = rules ? rules.map((rule) => {
+      // Enhance rules with user and product names
+      const enhancedRules = rules?.map(rule => {
         // Find referrer name
-        const referrer = usersData && Array.isArray(usersData) 
-          ? usersData.find(u => u.id === rule.referrer_id) 
-          : null;
+        const referrer = usersData?.find(u => u.id === rule.referrer_id);
         
         // Find product name if product_id exists
         let product = null;
-        if (rule.product_id && productsData && Array.isArray(productsData)) {
-          product = productsData.find(p => p.id === rule.product_id);
+        if (rule.product_id) {
+          product = productsData?.find(p => p.id === rule.product_id);
         }
         
         return {
           ...rule,
           referrer_name: referrer ? referrer.name || referrer.email : "Unknown User",
           product_name: product ? product.name : null
-        };
-      }) : [];
+        } as CommissionRule;
+      }) || [];
       
       setCommissionRules(enhancedRules);
       setProducts(productsData || []);
@@ -108,7 +104,7 @@ export const useCommissions = () => {
           p_priority: rule.priority,
           p_created_by: rule.created_by
         })
-        .then(res => res as PostgrestResponse<any>);
+        .returns<any>();
       
       if (error) throw error;
       
@@ -133,7 +129,7 @@ export const useCommissions = () => {
           p_end_date: rule.end_date || null,
           p_priority: rule.priority
         })
-        .then(res => res as PostgrestResponse<any>);
+        .returns<any>();
       
       if (error) throw error;
       
@@ -150,7 +146,7 @@ export const useCommissions = () => {
     try {
       const { error } = await supabase
         .rpc('delete_commission_rule', { p_id: id })
-        .then(res => res as PostgrestResponse<any>);
+        .returns<any>();
       
       if (error) throw error;
       
