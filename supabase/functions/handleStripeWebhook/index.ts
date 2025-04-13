@@ -92,7 +92,7 @@ serve(async (req) => {
         console.log(`[WEBHOOK] Unhandled event type: ${event.type}`);
     }
 
-    console.log(`[WEBHOOK] Successfully processed event ${event.type}`);
+    console.log(`[WEBHOOK] ✅ Successfully processed event ${event.type}`);
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

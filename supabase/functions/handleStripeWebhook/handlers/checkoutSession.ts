@@ -242,6 +242,7 @@ export async function handleCheckoutSessionCompleted(
       console.error(`[CHECKOUT ERROR] Error logging transaction:`, transactionError);
     } else {
       console.log(`[CHECKOUT] Transaction logged successfully with ID: ${transactionData[0]?.id}`);
+      console.log(`[WEBHOOK] ✅ Payment processed, transaction logged, payout ${transferId ? 'sent' : 'pending'}.`);
     }
     
     console.log(`[CHECKOUT] Checkout session processing completed successfully`);

@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import LogoutButton from '@/components/auth/LogoutButton';
 import { MessageSquare, BookOpen, LineChart, Zap, Flame } from 'lucide-react';
-import SimulateWebhookButton from '@/components/stripe/SimulateWebhookButton';
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -66,15 +65,6 @@ const Index = () => {
                   </Button>
                 </>
               )}
-            </div>
-            
-            {/* Webhook test button */}
-            <div className="mt-8 p-4 border border-gray-700 rounded-lg bg-gray-800/50 inline-block">
-              <h3 className="text-xl font-medium mb-3">Webhook Testing</h3>
-              <SimulateWebhookButton variant="secondary" />
-              <p className="text-sm text-gray-400 mt-2">
-                Click to simulate a Stripe webhook event
-              </p>
             </div>
             
             <div className="mt-6">
