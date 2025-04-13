@@ -40,7 +40,7 @@ export const useCommissions = () => {
     try {
       // Fetch rules with direct SQL as a workaround for TypeScript issues
       const { data: rules, error: rulesError } = await supabase
-        .rpc('get_commission_rules');
+        .rpc('get_commission_rules') as {data: CommissionRule[] | null, error: Error | null};
       
       if (rulesError) throw rulesError;
       
@@ -54,19 +54,19 @@ export const useCommissions = () => {
       
       // Fetch users (this would need to be limited/paginated in a real app)
       const { data: usersData, error: usersError } = await supabase
-        .rpc('get_all_users');
+        .rpc('get_all_users') as {data: User[] | null, error: Error | null};
       
       if (usersError) throw usersError;
       
       // Enhance rules with user and product names
-      const enhancedRules = rules.map((rule: CommissionRule) => {
+      const enhancedRules = (rules || []).map((rule: CommissionRule) => {
         // Find referrer name
-        const referrer = usersData.find((u: User) => u.id === rule.referrer_id);
+        const referrer = (usersData || []).find((u: User) => u.id === rule.referrer_id);
         
         // Find product name if product_id exists
         let product = null;
         if (rule.product_id) {
-          product = productsData.find((p: Product) => p.id === rule.product_id);
+          product = productsData?.find((p: Product) => p.id === rule.product_id);
         }
         
         return {
@@ -77,8 +77,8 @@ export const useCommissions = () => {
       });
       
       setCommissionRules(enhancedRules);
-      setProducts(productsData);
-      setUsers(usersData);
+      setProducts(productsData || []);
+      setUsers(usersData || []);
       setError(null);
     } catch (err) {
       console.error("Error fetching commission data:", err);
@@ -99,7 +99,7 @@ export const useCommissions = () => {
           p_end_date: rule.end_date || null,
           p_priority: rule.priority,
           p_created_by: rule.created_by
-        });
+        }) as {data: any, error: Error | null};
       
       if (error) throw error;
       
@@ -123,7 +123,7 @@ export const useCommissions = () => {
           p_start_date: rule.start_date,
           p_end_date: rule.end_date || null,
           p_priority: rule.priority
-        });
+        }) as {data: any, error: Error | null};
       
       if (error) throw error;
       
@@ -139,7 +139,7 @@ export const useCommissions = () => {
   const deleteCommissionRule = async (id: string) => {
     try {
       const { error } = await supabase
-        .rpc('delete_commission_rule', { p_id: id });
+        .rpc('delete_commission_rule', { p_id: id }) as {data: any, error: Error | null};
       
       if (error) throw error;
       
