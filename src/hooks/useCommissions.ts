@@ -38,23 +38,23 @@ export const useCommissions = () => {
   const fetchCommissionRules = async () => {
     setIsLoading(true);
     try {
-      // Use type parameter with rpc to specify return type
+      // Use correct type arguments for rpc call
       const { data: rules, error: rulesError } = await supabase
-        .rpc<CommissionRule[]>('get_commission_rules');
+        .rpc('get_commission_rules');
       
       if (rulesError) throw rulesError;
       
-      // Fetch products with proper typing
+      // Use correct type arguments for from call and proper filter syntax
       const { data: productsData, error: productsError } = await supabase
-        .from<Product>("products")
+        .from('products')
         .select("id, name, description")
-        .eq("is_active", true);
+        .eq('is_active', true);
       
       if (productsError) throw productsError;
       
-      // Fetch users with proper type handling
+      // Use correct type arguments for rpc call
       const { data: usersData, error: usersError } = await supabase
-        .rpc<User[]>('get_all_users');
+        .rpc('get_all_users');
       
       if (usersError) throw usersError;
       
@@ -96,7 +96,7 @@ export const useCommissions = () => {
   const addCommissionRule = async (rule: Omit<CommissionRule, 'id' | 'created_at'>) => {
     try {
       const { data, error } = await supabase
-        .rpc<any>('insert_commission_rule', {
+        .rpc('insert_commission_rule', {
           p_referrer_id: rule.referrer_id,
           p_product_id: rule.product_id || null,
           p_commission_percent: rule.commission_percent,
@@ -120,7 +120,7 @@ export const useCommissions = () => {
   const updateCommissionRule = async (id: string, rule: Partial<Omit<CommissionRule, 'id' | 'created_at'>>) => {
     try {
       const { data, error } = await supabase
-        .rpc<any>('update_commission_rule', {
+        .rpc('update_commission_rule', {
           p_id: id,
           p_referrer_id: rule.referrer_id,
           p_product_id: rule.product_id || null,
@@ -144,7 +144,7 @@ export const useCommissions = () => {
   const deleteCommissionRule = async (id: string) => {
     try {
       const { error } = await supabase
-        .rpc<any>('delete_commission_rule', { p_id: id });
+        .rpc('delete_commission_rule', { p_id: id });
       
       if (error) throw error;
       
