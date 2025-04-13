@@ -9,10 +9,11 @@ import StatsTab from '@/components/user/dashboard/StatsTab';
 import ReferralsTab from '@/components/user/dashboard/ReferralsTab';
 import ReferralLinksTab from '@/components/user/dashboard/ReferralLinksTab';
 import SharesTab from '@/components/user/dashboard/SharesTab';
+import AffiliateTab from '@/components/user/dashboard/AffiliateTab';
 import GlobalCTA from '@/components/GlobalCTA';
 import WelcomeBanner from '@/components/welcome/WelcomeBanner';
 import EmptyState from '@/components/empty-states/EmptyState';
-import { MessageSquare, BookOpen, Share2, BarChart2, Link, Users, RefreshCw, Zap } from 'lucide-react';
+import { MessageSquare, BookOpen, Share2, BarChart2, Link, Users, RefreshCw, Zap, DollarSign } from 'lucide-react';
 import { ReferralPlatform } from '@/context/ReferralContext';
 import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -164,7 +165,7 @@ const UserDashboard = () => {
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex md:flex-row bg-gray-100 dark:bg-gray-800/50 p-1 rounded-lg">
+                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 md:flex md:flex-row bg-gray-100 dark:bg-gray-800/50 p-1 rounded-lg">
                     <TabsTrigger value="stats" className="flex items-center gap-1.5">
                       <BarChart2 className="h-4 w-4" />
                       <span className="hidden sm:inline">Stats</span>
@@ -184,6 +185,10 @@ const UserDashboard = () => {
                     <TabsTrigger value="activity" className="flex items-center gap-1.5">
                       <Zap className="h-4 w-4" />
                       <span className="hidden sm:inline">Activity</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="affiliate" className="flex items-center gap-1.5">
+                      <DollarSign className="h-4 w-4" />
+                      <span className="hidden sm:inline">Affiliate</span>
                     </TabsTrigger>
                   </TabsList>
                   
@@ -236,6 +241,10 @@ const UserDashboard = () => {
                   
                   <TabsContent value="activity" className="mt-6">
                     <DashboardActivityWidget />
+                  </TabsContent>
+                  
+                  <TabsContent value="affiliate" className="mt-6">
+                    <AffiliateTab />
                   </TabsContent>
                 </Tabs>
               </>

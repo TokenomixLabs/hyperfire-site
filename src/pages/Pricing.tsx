@@ -1,19 +1,57 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Zap, Flame } from 'lucide-react';
+import { Check, X, Zap, Flame, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { PageTitle } from '@/components/ui/page-headers';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { useMembership } from '@/context/MembershipContext';
+import { useAuth } from '@/context/AuthContext';
+import UpgradeButton from '@/components/stripe/UpgradeButton';
+import { useToast } from '@/hooks/use-toast';
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { currentTier } = useMembership();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   
   const scrollToCheckout = () => {
     document.getElementById('checkout-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    try {
+      // In a real implementation, this would call a Supabase Edge Function
+      // that creates a Stripe Checkout session
+      
+      // Mock implementation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // This URL would come from the Stripe API in a real implementation
+      const mockCheckoutUrl = 'https://checkout.stripe.com/c/pay/mock_session';
+      
+      toast({
+        title: "Redirecting to Checkout",
+        description: "You'll be redirected to securely complete your purchase."
+      });
+      
+      // In a real implementation, we would redirect to the Stripe Checkout
+      console.log(`Would redirect to Stripe Checkout for Premium tier`);
+      
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast({
+        title: "Checkout Failed",
+        description: "There was an error setting up the checkout. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -139,10 +177,14 @@ const Pricing = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={scrollToCheckout}>
-                <Zap className="mr-1 h-4 w-4" />
-                Subscribe Now
-              </Button>
+              <UpgradeButton
+                className="w-full bg-purple-600 hover:bg-purple-700" 
+                requiredTier="premium"
+                showIcon={true}
+                fullWidth={true}
+              >
+                {currentTier === 'premium' ? 'Current Plan' : 'Subscribe Now'}
+              </UpgradeButton>
             </CardFooter>
           </Card>
         </div>
@@ -164,9 +206,24 @@ const Pricing = () => {
                 <h3 className="text-lg font-semibold mb-2">HyperFIRE Premium</h3>
                 <p className="text-sm text-muted-foreground mb-4">Billed monthly</p>
                 <div className="text-2xl font-bold mb-6">$49/month</div>
-                <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                  <Zap className="mr-1 h-4 w-4" />
-                  Checkout
+                <Button 
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  onClick={handleCheckout}
+                  disabled={isLoading || currentTier === 'premium'}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : currentTier === 'premium' ? (
+                    'Current Plan'
+                  ) : (
+                    <>
+                      <Zap className="mr-2 h-4 w-4" />
+                      Checkout
+                    </>
+                  )}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-4">
                   Secure payment powered by Stripe. Cancel anytime.

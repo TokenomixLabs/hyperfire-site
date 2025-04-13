@@ -38,6 +38,16 @@ export interface User {
     purchasedAt?: string;
     updatedAt?: string;
   };
+  // Stripe Connect fields
+  stripeAccountId?: string;
+  stripeAccountStatus?: 'pending' | 'active' | 'rejected' | 'restricted';
+  stripeAccountDetails?: {
+    chargesEnabled?: boolean;
+    payoutsEnabled?: boolean;
+    detailsSubmitted?: boolean;
+    lastVerificationDate?: string;
+  };
+  commissionRate?: number; // Default commission rate for this affiliate (e.g., 80 means they get 80%)
 }
 
 export interface UserStats {

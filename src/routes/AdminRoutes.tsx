@@ -7,15 +7,22 @@ import ContentApproval from "../pages/ContentApproval";
 import MediaLibrary from "../pages/MediaLibrary";
 import SeoTools from "../pages/SeoTools";
 import IntegrationTools from "../pages/IntegrationTools";
+import ActivityFeedPage from "../pages/ActivityFeedPage";
+import NotificationsPage from "../pages/NotificationsPage";
 import SignalSeriesAdmin from "../pages/admin/SignalSeriesAdmin";
+import CoursesAdmin from "../pages/admin/CoursesAdmin";
+import CourseEditor from "../pages/admin/CourseEditor";
+import CourseAnalytics from "../pages/admin/CourseAnalytics";
 import Funnels from "../pages/admin/Funnels";
 import FunnelBuilder from "../pages/admin/FunnelBuilder";
+import CommunityCloningSystem from "../pages/admin/CommunityCloningSystem";
+import StripeIntegrationAdmin from "../pages/admin/StripeIntegrationAdmin";
 
 const AdminRoutes = () => {
   return (
     <Routes>
       <Route 
-        path="admin" 
+        path="/" 
         element={
           <ProtectedRoute>
             <Admin />
@@ -23,7 +30,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="admin/signal-series" 
+        path="signal-series" 
         element={
           <ProtectedRoute>
             <SignalSeriesAdmin />
@@ -31,7 +38,31 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="admin/funnels" 
+        path="courses" 
+        element={
+          <ProtectedRoute>
+            <CoursesAdmin />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="courses/edit/:courseId" 
+        element={
+          <ProtectedRoute>
+            <CourseEditor />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="courses/analytics/:courseId" 
+        element={
+          <ProtectedRoute>
+            <CourseAnalytics />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="funnels" 
         element={
           <ProtectedRoute>
             <Funnels />
@@ -39,7 +70,7 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="admin/funnels/new" 
+        path="funnels/new" 
         element={
           <ProtectedRoute>
             <FunnelBuilder />
@@ -47,12 +78,20 @@ const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="admin/funnels/:funnelId" 
+        path="funnels/:funnelId" 
         element={
           <ProtectedRoute>
             <FunnelBuilder />
           </ProtectedRoute>
         } 
+      />
+      <Route 
+        path="stripe"
+        element={
+          <ProtectedRoute>
+            <StripeIntegrationAdmin />
+          </ProtectedRoute>
+        }
       />
       <Route 
         path="users" 
@@ -91,6 +130,30 @@ const AdminRoutes = () => {
         element={
           <ProtectedRoute>
             <IntegrationTools />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="activity-feed" 
+        element={
+          <ProtectedRoute>
+            <ActivityFeedPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="notifications" 
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="community-cloning" 
+        element={
+          <ProtectedRoute>
+            <CommunityCloningSystem />
           </ProtectedRoute>
         } 
       />
