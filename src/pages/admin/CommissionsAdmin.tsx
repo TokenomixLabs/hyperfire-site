@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -45,7 +44,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { useCommissions, CommissionRule, Product, User } from "@/hooks/useCommissions";
+import { useCommissions, CommissionRule, Product, User } from "@/hooks/commissions";
 
 const CommissionsAdmin = () => {
   const navigate = useNavigate();
