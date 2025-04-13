@@ -38,38 +38,40 @@ export const useCommissions = () => {
   const fetchCommissionRules = async () => {
     setIsLoading(true);
     try {
-      // Use correct type annotations for RPC calls
+      // Fix typing for RPC call - specify the exact return type and cast to it
       const { data: rules, error: rulesError } = await supabase
-        .rpc('get_commission_rules')
-        .returns<CommissionRule[] | null>();
+        .rpc('get_commission_rules');
       
       if (rulesError) throw rulesError;
       
-      // Fetch products
+      // Fetch products with proper typing
       const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select("id, name, description")
-        .eq("is_active", true)
-        .returns<Product[] | null>();
+        .eq("is_active", true);
       
       if (productsError) throw productsError;
       
       // Fetch users with proper type handling
       const { data: usersData, error: usersError } = await supabase
-        .rpc('get_all_users')
-        .returns<User[] | null>();
+        .rpc('get_all_users');
       
       if (usersError) throw usersError;
       
+      // Cast the data to appropriate types for processing
+      const typedRules = rules as CommissionRule[] | null;
+      const typedProducts = productsData as Product[] | null;
+      const typedUsers = usersData as User[] | null;
+      
       // Enhance rules with user and product names
-      const enhancedRules = rules ? rules.map(rule => {
+      const enhancedRules = typedRules ? typedRules.map(rule => {
         // Find referrer name
-        const referrer = usersData ? usersData.find(u => u.id === rule.referrer_id) : null;
+        const referrer = typedUsers ? typedUsers.find(u => u.id === rule.referrer_id) : null;
         
         // Find product name if product_id exists
         let product = null;
         if (rule.product_id) {
-          product = productsData ? productsData.find(p => p.id === rule.product_id) : null;
+          product = typedProducts ? typedProducts.find(p => p.id === rule.product_id) : null;
         }
         
         return {
@@ -80,8 +82,8 @@ export const useCommissions = () => {
       }) : [];
       
       setCommissionRules(enhancedRules);
-      setProducts(productsData || []);
-      setUsers(usersData || []);
+      setProducts(typedProducts || []);
+      setUsers(typedUsers || []);
       setError(null);
     } catch (err) {
       console.error("Error fetching commission data:", err);
@@ -102,8 +104,7 @@ export const useCommissions = () => {
           p_end_date: rule.end_date || null,
           p_priority: rule.priority,
           p_created_by: rule.created_by
-        })
-        .returns<any | null>();
+        });
       
       if (error) throw error;
       
@@ -127,8 +128,7 @@ export const useCommissions = () => {
           p_start_date: rule.start_date,
           p_end_date: rule.end_date || null,
           p_priority: rule.priority
-        })
-        .returns<any | null>();
+        });
       
       if (error) throw error;
       
@@ -144,8 +144,7 @@ export const useCommissions = () => {
   const deleteCommissionRule = async (id: string) => {
     try {
       const { error } = await supabase
-        .rpc('delete_commission_rule', { p_id: id })
-        .returns<any | null>();
+        .rpc('delete_commission_rule', { p_id: id });
       
       if (error) throw error;
       
