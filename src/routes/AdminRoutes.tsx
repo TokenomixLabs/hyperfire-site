@@ -17,6 +17,7 @@ import Funnels from "../pages/admin/Funnels";
 import FunnelBuilder from "../pages/admin/FunnelBuilder";
 import CommunityCloningSystem from "../pages/admin/CommunityCloningSystem";
 import StripeIntegrationAdmin from "../pages/admin/StripeIntegrationAdmin";
+import CommissionsAdmin from "../pages/admin/CommissionsAdmin";
 
 const AdminRoutes = () => {
   return (
@@ -90,6 +91,14 @@ const AdminRoutes = () => {
         element={
           <ProtectedRoute>
             <StripeIntegrationAdmin />
+          </ProtectedRoute>
+        }
+      />
+      <Route 
+        path="commissions"
+        element={
+          <ProtectedRoute>
+            <CommissionsAdmin />
           </ProtectedRoute>
         }
       />

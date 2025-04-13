@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, GraduationCap, Globe, Settings, GitFork } from "lucide-react";
+import { Plus, ArrowLeft, Users, CheckSquare, Image, Tag, Code, BarChart2, BookOpen, GraduationCap, Globe, Settings, GitFork, DollarSign, Calendar, CreditCard } from "lucide-react";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import ContentCreator from "@/components/ContentCreator";
 import DocumentUploader from "@/components/DocumentUploader";
@@ -14,7 +13,7 @@ import ReferralProgramManager from "@/components/admin/referrals/ReferralProgram
 import CTAManager from "@/components/admin/referrals/CTAManager";
 import CoursesAdmin from "./admin/CoursesAdmin";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -59,6 +58,10 @@ const Admin = () => {
   
   const handleNavigateToCommunityCloningSystem = () => {
     navigate("/admin/community-cloning");
+  };
+
+  const handleNavigateToCommissions = () => {
+    navigate("/admin/commissions");
   };
 
   return (
@@ -137,6 +140,14 @@ const Admin = () => {
           
           <Button 
             variant="outline"
+            onClick={handleNavigateToCommissions}
+            className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
+          >
+            <DollarSign className="h-4 w-4" /> Commissions
+          </Button>
+          
+          <Button 
+            variant="outline"
             onClick={handleNavigateToCommunityCloningSystem}
             className="flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700"
           >
@@ -157,7 +168,7 @@ const Admin = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-9 mb-8">
+        <TabsList className="grid grid-cols-10 mb-8">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="create-content">Content</TabsTrigger>
           <TabsTrigger value="upload-document">Documents</TabsTrigger>
@@ -166,6 +177,7 @@ const Admin = () => {
           <TabsTrigger value="funnels">Funnels</TabsTrigger>
           <TabsTrigger value="referral-programs">Referral Programs</TabsTrigger>
           <TabsTrigger value="cta-manager">CTA Manager</TabsTrigger>
+          <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="community-cloning">Community Cloning</TabsTrigger>
         </TabsList>
         
@@ -258,6 +270,69 @@ const Admin = () => {
         
         <TabsContent value="cta-manager" className="mt-4">
           <CTAManager />
+        </TabsContent>
+
+        <TabsContent value="commissions" className="mt-4">
+          <div className="space-y-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-semibold">Commission Engine</h2>
+                <p className="text-muted-foreground mt-1">
+                  Configure custom commission rules for referrers, products, and time-limited promotions.
+                </p>
+              </div>
+              <Button 
+                onClick={handleNavigateToCommissions}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Manage Commission Rules
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="border hover:border-green-300 transition-colors cursor-pointer"
+                onClick={handleNavigateToCommissions}
+              >
+                <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
+                  <div className="mb-4 p-3 rounded-full bg-green-100">
+                    <DollarSign className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Commission Rules</h3>
+                  <p className="text-sm text-center text-muted-foreground">
+                    Create custom commission rules for specific referrers and products.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border hover:border-amber-300 transition-colors cursor-pointer"
+                onClick={handleNavigateToCommissions}
+              >
+                <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
+                  <div className="mb-4 p-3 rounded-full bg-amber-100">
+                    <Calendar className="h-8 w-8 text-amber-600" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Time-Limited Promotions</h3>
+                  <p className="text-sm text-center text-muted-foreground">
+                    Set up limited-time commission rates for special campaigns and events.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border hover:border-blue-300 transition-colors cursor-pointer"
+                onClick={() => navigate('/admin/stripe')}
+              >
+                <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
+                  <div className="mb-4 p-3 rounded-full bg-blue-100">
+                    <CreditCard className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Manage Payouts</h3>
+                  <p className="text-sm text-center text-muted-foreground">
+                    Review and manage payments to affiliates and track commission metrics.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
         
         <TabsContent value="community-cloning" className="mt-4">

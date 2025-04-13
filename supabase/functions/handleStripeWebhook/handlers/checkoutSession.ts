@@ -116,11 +116,12 @@ export async function handleCheckoutSessionCompleted(
     let platformCut = null;
     let referrerStripeAccountId = null;
     let transferId = null;
+    let appliedCommissionRule = null;
     
     if (referrerId) {
       console.log(`[CHECKOUT] Payment has a referrer: ${referrerId}, processing referral`);
       
-      // Get referrer's commission rate and Stripe account
+      // Get referrer's Stripe account
       console.log(`[CHECKOUT] Looking up referrer's Stripe account for user: ${referrerId}`);
       const { data: referrerData, error: referrerError } = await supabase
         .from("stripe_accounts")
@@ -138,21 +139,48 @@ export async function handleCheckoutSessionCompleted(
         referrerStripeAccountId = referrerData.stripe_account_id;
         console.log(`[CHECKOUT] Found referrer's Stripe account: ${referrerStripeAccountId}`);
         
-        // Fetch the product to get commission rate
+        // Fetch the product to get product ID
         const lineItem = lineItems.data[0];
-        console.log(`[CHECKOUT] Getting commission rate for product with price: ${lineItem.price?.id}`);
+        console.log(`[CHECKOUT] Getting product details for price: ${lineItem.price?.id}`);
         
+        // Find the product from our products table
         const { data: productData, error: productError } = await supabase
           .from("products")
-          .select("revenue_share_percent")
+          .select("id, revenue_share_percent")
           .eq("stripe_price_id", lineItem.price?.id)
           .single();
         
-        console.log(`[CHECKOUT] Product commission lookup result:`, productData || "No product found");
+        console.log(`[CHECKOUT] Product lookup result:`, productData || "No product found");
         console.log(`[CHECKOUT] Product lookup error:`, productError || "No error");
         
-        const commissionRate = productData?.revenue_share_percent || 80; // Default 80% if not found
-        console.log(`[CHECKOUT] Using commission rate: ${commissionRate}%`);
+        // Default commission rate if not found in product
+        let commissionRate = productData?.revenue_share_percent || 80; 
+        const productId = productData?.id || null;
+        
+        // Look for applicable commission rules (most specific and highest priority wins)
+        console.log(`[CHECKOUT] Searching for commission rules for referrer: ${referrerId}`);
+        const now = new Date().toISOString();
+        const { data: commissionRules, error: rulesError } = await supabase
+          .from("commission_rules")
+          .select("*")
+          .eq("referrer_id", referrerId)
+          .or(`product_id.eq.${productId},product_id.is.null`)
+          .lte("start_date", now)
+          .or("end_date.gt." + now + ",end_date.is.null")
+          .order("priority", { ascending: false })
+          .order("product_id", { nullsLast: true });
+          
+        if (rulesError) {
+          console.error(`[CHECKOUT ERROR] Error fetching commission rules:`, rulesError);
+        } else if (commissionRules && commissionRules.length > 0) {
+          // Use the first rule (highest priority)
+          const rule = commissionRules[0];
+          commissionRate = rule.commission_percent;
+          appliedCommissionRule = rule;
+          console.log(`[CHECKOUT] Applied commission rule: ${rule.id} with rate: ${commissionRate}%`);
+        } else {
+          console.log(`[CHECKOUT] No specific commission rules found, using default rate: ${commissionRate}%`);
+        }
         
         // Calculate the split
         referrerCut = Math.floor((amount * commissionRate) / 100);
@@ -176,6 +204,8 @@ export async function handleCheckoutSessionCompleted(
                 sessionId: session.id,
                 referrerId: referrerId,
                 customerId: customerId,
+                commissionRuleId: appliedCommissionRule?.id || null,
+                commissionRate: commissionRate
               },
             });
             
@@ -227,6 +257,8 @@ export async function handleCheckoutSessionCompleted(
           payment_intent: session.payment_intent,
           referrer_account_id: referrerStripeAccountId,
           customer_email: customerEmail,
+          applied_commission_rule: appliedCommissionRule,
+          commission_rate: appliedCommissionRule ? appliedCommissionRule.commission_percent : null,
           line_items: lineItems.data.map(item => ({
             id: item.id,
             description: item.description,
