@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PostgrestResponse } from "@supabase/supabase-js";
 
 export interface CommissionRule {
   id: string;
@@ -28,6 +29,9 @@ export interface User {
   email: string;
 }
 
+// Define a generic response type for RPC calls
+type RPCResponse<T> = PostgrestResponse<T>;
+
 export const useCommissions = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -38,9 +42,9 @@ export const useCommissions = () => {
   const fetchCommissionRules = async () => {
     setIsLoading(true);
     try {
-      // Fetch rules with direct SQL as a workaround for TypeScript issues
-      const { data: rules, error: rulesError } = await supabase
-        .rpc('get_commission_rules') as {data: CommissionRule[] | null, error: Error | null};
+      // Use type assertion to tell TypeScript about our custom RPC functions
+      const { data: rules, error: rulesError } = await (supabase
+        .rpc('get_commission_rules') as unknown as Promise<RPCResponse<CommissionRule[]>>);
       
       if (rulesError) throw rulesError;
       
@@ -52,9 +56,9 @@ export const useCommissions = () => {
       
       if (productsError) throw productsError;
       
-      // Fetch users (this would need to be limited/paginated in a real app)
-      const { data: usersData, error: usersError } = await supabase
-        .rpc('get_all_users') as {data: User[] | null, error: Error | null};
+      // Fetch users with type assertion
+      const { data: usersData, error: usersError } = await (supabase
+        .rpc('get_all_users') as unknown as Promise<RPCResponse<User[]>>);
       
       if (usersError) throw usersError;
       
@@ -90,7 +94,7 @@ export const useCommissions = () => {
 
   const addCommissionRule = async (rule: Omit<CommissionRule, 'id' | 'created_at'>) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .rpc('insert_commission_rule', {
           p_referrer_id: rule.referrer_id,
           p_product_id: rule.product_id || null,
@@ -99,7 +103,7 @@ export const useCommissions = () => {
           p_end_date: rule.end_date || null,
           p_priority: rule.priority,
           p_created_by: rule.created_by
-        }) as {data: any, error: Error | null};
+        }) as unknown as Promise<RPCResponse<any>>);
       
       if (error) throw error;
       
@@ -114,7 +118,7 @@ export const useCommissions = () => {
 
   const updateCommissionRule = async (id: string, rule: Partial<Omit<CommissionRule, 'id' | 'created_at'>>) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .rpc('update_commission_rule', {
           p_id: id,
           p_referrer_id: rule.referrer_id,
@@ -123,7 +127,7 @@ export const useCommissions = () => {
           p_start_date: rule.start_date,
           p_end_date: rule.end_date || null,
           p_priority: rule.priority
-        }) as {data: any, error: Error | null};
+        }) as unknown as Promise<RPCResponse<any>>);
       
       if (error) throw error;
       
@@ -138,8 +142,8 @@ export const useCommissions = () => {
 
   const deleteCommissionRule = async (id: string) => {
     try {
-      const { error } = await supabase
-        .rpc('delete_commission_rule', { p_id: id }) as {data: any, error: Error | null};
+      const { error } = await (supabase
+        .rpc('delete_commission_rule', { p_id: id }) as unknown as Promise<RPCResponse<any>>);
       
       if (error) throw error;
       
