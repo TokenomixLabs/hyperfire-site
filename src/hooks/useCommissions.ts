@@ -63,14 +63,14 @@ export const useCommissions = () => {
       if (usersError) throw usersError;
       
       // Enhance rules with user and product names
-      const enhancedRules = (rules || []).map((rule: CommissionRule) => {
+      const enhancedRules = rules ? rules.map((rule: CommissionRule) => {
         // Find referrer name
-        const referrer = (usersData || []).find((u: User) => u.id === rule.referrer_id);
+        const referrer = usersData ? usersData.find((u: User) => u.id === rule.referrer_id) : null;
         
         // Find product name if product_id exists
         let product = null;
         if (rule.product_id) {
-          product = productsData?.find((p: Product) => p.id === rule.product_id);
+          product = productsData ? productsData.find((p: Product) => p.id === rule.product_id) : null;
         }
         
         return {
@@ -78,7 +78,7 @@ export const useCommissions = () => {
           referrer_name: referrer ? referrer.name || referrer.email : "Unknown User",
           product_name: product ? product.name : null
         };
-      });
+      }) : [];
       
       setCommissionRules(enhancedRules);
       setProducts(productsData || []);
