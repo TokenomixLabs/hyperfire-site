@@ -32,12 +32,12 @@ export async function handleCheckoutSessionCompleted(
     }
     console.log(`[CHECKOUT] Using customer email: ${customerEmail}`);
 
-    // Get user ID from customer email
+    // Get user ID from customer email - FIXED QUERY
     console.log(`[CHECKOUT] Looking up user ID for email: ${customerEmail}`);
     const { data: userData, error: userError } = await supabase
-      .from("auth")
-      .select("users.id")
-      .eq("users.email", customerEmail)
+      .from("users")  // Direct table query instead of auth.users
+      .select("id")   // Simple id selection 
+      .eq("email", customerEmail)
       .single();
 
     if (userError) {
