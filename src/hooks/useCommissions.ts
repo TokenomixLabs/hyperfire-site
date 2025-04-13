@@ -9,4 +9,4 @@ export type {
   CommissionRule,
   Product,
   User
-} from "./commissions";
+} from "@/types/commissions";
