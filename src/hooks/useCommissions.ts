@@ -38,23 +38,23 @@ export const useCommissions = () => {
   const fetchCommissionRules = async () => {
     setIsLoading(true);
     try {
-      // Use correct type arguments for rpc call
+      // Cast the return type to any to avoid TypeScript errors with procedure calls
       const { data: rules, error: rulesError } = await supabase
-        .rpc('get_commission_rules');
+        .rpc('get_commission_rules') as { data: CommissionRule[] | null, error: any };
       
       if (rulesError) throw rulesError;
       
-      // Use correct type arguments for from call and proper filter syntax
+      // Cast the return type for the products query
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select("id, name, description")
-        .eq('is_active', true);
+        .eq('is_active', true) as { data: Product[] | null, error: any };
       
       if (productsError) throw productsError;
       
-      // Use correct type arguments for rpc call
+      // Cast the return type for users
       const { data: usersData, error: usersError } = await supabase
-        .rpc('get_all_users');
+        .rpc('get_all_users') as { data: User[] | null, error: any };
       
       if (usersError) throw usersError;
       
@@ -104,7 +104,7 @@ export const useCommissions = () => {
           p_end_date: rule.end_date || null,
           p_priority: rule.priority,
           p_created_by: rule.created_by
-        });
+        }) as { data: any, error: any };
       
       if (error) throw error;
       
@@ -128,7 +128,7 @@ export const useCommissions = () => {
           p_start_date: rule.start_date,
           p_end_date: rule.end_date || null,
           p_priority: rule.priority
-        });
+        }) as { data: any, error: any };
       
       if (error) throw error;
       
@@ -144,7 +144,7 @@ export const useCommissions = () => {
   const deleteCommissionRule = async (id: string) => {
     try {
       const { error } = await supabase
-        .rpc('delete_commission_rule', { p_id: id });
+        .rpc('delete_commission_rule', { p_id: id }) as { data: any, error: any };
       
       if (error) throw error;
       
