@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 export interface CommissionRule {
   id: string;
@@ -91,6 +92,11 @@ export const useCommissions = () => {
     } catch (err) {
       console.error("Error fetching commission data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
+      toast({
+        title: "Error fetching commission data",
+        description: err instanceof Error ? err.message : "Unknown error occurred",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -116,9 +122,18 @@ export const useCommissions = () => {
       
       // Refresh rules after adding
       await fetchCommissionRules();
+      toast({
+        title: "Commission rule added",
+        description: "The commission rule has been added successfully"
+      });
       return data;
     } catch (err) {
       console.error("Error adding commission rule:", err);
+      toast({
+        title: "Error adding commission rule",
+        description: err instanceof Error ? err.message : "Unknown error occurred",
+        variant: "destructive"
+      });
       throw err;
     }
   };
@@ -143,9 +158,18 @@ export const useCommissions = () => {
       
       // Refresh rules after updating
       await fetchCommissionRules();
+      toast({
+        title: "Commission rule updated",
+        description: "The commission rule has been updated successfully"
+      });
       return data;
     } catch (err) {
       console.error("Error updating commission rule:", err);
+      toast({
+        title: "Error updating commission rule",
+        description: err instanceof Error ? err.message : "Unknown error occurred",
+        variant: "destructive"
+      });
       throw err;
     }
   };
@@ -162,8 +186,17 @@ export const useCommissions = () => {
       
       // Refresh rules after deleting
       await fetchCommissionRules();
+      toast({
+        title: "Commission rule deleted",
+        description: "The commission rule has been deleted successfully"
+      });
     } catch (err) {
       console.error("Error deleting commission rule:", err);
+      toast({
+        title: "Error deleting commission rule",
+        description: err instanceof Error ? err.message : "Unknown error occurred",
+        variant: "destructive"
+      });
       throw err;
     }
   };

@@ -3,6 +3,82 @@ import Stripe from "https://esm.sh/stripe@13.7.0";
 import { logInfo, logError, getCustomerDetails } from "../utils.ts";
 
 /**
+ * Match and apply the most appropriate commission rule for a transaction
+ * Finds the highest priority rule that matches the referrer and product
+ */
+async function findApplicableCommissionRule(
+  supabase: any,
+  referrerId: string,
+  productId: string | null
+): Promise<{ 
+  rule: any | null;
+  commissionRate: number;
+  isDefaultRate: boolean;
+}> {
+  console.log(`[COMMISSION] Finding commission rules for referrer: ${referrerId}, product: ${productId || 'any'}`);
+  
+  try {
+    // Get current date for rule date filtering
+    const now = new Date().toISOString();
+    
+    // Query for applicable rules with proper ordering to get highest priority first
+    const { data: commissionRules, error: rulesError } = await supabase
+      .from("commission_rules")
+      .select("*")
+      .eq("referrer_id", referrerId)
+      .or(`product_id.eq.${productId},product_id.is.null`)
+      .lte("start_date", now)
+      .or(`end_date.gt.${now},end_date.is.null`)
+      .order("priority", { ascending: false })
+      .order("product_id", { nullsLast: true });
+    
+    if (rulesError) {
+      console.error(`[COMMISSION ERROR] Error fetching commission rules:`, rulesError);
+      // Fall back to default product rate if we can't get rules
+      return { rule: null, commissionRate: 80, isDefaultRate: true };
+    }
+    
+    if (commissionRules && commissionRules.length > 0) {
+      // Use highest priority rule (already sorted by query)
+      const rule = commissionRules[0];
+      console.log(`[COMMISSION] Found matching rule: ${rule.id} with rate: ${rule.commission_percent}% (priority: ${rule.priority})`);
+      return {
+        rule,
+        commissionRate: rule.commission_percent,
+        isDefaultRate: false
+      };
+    }
+    
+    // If no specific rules found, try to get default from product
+    if (productId) {
+      console.log(`[COMMISSION] No specific rules found, checking product default rate`);
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .select("revenue_share_percent")
+        .eq("id", productId)
+        .single();
+      
+      if (!productError && productData) {
+        console.log(`[COMMISSION] Using product default rate: ${productData.revenue_share_percent}%`);
+        return {
+          rule: null,
+          commissionRate: productData.revenue_share_percent,
+          isDefaultRate: true
+        };
+      }
+    }
+    
+    // Final fallback - global default
+    console.log(`[COMMISSION] Using global default commission rate: 80%`);
+    return { rule: null, commissionRate: 80, isDefaultRate: true };
+    
+  } catch (error) {
+    console.error(`[COMMISSION ERROR] Error in findApplicableCommissionRule:`, error);
+    return { rule: null, commissionRate: 80, isDefaultRate: true };
+  }
+}
+
+/**
  * Handles checkout.session.completed events
  */
 export async function handleCheckoutSessionCompleted(
@@ -117,6 +193,7 @@ export async function handleCheckoutSessionCompleted(
     let referrerStripeAccountId = null;
     let transferId = null;
     let appliedCommissionRule = null;
+    let productId = null;
     
     if (referrerId) {
       console.log(`[CHECKOUT] Payment has a referrer: ${referrerId}, processing referral`);
@@ -146,47 +223,37 @@ export async function handleCheckoutSessionCompleted(
         // Find the product from our products table
         const { data: productData, error: productError } = await supabase
           .from("products")
-          .select("id, revenue_share_percent")
+          .select("id")
           .eq("stripe_price_id", lineItem.price?.id)
-          .single();
+          .maybeSingle();
         
         console.log(`[CHECKOUT] Product lookup result:`, productData || "No product found");
         console.log(`[CHECKOUT] Product lookup error:`, productError || "No error");
         
-        // Default commission rate if not found in product
-        let commissionRate = productData?.revenue_share_percent || 80; 
-        const productId = productData?.id || null;
+        productId = productData?.id || null;
         
-        // Look for applicable commission rules (most specific and highest priority wins)
-        console.log(`[CHECKOUT] Searching for commission rules for referrer: ${referrerId}`);
-        const now = new Date().toISOString();
-        const { data: commissionRules, error: rulesError } = await supabase
-          .from("commission_rules")
-          .select("*")
-          .eq("referrer_id", referrerId)
-          .or(`product_id.eq.${productId},product_id.is.null`)
-          .lte("start_date", now)
-          .or("end_date.gt." + now + ",end_date.is.null")
-          .order("priority", { ascending: false })
-          .order("product_id", { nullsLast: true });
-          
-        if (rulesError) {
-          console.error(`[CHECKOUT ERROR] Error fetching commission rules:`, rulesError);
-        } else if (commissionRules && commissionRules.length > 0) {
-          // Use the first rule (highest priority)
-          const rule = commissionRules[0];
-          commissionRate = rule.commission_percent;
-          appliedCommissionRule = rule;
-          console.log(`[CHECKOUT] Applied commission rule: ${rule.id} with rate: ${commissionRate}%`);
+        // Find the appropriate commission rule
+        const { rule, commissionRate, isDefaultRate } = await findApplicableCommissionRule(
+          supabase,
+          referrerId,
+          productId
+        );
+        
+        appliedCommissionRule = rule;
+        
+        // Log commission decision details
+        if (rule) {
+          console.log(`[COMMISSION] Applied specific commission rule: ${rule.id}`);
+          console.log(`[COMMISSION] Rule details: ${commissionRate}%, priority: ${rule.priority}, product-specific: ${rule.product_id ? 'Yes' : 'No'}`);
         } else {
-          console.log(`[CHECKOUT] No specific commission rules found, using default rate: ${commissionRate}%`);
+          console.log(`[COMMISSION] Using ${isDefaultRate ? 'default' : 'fallback'} commission rate: ${commissionRate}%`);
         }
         
         // Calculate the split
         referrerCut = Math.floor((amount * commissionRate) / 100);
         platformCut = amount - referrerCut;
         
-        console.log(`[CHECKOUT] Commission calculation: ${amount} * ${commissionRate}% = ${referrerCut} for referrer, ${platformCut} for platform`);
+        console.log(`[COMMISSION] Commission calculation: ${amount} * ${commissionRate}% = ${referrerCut} for referrer, ${platformCut} for platform`);
         
         // Process transfer to the referrer's connected account if they have one
         if (referrerStripeAccountId) {
@@ -205,7 +272,8 @@ export async function handleCheckoutSessionCompleted(
                 referrerId: referrerId,
                 customerId: customerId,
                 commissionRuleId: appliedCommissionRule?.id || null,
-                commissionRate: commissionRate
+                commissionRate: commissionRate,
+                productId: productId
               },
             });
             
@@ -219,7 +287,7 @@ export async function handleCheckoutSessionCompleted(
             // The transfer can be retried manually if needed
           }
         } else {
-          console.log(`[CHECKOUT] Referrer does not have an active Stripe account, skipping transfer`);
+          console.log(`[CHECKOUT] Referrer does not have an active Stripe account, storing pending payout`);
         }
       }
     } else {
@@ -231,6 +299,7 @@ export async function handleCheckoutSessionCompleted(
     console.log(`[CHECKOUT] Transaction details:`, {
       customer_user_id: customerId,
       referrer_user_id: referrerId,
+      product_id: productId,
       amount: amount,
       currency: session.currency || 'usd',
       referrer_amount: referrerCut,
@@ -242,6 +311,7 @@ export async function handleCheckoutSessionCompleted(
       .insert({
         customer_user_id: customerId,
         referrer_user_id: referrerId,
+        product_id: productId,
         amount: amount,
         currency: session.currency || 'usd',
         referrer_amount: referrerCut,
@@ -259,6 +329,7 @@ export async function handleCheckoutSessionCompleted(
           customer_email: customerEmail,
           applied_commission_rule: appliedCommissionRule,
           commission_rate: appliedCommissionRule ? appliedCommissionRule.commission_percent : null,
+          commission_fallback: appliedCommissionRule ? false : true,
           line_items: lineItems.data.map(item => ({
             id: item.id,
             description: item.description,
