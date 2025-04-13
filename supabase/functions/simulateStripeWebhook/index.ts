@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
 import Stripe from "https://esm.sh/stripe@13.7.0";
@@ -37,20 +38,41 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get a random user email for testing if possible
+    // Try to get a real user email for testing
     let testEmail = "test@example.com";
+    
     try {
-      const { data: users } = await supabase
-        .from("users")
-        .select("email")
-        .limit(1);
+      // First try with auth.users (admin API)
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers({ 
+        page: 1, 
+        perPage: 1
+      });
       
-      if (users && users.length > 0) {
-        testEmail = users[0].email;
-        console.log(`[SIMULATE] Using existing user email: ${testEmail}`);
+      if (!authError && authData && authData.users && authData.users.length > 0) {
+        testEmail = authData.users[0].email;
+        console.log(`[SIMULATE] Using existing auth user email: ${testEmail}`);
+      } else {
+        console.log(`[SIMULATE] No auth users found or error: ${authError?.message}`);
+        
+        // Fallback to public users table
+        try {
+          const { data: users, error: usersError } = await supabase
+            .from("users")
+            .select("email")
+            .limit(1);
+          
+          if (!usersError && users && users.length > 0) {
+            testEmail = users[0].email;
+            console.log(`[SIMULATE] Using existing public user email: ${testEmail}`);
+          } else {
+            console.log(`[SIMULATE] No users found in public table: ${usersError?.message}`);
+          }
+        } catch (e) {
+          console.log(`[SIMULATE] Error fetching users from public table: ${e.message}`);
+        }
       }
     } catch (e) {
-      console.log(`[SIMULATE] No users table found or error fetching users: ${e.message}`);
+      console.log(`[SIMULATE] Error accessing auth users: ${e.message}`);
     }
     
     // Create a sample checkout.session.completed event

@@ -32,17 +32,59 @@ export async function handleCheckoutSessionCompleted(
     }
     console.log(`[CHECKOUT] Using customer email: ${customerEmail}`);
 
-    // Get user ID from customer email - FIXED QUERY
+    // Get user ID from customer email - Using Admin API
     console.log(`[CHECKOUT] Looking up user ID for email: ${customerEmail}`);
-    const { data: userData, error: userError } = await supabase
-      .from("users")  // Direct table query instead of auth.users
-      .select("id")   // Simple id selection 
-      .eq("email", customerEmail)
-      .single();
-
-    if (userError) {
-      console.error(`[CHECKOUT ERROR] User lookup error:`, userError);
+    
+    // First try with auth.users via admin API
+    let userData = null;
+    let userError = null;
+    
+    try {
+      const { data: authUsers, error } = await supabase.auth.admin.listUsers({
+        filters: {
+          email: customerEmail
+        }
+      });
+      
+      if (error) {
+        console.error(`[CHECKOUT ERROR] Auth users lookup error:`, error);
+        userError = error;
+      } else if (authUsers && authUsers.users && authUsers.users.length > 0) {
+        userData = { id: authUsers.users[0].id };
+        console.log(`[CHECKOUT] Found user in auth.users with ID: ${userData.id}`);
+      } else {
+        console.log(`[CHECKOUT] No matching user found in auth.users for email: ${customerEmail}`);
+      }
+    } catch (error) {
+      console.error(`[CHECKOUT ERROR] Error accessing admin API:`, error);
+      userError = error;
     }
+    
+    // If not found in auth.users, try with public users table as fallback
+    if (!userData) {
+      try {
+        console.log(`[CHECKOUT] Trying fallback lookup in public users table`);
+        const { data, error } = await supabase
+          .from("users")
+          .select("id")
+          .eq("email", customerEmail)
+          .maybeSingle();
+        
+        if (error) {
+          console.error(`[CHECKOUT ERROR] Public users lookup error:`, error);
+          if (!userError) userError = error;
+        } else if (data) {
+          userData = data;
+          console.log(`[CHECKOUT] Found user in public users table with ID: ${userData.id}`);
+        } else {
+          console.log(`[CHECKOUT] No matching user found in public users table for email: ${customerEmail}`);
+        }
+      } catch (error) {
+        console.error(`[CHECKOUT ERROR] Error accessing public users table:`, error);
+        if (!userError) userError = error;
+      }
+    }
+    
     console.log(`[CHECKOUT] User lookup result:`, userData || "No user found");
 
     // Extract line items to get product and amount details
