@@ -3,3 +3,6 @@ project_id = "chmwoegkgcsjsibfqmby"
 
 [functions.createStripeAccountLink]
 verify_jwt = true
+
+[functions.handleStripeWebhook]
+verify_jwt = false
