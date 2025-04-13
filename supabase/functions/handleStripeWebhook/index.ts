@@ -8,6 +8,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Enable verbose logging for testing
+const VERBOSE_LOGGING = true;
+
+function logInfo(message: string, data?: any) {
+  if (VERBOSE_LOGGING) {
+    if (data) {
+      console.log(`[INFO] ${message}`, JSON.stringify(data, null, 2));
+    } else {
+      console.log(`[INFO] ${message}`);
+    }
+  }
+}
+
+function logError(message: string, error: any) {
+  console.error(`[ERROR] ${message}`, error);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -35,6 +52,7 @@ serve(async (req) => {
 
     // Get the request body as text
     const requestBody = await req.text();
+    logInfo("Received webhook payload", requestBody);
     
     // Verify the event with Stripe
     const event = stripe.webhooks.constructEvent(
@@ -42,13 +60,16 @@ serve(async (req) => {
       signature,
       stripeWebhookSecret
     );
+    logInfo("Webhook signature verified successfully");
 
     // Initialize Supabase client with service role key
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    logInfo("Supabase client initialized");
 
     console.log(`Processing Stripe event: ${event.type}`);
+    logInfo("Full event data", event);
 
     // Handle different event types
     switch (event.type) {
@@ -65,7 +86,7 @@ serve(async (req) => {
         break;
       
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        logInfo(`Unhandled event type: ${event.type}`);
     }
 
     return new Response(JSON.stringify({ received: true }), {
@@ -73,7 +94,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    console.error("Error processing webhook:", error);
+    logError("Error processing webhook", error);
     return new Response(
       JSON.stringify({
         error: error.message || "An error occurred processing the webhook",
@@ -94,16 +115,19 @@ async function handleCheckoutSessionCompleted(
   stripe: Stripe,
   supabase: any
 ) {
-  console.log("Processing checkout.session.completed:", session.id);
+  logInfo("Processing checkout.session.completed", { sessionId: session.id });
   
   try {
     // Extract important information from the session
+    logInfo("Session object", session);
     const customer = await getCustomerDetails(session.customer as string, stripe);
+    logInfo("Customer details", customer);
     const customerEmail = customer?.email || session.customer_details?.email;
     
     if (!customerEmail) {
       throw new Error("No customer email found in session or customer object");
     }
+    logInfo("Customer email", customerEmail);
 
     // Get user ID from customer email
     const { data: userData, error: userError } = await supabase
@@ -112,12 +136,14 @@ async function handleCheckoutSessionCompleted(
       .eq("users.email", customerEmail)
       .single();
 
-    if (userError || !userData) {
-      console.log("User not found for email:", customerEmail);
+    if (userError) {
+      logError("User lookup error", userError);
     }
+    logInfo("User lookup result", userData);
 
     // Extract line items to get product and amount details
     const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+    logInfo("Line items", lineItems);
     if (!lineItems || lineItems.data.length === 0) {
       throw new Error("No line items found in session");
     }
@@ -127,6 +153,7 @@ async function handleCheckoutSessionCompleted(
     
     // Get metadata
     const metadata = session.metadata || {};
+    logInfo("Session metadata", metadata);
     const referrerId = metadata.referrerId || null;
     const funnelId = metadata.funnelId || null;
     
@@ -137,7 +164,7 @@ async function handleCheckoutSessionCompleted(
     let transferId = null;
     
     if (referrerId) {
-      console.log(`Payment has a referrer: ${referrerId}`);
+      logInfo(`Payment has a referrer: ${referrerId}`);
       
       // Get referrer's commission rate and Stripe account
       const { data: referrerData, error: referrerError } = await supabase
@@ -147,8 +174,10 @@ async function handleCheckoutSessionCompleted(
         .eq("is_active", true)
         .single();
       
+      logInfo("Referrer Stripe account lookup", { data: referrerData, error: referrerError });
+      
       if (referrerError || !referrerData) {
-        console.log(`No active Stripe account found for referrer: ${referrerId}`);
+        logInfo(`No active Stripe account found for referrer: ${referrerId}`);
       } else {
         referrerStripeAccountId = referrerData.stripe_account_id;
         
@@ -160,18 +189,26 @@ async function handleCheckoutSessionCompleted(
           .eq("stripe_price_id", lineItem.price?.id)
           .single();
         
+        logInfo("Product commission rate lookup", { data: productData, error: productError });
+        
         const commissionRate = productData?.revenue_share_percent || 80; // Default 80% if not found
         
         // Calculate the split
         referrerCut = Math.floor((amount * commissionRate) / 100);
         platformCut = amount - referrerCut;
         
-        console.log(`Commission calculation: ${amount} * ${commissionRate}% = ${referrerCut} for referrer, ${platformCut} for platform`);
+        logInfo(`Commission calculation: ${amount} * ${commissionRate}% = ${referrerCut} for referrer, ${platformCut} for platform`);
         
         // Process transfer to the referrer's connected account if they have one
         if (referrerStripeAccountId) {
           try {
             // Create a transfer to the connected account
+            logInfo("Creating transfer to referrer", {
+              amount: referrerCut,
+              currency: session.currency || 'usd',
+              destination: referrerStripeAccountId
+            });
+            
             const transfer = await stripe.transfers.create({
               amount: referrerCut,
               currency: session.currency || 'usd',
@@ -185,9 +222,9 @@ async function handleCheckoutSessionCompleted(
             });
             
             transferId = transfer.id;
-            console.log(`Successfully transferred ${referrerCut} to referrer account ${referrerStripeAccountId}`);
+            logInfo(`Successfully transferred ${referrerCut} to referrer account ${referrerStripeAccountId}`, transfer);
           } catch (transferError) {
-            console.error("Error creating transfer:", transferError);
+            logError("Error creating transfer", transferError);
             // We don't throw here to avoid breaking the webhook flow
             // The transfer can be retried manually if needed
           }
@@ -196,6 +233,15 @@ async function handleCheckoutSessionCompleted(
     }
     
     // Log the transaction in the database
+    logInfo("Inserting transaction record", {
+      customer_user_id: customerId,
+      referrer_user_id: referrerId,
+      amount: amount,
+      currency: session.currency || 'usd',
+      referrer_amount: referrerCut,
+      platform_amount: platformCut,
+    });
+    
     const { data: transactionData, error: transactionError } = await supabase
       .from("transactions")
       .insert({
@@ -228,13 +274,13 @@ async function handleCheckoutSessionCompleted(
       .select();
     
     if (transactionError) {
-      console.error("Error logging transaction:", transactionError);
+      logError("Error logging transaction", transactionError);
     } else {
-      console.log("Transaction logged successfully:", transactionData);
+      logInfo("Transaction logged successfully", transactionData);
     }
     
   } catch (error) {
-    console.error("Error processing checkout session:", error);
+    logError("Error processing checkout session", error);
     // We don't rethrow to avoid breaking the webhook flow
   }
 }
@@ -247,7 +293,7 @@ async function handleInvoicePaid(
   stripe: Stripe,
   supabase: any
 ) {
-  console.log("Processing invoice.paid:", invoice.id);
+  logInfo("Processing invoice.paid", { invoiceId: invoice.id });
   
   try {
     // Similar to checkout.session.completed but for recurring payments
@@ -264,10 +310,10 @@ async function handleInvoicePaid(
     // Remaining processing is similar to checkout.session.completed
     // Extract subscription details, find user, process referral payment if applicable
     // For brevity, basic logging only:
-    console.log(`Processed subscription payment for ${customerEmail || customerId}`);
+    logInfo(`Processed subscription payment for ${customerEmail || customerId}`);
     
   } catch (error) {
-    console.error("Error processing invoice payment:", error);
+    logError("Error processing invoice payment", error);
     // We don't rethrow to avoid breaking the webhook flow
   }
 }
@@ -279,18 +325,24 @@ async function handleAccountUpdated(
   account: Stripe.Account,
   supabase: any
 ) {
-  console.log("Processing account.updated:", account.id);
+  logInfo("Processing account.updated", { accountId: account.id });
   
   try {
     // Get user id from metadata
     const userId = account.metadata?.user_id;
     
     if (!userId) {
-      console.log("No user_id found in account metadata, cannot update account status");
+      logInfo("No user_id found in account metadata, cannot update account status");
       return;
     }
     
     // Update the account status in the database
+    logInfo("Updating stripe account status", { 
+      userId: userId,
+      accountId: account.id,
+      is_active: account.charges_enabled
+    });
+    
     const { data, error } = await supabase
       .from("stripe_accounts")
       .update({
@@ -308,13 +360,13 @@ async function handleAccountUpdated(
       .select();
     
     if (error) {
-      console.error("Error updating account status:", error);
+      logError("Error updating account status", error);
     } else {
-      console.log(`Updated account status for user ${userId}, account ${account.id}, charges_enabled: ${account.charges_enabled}`);
+      logInfo(`Updated account status for user ${userId}, account ${account.id}, charges_enabled: ${account.charges_enabled}`, data);
     }
     
   } catch (error) {
-    console.error("Error processing account update:", error);
+    logError("Error processing account update", error);
     // We don't rethrow to avoid breaking the webhook flow
   }
 }
@@ -329,7 +381,7 @@ async function getCustomerDetails(
   try {
     return await stripe.customers.retrieve(customerId) as Stripe.Customer;
   } catch (error) {
-    console.error("Error retrieving customer:", error);
+    logError("Error retrieving customer", error);
     return null;
   }
 }
