@@ -1,81 +1,54 @@
 
 import Stripe from "https://esm.sh/stripe@13.7.0";
 import { logInfo, logError, getCustomerDetails } from "../utils.ts";
+import { processCommission } from "./commission.ts";
+import { lookupUserIdFromEmail, lookupProductFromStripePrice } from "./userLookup.ts";
+import { recordTransaction } from "./transactions.ts";
 
 /**
- * Match and apply the most appropriate commission rule for a transaction
- * Finds the highest priority rule that matches the referrer and product
+ * Extract and validate customer information from session
  */
-async function findApplicableCommissionRule(
-  supabase: any,
-  referrerId: string,
-  productId: string | null
-): Promise<{ 
-  rule: any | null;
-  commissionRate: number;
-  isDefaultRate: boolean;
-}> {
-  console.log(`[COMMISSION] Finding commission rules for referrer: ${referrerId}, product: ${productId || 'any'}`);
+async function getCustomerInfoFromSession(
+  session: Stripe.Checkout.Session,
+  stripe: Stripe
+): Promise<{ customerEmail: string | null; customer: Stripe.Customer | null }> {
+  console.log(`[CHECKOUT] Extracting customer info from session: ${session.id}`);
+  console.log(`[CHECKOUT] Customer ID: ${session.customer}`);
+  console.log(`[CHECKOUT] Customer email: ${session.customer_details?.email}`);
   
-  try {
-    // Get current date for rule date filtering
-    const now = new Date().toISOString();
-    
-    // Query for applicable rules with proper ordering to get highest priority first
-    const { data: commissionRules, error: rulesError } = await supabase
-      .from("commission_rules")
-      .select("*")
-      .eq("referrer_id", referrerId)
-      .or(`product_id.eq.${productId},product_id.is.null`)
-      .lte("start_date", now)
-      .or(`end_date.gt.${now},end_date.is.null`)
-      .order("priority", { ascending: false })
-      .order("product_id", { nullsLast: true });
-    
-    if (rulesError) {
-      console.error(`[COMMISSION ERROR] Error fetching commission rules:`, rulesError);
-      // Fall back to default product rate if we can't get rules
-      return { rule: null, commissionRate: 80, isDefaultRate: true };
-    }
-    
-    if (commissionRules && commissionRules.length > 0) {
-      // Use highest priority rule (already sorted by query)
-      const rule = commissionRules[0];
-      console.log(`[COMMISSION] Found matching rule: ${rule.id} with rate: ${rule.commission_percent}% (priority: ${rule.priority})`);
-      return {
-        rule,
-        commissionRate: rule.commission_percent,
-        isDefaultRate: false
-      };
-    }
-    
-    // If no specific rules found, try to get default from product
-    if (productId) {
-      console.log(`[COMMISSION] No specific rules found, checking product default rate`);
-      const { data: productData, error: productError } = await supabase
-        .from("products")
-        .select("revenue_share_percent")
-        .eq("id", productId)
-        .single();
-      
-      if (!productError && productData) {
-        console.log(`[COMMISSION] Using product default rate: ${productData.revenue_share_percent}%`);
-        return {
-          rule: null,
-          commissionRate: productData.revenue_share_percent,
-          isDefaultRate: true
-        };
-      }
-    }
-    
-    // Final fallback - global default
-    console.log(`[COMMISSION] Using global default commission rate: 80%`);
-    return { rule: null, commissionRate: 80, isDefaultRate: true };
-    
-  } catch (error) {
-    console.error(`[COMMISSION ERROR] Error in findApplicableCommissionRule:`, error);
-    return { rule: null, commissionRate: 80, isDefaultRate: true };
+  const customer = session.customer 
+    ? await getCustomerDetails(session.customer as string, stripe) 
+    : null;
+  
+  console.log(`[CHECKOUT] Retrieved customer details:`, customer?.email || "No email found");
+  
+  const customerEmail = customer?.email || session.customer_details?.email;
+  
+  if (!customerEmail) {
+    console.error(`[CHECKOUT ERROR] No customer email found in session or customer object`);
+  } else {
+    console.log(`[CHECKOUT] Using customer email: ${customerEmail}`);
   }
+  
+  return { customerEmail, customer };
+}
+
+/**
+ * Process metadata from checkout session
+ */
+function extractMetadataFromSession(session: Stripe.Checkout.Session): { 
+  referrerId: string | null; 
+  funnelId: string | null;
+} {
+  const metadata = session.metadata || {};
+  console.log(`[CHECKOUT] Session metadata:`, metadata);
+  
+  const referrerId = metadata.referrerId || null;
+  const funnelId = metadata.funnelId || null;
+  
+  console.log(`[CHECKOUT] Extracted referrerId: ${referrerId}, funnelId: ${funnelId}`);
+  
+  return { referrerId, funnelId };
 }
 
 /**
@@ -89,79 +62,16 @@ export async function handleCheckoutSessionCompleted(
   console.log(`[CHECKOUT] Starting checkout.session.completed handler for session: ${session.id}`);
   
   try {
-    // Extract important information from the session
-    console.log(`[CHECKOUT] Session object ID: ${session.id}`);
-    console.log(`[CHECKOUT] Customer ID: ${session.customer}`);
-    console.log(`[CHECKOUT] Customer email: ${session.customer_details?.email}`);
-    
-    const customer = session.customer 
-      ? await getCustomerDetails(session.customer as string, stripe) 
-      : null;
-    
-    console.log(`[CHECKOUT] Retrieved customer details:`, customer?.email || "No email found");
-    
-    const customerEmail = customer?.email || session.customer_details?.email;
+    // Extract customer information
+    const { customerEmail, customer } = await getCustomerInfoFromSession(session, stripe);
     
     if (!customerEmail) {
-      console.error(`[CHECKOUT ERROR] No customer email found in session or customer object`);
       throw new Error("No customer email found in session or customer object");
     }
-    console.log(`[CHECKOUT] Using customer email: ${customerEmail}`);
 
-    // Get user ID from customer email - Using Admin API
-    console.log(`[CHECKOUT] Looking up user ID for email: ${customerEmail}`);
-    
-    // First try with auth.users via admin API
-    let userData = null;
-    let userError = null;
-    
-    try {
-      const { data: authUsers, error } = await supabase.auth.admin.listUsers({
-        filters: {
-          email: customerEmail
-        }
-      });
-      
-      if (error) {
-        console.error(`[CHECKOUT ERROR] Auth users lookup error:`, error);
-        userError = error;
-      } else if (authUsers && authUsers.users && authUsers.users.length > 0) {
-        userData = { id: authUsers.users[0].id };
-        console.log(`[CHECKOUT] Found user in auth.users with ID: ${userData.id}`);
-      } else {
-        console.log(`[CHECKOUT] No matching user found in auth.users for email: ${customerEmail}`);
-      }
-    } catch (error) {
-      console.error(`[CHECKOUT ERROR] Error accessing admin API:`, error);
-      userError = error;
-    }
-    
-    // If not found in auth.users, try with public users table as fallback
-    if (!userData) {
-      try {
-        console.log(`[CHECKOUT] Trying fallback lookup in public users table`);
-        const { data, error } = await supabase
-          .from("users")
-          .select("id")
-          .eq("email", customerEmail)
-          .maybeSingle();
-        
-        if (error) {
-          console.error(`[CHECKOUT ERROR] Public users lookup error:`, error);
-          if (!userError) userError = error;
-        } else if (data) {
-          userData = data;
-          console.log(`[CHECKOUT] Found user in public users table with ID: ${userData.id}`);
-        } else {
-          console.log(`[CHECKOUT] No matching user found in public users table for email: ${customerEmail}`);
-        }
-      } catch (error) {
-        console.error(`[CHECKOUT ERROR] Error accessing public users table:`, error);
-        if (!userError) userError = error;
-      }
-    }
-    
-    console.log(`[CHECKOUT] User lookup result:`, userData || "No user found");
+    // Get user ID from customer email
+    const customerId = await lookupUserIdFromEmail(supabase, customerEmail);
+    console.log(`[CHECKOUT] User lookup result:`, customerId || "No user found");
 
     // Extract line items to get product and amount details
     console.log(`[CHECKOUT] Retrieving line items for session: ${session.id}`);
@@ -174,178 +84,47 @@ export async function handleCheckoutSessionCompleted(
     }
 
     const amount = session.amount_total || 0;
-    const customerId = userData?.id || null;
-    
     console.log(`[CHECKOUT] Parsed transaction details: amount=${amount}, customerId=${customerId}`);
     
     // Get metadata
-    const metadata = session.metadata || {};
-    console.log(`[CHECKOUT] Session metadata:`, metadata);
+    const { referrerId, funnelId } = extractMetadataFromSession(session);
     
-    const referrerId = metadata.referrerId || null;
-    const funnelId = metadata.funnelId || null;
+    // Get product ID from Stripe price
+    const lineItem = lineItems.data[0];
+    const productId = await lookupProductFromStripePrice(supabase, lineItem.price?.id);
     
-    console.log(`[CHECKOUT] Extracted referrerId: ${referrerId}, funnelId: ${funnelId}`);
-    
-    // If there's a referrer, prepare to process the referral payment
-    let referrerCut = null;
-    let platformCut = null;
-    let referrerStripeAccountId = null;
-    let transferId = null;
-    let appliedCommissionRule = null;
-    let productId = null;
-    
-    if (referrerId) {
-      console.log(`[CHECKOUT] Payment has a referrer: ${referrerId}, processing referral`);
-      
-      // Get referrer's Stripe account
-      console.log(`[CHECKOUT] Looking up referrer's Stripe account for user: ${referrerId}`);
-      const { data: referrerData, error: referrerError } = await supabase
-        .from("stripe_accounts")
-        .select("stripe_account_id")
-        .eq("user_id", referrerId)
-        .eq("is_active", true)
-        .single();
-      
-      console.log(`[CHECKOUT] Referrer Stripe account lookup result:`, referrerData || "No account found");
-      console.log(`[CHECKOUT] Referrer lookup error:`, referrerError || "No error");
-      
-      if (referrerError || !referrerData) {
-        console.log(`[CHECKOUT] No active Stripe account found for referrer: ${referrerId}`);
-      } else {
-        referrerStripeAccountId = referrerData.stripe_account_id;
-        console.log(`[CHECKOUT] Found referrer's Stripe account: ${referrerStripeAccountId}`);
-        
-        // Fetch the product to get product ID
-        const lineItem = lineItems.data[0];
-        console.log(`[CHECKOUT] Getting product details for price: ${lineItem.price?.id}`);
-        
-        // Find the product from our products table
-        const { data: productData, error: productError } = await supabase
-          .from("products")
-          .select("id")
-          .eq("stripe_price_id", lineItem.price?.id)
-          .maybeSingle();
-        
-        console.log(`[CHECKOUT] Product lookup result:`, productData || "No product found");
-        console.log(`[CHECKOUT] Product lookup error:`, productError || "No error");
-        
-        productId = productData?.id || null;
-        
-        // Find the appropriate commission rule
-        const { rule, commissionRate, isDefaultRate } = await findApplicableCommissionRule(
-          supabase,
-          referrerId,
-          productId
-        );
-        
-        appliedCommissionRule = rule;
-        
-        // Log commission decision details
-        if (rule) {
-          console.log(`[COMMISSION] Applied specific commission rule: ${rule.id}`);
-          console.log(`[COMMISSION] Rule details: ${commissionRate}%, priority: ${rule.priority}, product-specific: ${rule.product_id ? 'Yes' : 'No'}`);
-        } else {
-          console.log(`[COMMISSION] Using ${isDefaultRate ? 'default' : 'fallback'} commission rate: ${commissionRate}%`);
-        }
-        
-        // Calculate the split
-        referrerCut = Math.floor((amount * commissionRate) / 100);
-        platformCut = amount - referrerCut;
-        
-        console.log(`[COMMISSION] Commission calculation: ${amount} * ${commissionRate}% = ${referrerCut} for referrer, ${platformCut} for platform`);
-        
-        // Process transfer to the referrer's connected account if they have one
-        if (referrerStripeAccountId) {
-          try {
-            // Create a transfer to the connected account
-            console.log(`[CHECKOUT] Creating transfer to referrer account: ${referrerStripeAccountId}`);
-            console.log(`[CHECKOUT] Transfer amount: ${referrerCut}, currency: ${session.currency || 'usd'}`);
-            
-            const transfer = await stripe.transfers.create({
-              amount: referrerCut,
-              currency: session.currency || 'usd',
-              destination: referrerStripeAccountId,
-              transfer_group: `session_${session.id}`,
-              metadata: {
-                sessionId: session.id,
-                referrerId: referrerId,
-                customerId: customerId,
-                commissionRuleId: appliedCommissionRule?.id || null,
-                commissionRate: commissionRate,
-                productId: productId
-              },
-            });
-            
-            transferId = transfer.id;
-            console.log(`[CHECKOUT] Successfully transferred ${referrerCut} to referrer account ${referrerStripeAccountId}`);
-            console.log(`[CHECKOUT] Transfer ID: ${transferId}`);
-          } catch (transferError) {
-            console.error(`[CHECKOUT ERROR] Error creating transfer:`, transferError);
-            console.error(`[CHECKOUT ERROR] Transfer failed from ${session.id} to ${referrerStripeAccountId}`);
-            // We don't throw here to avoid breaking the webhook flow
-            // The transfer can be retried manually if needed
-          }
-        } else {
-          console.log(`[CHECKOUT] Referrer does not have an active Stripe account, storing pending payout`);
-        }
-      }
-    } else {
-      console.log(`[CHECKOUT] No referrer specified in this transaction`);
-    }
-    
-    // Log the transaction in the database
-    console.log(`[CHECKOUT] Inserting transaction record`);
-    console.log(`[CHECKOUT] Transaction details:`, {
-      customer_user_id: customerId,
-      referrer_user_id: referrerId,
-      product_id: productId,
-      amount: amount,
+    // Process commission if there's a referrer
+    const commissionResult = await processCommission(supabase, stripe, {
+      referrerId,
+      customerId,
+      productId,
+      sessionId: session.id,
+      amount,
       currency: session.currency || 'usd',
-      referrer_amount: referrerCut,
-      platform_amount: platformCut,
+      funnelId
     });
     
-    const { data: transactionData, error: transactionError } = await supabase
-      .from("transactions")
-      .insert({
-        customer_user_id: customerId,
-        referrer_user_id: referrerId,
-        product_id: productId,
-        amount: amount,
-        currency: session.currency || 'usd',
-        referrer_amount: referrerCut,
-        platform_amount: platformCut,
-        stripe_session_id: session.id,
-        stripe_payment_intent_id: session.payment_intent as string,
-        stripe_payout_id: transferId,
-        payout_status: transferId ? 'completed' : (referrerId ? 'pending' : 'not_applicable'),
-        status: 'completed',
-        funnel_id: funnelId,
-        metadata: {
-          checkout_session: session.id,
-          payment_intent: session.payment_intent,
-          referrer_account_id: referrerStripeAccountId,
-          customer_email: customerEmail,
-          applied_commission_rule: appliedCommissionRule,
-          commission_rate: appliedCommissionRule ? appliedCommissionRule.commission_percent : null,
-          commission_fallback: appliedCommissionRule ? false : true,
-          line_items: lineItems.data.map(item => ({
-            id: item.id,
-            description: item.description,
-            amount_total: item.amount_total,
-            currency: item.currency,
-            quantity: item.quantity,
-          })),
-        },
-      })
-      .select();
+    // Record transaction
+    const transactionResult = await recordTransaction(supabase, {
+      session,
+      customerId,
+      referrerId,
+      productId,
+      funnelId,
+      amount,
+      referrerCut: commissionResult.referrerCut,
+      platformCut: commissionResult.platformCut,
+      transferId: commissionResult.transferId,
+      referrerStripeAccountId: commissionResult.referrerStripeAccountId,
+      appliedCommissionRule: commissionResult.appliedCommissionRule,
+      customerEmail,
+      lineItems: lineItems.data
+    });
     
-    if (transactionError) {
-      console.error(`[CHECKOUT ERROR] Error logging transaction:`, transactionError);
+    if (transactionResult.success) {
+      console.log(`[WEBHOOK] ✅ Payment processed, transaction logged, payout ${commissionResult.transferId ? 'sent' : 'pending'}.`);
     } else {
-      console.log(`[CHECKOUT] Transaction logged successfully with ID: ${transactionData[0]?.id}`);
-      console.log(`[WEBHOOK] ✅ Payment processed, transaction logged, payout ${transferId ? 'sent' : 'pending'}.`);
+      console.error(`[WEBHOOK ERROR] Failed to log transaction:`, transactionResult.error);
     }
     
     console.log(`[CHECKOUT] Checkout session processing completed successfully`);
