@@ -48,9 +48,9 @@ serve(async (req) => {
     const requestBody = await req.text();
     console.log(`[WEBHOOK] Received webhook payload length: ${requestBody.length} bytes`);
     
-    // Verify the event with Stripe
+    // Verify the event with Stripe - IMPORTANT: Using constructEventAsync instead of constructEvent
     console.log(`[WEBHOOK] Attempting to verify webhook signature`);
-    const event = stripe.webhooks.constructEvent(
+    const event = await stripe.webhooks.constructEventAsync(
       requestBody,
       signature,
       stripeWebhookSecret
