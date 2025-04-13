@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, ExternalLink, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StripeConnectButtonProps {
   variant?: 'default' | 'outline' | 'secondary';
@@ -29,33 +30,37 @@ const StripeConnectButton: React.FC<StripeConnectButtonProps> = ({
   const handleConnectStripe = async () => {
     setLoading(true);
     try {
-      // In a real implementation, this would call a Supabase Edge Function
-      // For now, we'll use a mock response
+      // Call our Supabase Edge Function to create a Stripe account and get the onboarding URL
+      const { data, error } = await supabase.functions.invoke('createStripeAccountLink');
       
-      // Mock implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) {
+        throw new Error(error.message || 'Failed to create Stripe account link');
+      }
       
-      // This URL would come from the Stripe API in a real implementation
-      const mockRedirectUrl = `https://connect.stripe.com/oauth/v2/authorize?response_type=code&client_id=ca_xxxx&scope=read_write&redirect_uri=${window.location.origin}/dashboard`;
+      if (!data?.url) {
+        throw new Error('No account link URL returned');
+      }
       
       toast({
         title: "Redirecting to Stripe",
         description: "You'll be redirected to securely connect your Stripe account."
       });
       
-      // In a real implementation, we'd redirect to this URL
-      console.log("Would redirect to:", mockRedirectUrl);
+      // Update user profile with the new Stripe account ID
+      if (data.accountId && !user?.stripeAccountId) {
+        updateUserProfile({
+          stripeAccountId: data.accountId,
+          stripeAccountStatus: 'pending',
+          stripeAccountDetails: {
+            chargesEnabled: false,
+            payoutsEnabled: false,
+            detailsSubmitted: false
+          }
+        });
+      }
       
-      // For demo, we'll just update the user profile with mock data
-      updateUserProfile({
-        stripeAccountId: 'acct_mock123456',
-        stripeAccountStatus: 'pending',
-        stripeAccountDetails: {
-          chargesEnabled: false,
-          payoutsEnabled: false,
-          detailsSubmitted: false
-        }
-      });
+      // Redirect to the Stripe onboarding URL
+      window.location.href = data.url;
       
     } catch (error) {
       console.error("Error connecting to Stripe:", error);
@@ -72,8 +77,9 @@ const StripeConnectButton: React.FC<StripeConnectButtonProps> = ({
   const handleDashboardOpen = async () => {
     setLoading(true);
     try {
-      // In a real implementation, this would call a Supabase Edge Function
-      // For now, we'll use a mock response
+      // In a real implementation, we would call another edge function to get a dashboard link
+      // For example: const { data, error } = await supabase.functions.invoke('createStripeDashboardLink');
+      // For now, we'll continue with the mock implementation
       
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -85,8 +91,8 @@ const StripeConnectButton: React.FC<StripeConnectButtonProps> = ({
         description: "You'll be redirected to your Stripe Express dashboard."
       });
       
-      // In a real implementation, we'd open this URL
-      console.log("Would open:", mockDashboardUrl);
+      // In a real implementation, we'd open the URL returned from the edge function
+      window.open(mockDashboardUrl, '_blank');
     } catch (error) {
       console.error("Error opening Stripe dashboard:", error);
       toast({

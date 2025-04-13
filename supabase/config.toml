@@ -1,1 +1,5 @@
+
 project_id = "chmwoegkgcsjsibfqmby"
+
+[functions.createStripeAccountLink]
+verify_jwt = true
