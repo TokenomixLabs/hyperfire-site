@@ -44,46 +44,24 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-
-// Interface for commission rule
-interface CommissionRule {
-  id: string;
-  referrer_id: string;
-  referrer_name?: string;
-  product_id: string | null;
-  product_name?: string;
-  commission_percent: number;
-  start_date: string;
-  end_date: string | null;
-  priority: number;
-  created_by: string;
-  created_at: string;
-}
-
-// Interface for product
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-}
-
-// Interface for user
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { useCommissions, CommissionRule, Product, User } from "@/hooks/useCommissions";
 
 const CommissionsAdmin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [commissionRules, setCommissionRules] = useState<CommissionRule[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { 
+    isLoading,
+    error,
+    commissionRules,
+    products,
+    users,
+    addCommissionRule,
+    updateCommissionRule,
+    deleteCommissionRule
+  } = useCommissions();
+  
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -104,70 +82,6 @@ const CommissionsAdmin = () => {
     }
   });
 
-  // Fetch commission rules, products, and users
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch commission rules
-        const { data: rules, error: rulesError } = await supabase
-          .from("commission_rules")
-          .select("*")
-          .order("priority", { ascending: false });
-        
-        if (rulesError) throw rulesError;
-        
-        // Fetch products
-        const { data: productsData, error: productsError } = await supabase
-          .from("products")
-          .select("id, name, description")
-          .eq("is_active", true);
-        
-        if (productsError) throw productsError;
-        
-        // Fetch users (this would need to be limited/paginated in a real app)
-        const { data: usersData, error: usersError } = await supabase
-          .from("users")
-          .select("id, name, email");
-        
-        if (usersError) throw usersError;
-        
-        // Enhance rules with user and product names
-        const enhancedRules = await Promise.all(rules.map(async (rule: CommissionRule) => {
-          // Find referrer name
-          const referrer = usersData.find((u: User) => u.id === rule.referrer_id);
-          
-          // Find product name if product_id exists
-          let product = null;
-          if (rule.product_id) {
-            product = productsData.find((p: Product) => p.id === rule.product_id);
-          }
-          
-          return {
-            ...rule,
-            referrer_name: referrer ? referrer.name || referrer.email : "Unknown User",
-            product_name: product ? product.name : null
-          };
-        }));
-        
-        setCommissionRules(enhancedRules);
-        setProducts(productsData);
-        setUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load commission rules",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [toast]);
-  
   // Filter users based on search
   useEffect(() => {
     if (searchUser.trim() === "") {
@@ -232,37 +146,20 @@ const CommissionsAdmin = () => {
   
   const onSubmitAdd = async (data: any) => {
     try {
-      const newRule = {
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      
+      await addCommissionRule({
         referrer_id: data.referrer_id,
         product_id: data.product_id || null,
         commission_percent: parseFloat(data.commission_percent),
         start_date: data.start_date ? new Date(data.start_date).toISOString() : new Date().toISOString(),
         end_date: data.end_date ? new Date(data.end_date).toISOString() : null,
         priority: parseInt(data.priority),
-        created_by: user?.id
-      };
+        created_by: user.id
+      });
       
-      const { data: result, error } = await supabase
-        .from("commission_rules")
-        .insert(newRule)
-        .select();
-      
-      if (error) throw error;
-      
-      // Find user and product names for UI
-      const referrer = users.find(u => u.id === data.referrer_id);
-      let product = null;
-      if (data.product_id) {
-        product = products.find(p => p.id === data.product_id);
-      }
-      
-      const newRuleWithNames = {
-        ...result[0],
-        referrer_name: referrer ? referrer.name || referrer.email : "Unknown User",
-        product_name: product ? product.name : null
-      };
-      
-      setCommissionRules([newRuleWithNames, ...commissionRules]);
       setShowAddDialog(false);
       
       toast({
@@ -284,42 +181,14 @@ const CommissionsAdmin = () => {
     if (!selectedRule) return;
     
     try {
-      const updatedRule = {
+      await updateCommissionRule(selectedRule.id, {
         referrer_id: data.referrer_id,
         product_id: data.product_id || null,
         commission_percent: parseFloat(data.commission_percent),
         start_date: data.start_date ? new Date(data.start_date).toISOString() : new Date().toISOString(),
         end_date: data.end_date ? new Date(data.end_date).toISOString() : null,
         priority: parseInt(data.priority)
-      };
-      
-      const { data: result, error } = await supabase
-        .from("commission_rules")
-        .update(updatedRule)
-        .eq("id", selectedRule.id)
-        .select();
-      
-      if (error) throw error;
-      
-      // Find user and product names for UI
-      const referrer = users.find(u => u.id === data.referrer_id);
-      let product = null;
-      if (data.product_id) {
-        product = products.find(p => p.id === data.product_id);
-      }
-      
-      const updatedRuleWithNames = {
-        ...result[0],
-        referrer_name: referrer ? referrer.name || referrer.email : "Unknown User",
-        product_name: product ? product.name : null
-      };
-      
-      // Update the list
-      setCommissionRules(
-        commissionRules.map(rule => 
-          rule.id === selectedRule.id ? updatedRuleWithNames : rule
-        )
-      );
+      });
       
       setShowEditDialog(false);
       
@@ -342,17 +211,7 @@ const CommissionsAdmin = () => {
     if (!selectedRule) return;
     
     try {
-      const { error } = await supabase
-        .from("commission_rules")
-        .delete()
-        .eq("id", selectedRule.id);
-      
-      if (error) throw error;
-      
-      // Update the list
-      setCommissionRules(
-        commissionRules.filter(rule => rule.id !== selectedRule.id)
-      );
+      await deleteCommissionRule(selectedRule.id);
       
       setShowDeleteDialog(false);
       
@@ -459,6 +318,10 @@ const CommissionsAdmin = () => {
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <p className="text-muted-foreground">Loading commission rules...</p>
+        </div>
+      ) : error ? (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-red-500">Error loading commission rules. Please try again.</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
