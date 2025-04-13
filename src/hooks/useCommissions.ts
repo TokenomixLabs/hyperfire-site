@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestResponse } from "@supabase/supabase-js";
 
 export interface CommissionRule {
   id: string;
@@ -39,10 +38,10 @@ export const useCommissions = () => {
   const fetchCommissionRules = async () => {
     setIsLoading(true);
     try {
-      // Use proper type handling for the RPC call
+      // Use correct type annotations for RPC calls
       const { data: rules, error: rulesError } = await supabase
         .rpc('get_commission_rules')
-        .returns<CommissionRule[]>();
+        .returns<CommissionRule[] | null>();
       
       if (rulesError) throw rulesError;
       
@@ -51,26 +50,26 @@ export const useCommissions = () => {
         .from("products")
         .select("id, name, description")
         .eq("is_active", true)
-        .returns<Product[]>();
+        .returns<Product[] | null>();
       
       if (productsError) throw productsError;
       
       // Fetch users with proper type handling
       const { data: usersData, error: usersError } = await supabase
         .rpc('get_all_users')
-        .returns<User[]>();
+        .returns<User[] | null>();
       
       if (usersError) throw usersError;
       
       // Enhance rules with user and product names
-      const enhancedRules = rules?.map(rule => {
+      const enhancedRules = rules ? rules.map(rule => {
         // Find referrer name
-        const referrer = usersData?.find(u => u.id === rule.referrer_id);
+        const referrer = usersData ? usersData.find(u => u.id === rule.referrer_id) : null;
         
         // Find product name if product_id exists
         let product = null;
         if (rule.product_id) {
-          product = productsData?.find(p => p.id === rule.product_id);
+          product = productsData ? productsData.find(p => p.id === rule.product_id) : null;
         }
         
         return {
@@ -78,7 +77,7 @@ export const useCommissions = () => {
           referrer_name: referrer ? referrer.name || referrer.email : "Unknown User",
           product_name: product ? product.name : null
         } as CommissionRule;
-      }) || [];
+      }) : [];
       
       setCommissionRules(enhancedRules);
       setProducts(productsData || []);
@@ -104,7 +103,7 @@ export const useCommissions = () => {
           p_priority: rule.priority,
           p_created_by: rule.created_by
         })
-        .returns<any>();
+        .returns<any | null>();
       
       if (error) throw error;
       
@@ -129,7 +128,7 @@ export const useCommissions = () => {
           p_end_date: rule.end_date || null,
           p_priority: rule.priority
         })
-        .returns<any>();
+        .returns<any | null>();
       
       if (error) throw error;
       
@@ -146,7 +145,7 @@ export const useCommissions = () => {
     try {
       const { error } = await supabase
         .rpc('delete_commission_rule', { p_id: id })
-        .returns<any>();
+        .returns<any | null>();
       
       if (error) throw error;
       
