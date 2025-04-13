@@ -22,24 +22,31 @@ const SimulateWebhookButton: React.FC<SimulateWebhookButtonProps> = ({
   const handleSimulateWebhook = async () => {
     setLoading(true);
     try {
+      console.log("Invoking simulateStripeWebhook function...");
       const { data, error } = await supabase.functions.invoke('simulateStripeWebhook');
       
       if (error) {
+        console.error("Error from Edge Function:", error);
         throw new Error(error.message || 'Failed to simulate webhook');
       }
       
+      if (!data.success) {
+        console.error("Webhook simulation response (error):", data);
+        throw new Error(data.message || `Webhook error: ${data.status}`);
+      }
+      
+      console.log("Webhook simulation response (success):", data);
+      
       toast({
         title: "Webhook Simulated",
-        description: "A test webhook has been sent. Check the Supabase logs for details.",
+        description: data.message || "A test webhook has been sent successfully.",
       });
-      
-      console.log("Webhook simulation response:", data);
       
     } catch (error) {
       console.error("Error simulating webhook:", error);
       toast({
         title: "Simulation Failed",
-        description: "There was an error simulating the webhook. Check the console for details.",
+        description: error.message || "There was an error simulating the webhook. Check the console for details.",
         variant: "destructive"
       });
     } finally {

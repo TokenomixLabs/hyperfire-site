@@ -78,17 +78,32 @@ serve(async (req) => {
       }
     };
     
-    // Get the webhook endpoint URL
-    const { data: urlData, error: urlError } = await supabase
-      .from("system_settings")
-      .select("value")
-      .eq("key", "webhook_endpoint_url")
-      .single();
+    // Get the webhook endpoint URL - either from the database or construct it
+    const supabaseProjectId = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] || '';
     
-    let webhookUrl = "http://localhost:54321/functions/v1/handleStripeWebhook";
+    // First try to get from the system_settings table if it exists
+    let webhookUrl = '';
     
-    if (!urlError && urlData && urlData.value) {
-      webhookUrl = urlData.value;
+    try {
+      const { data: urlData } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "webhook_endpoint_url")
+        .single();
+      
+      if (urlData?.value) {
+        webhookUrl = urlData.value;
+        console.log(`[SIMULATE] Using stored webhook URL: ${webhookUrl}`);
+      }
+    } catch (e) {
+      console.log(`[SIMULATE] No stored webhook URL found: ${e.message}`);
+    }
+    
+    // If no URL was found in the database, construct it
+    if (!webhookUrl) {
+      // Use the same Supabase project as this function is running in
+      webhookUrl = `https://${supabaseProjectId}.supabase.co/functions/v1/handleStripeWebhook`;
+      console.log(`[SIMULATE] Generated webhook URL: ${webhookUrl}`);
     }
     
     console.log(`[SIMULATE] Sending test webhook to: ${webhookUrl}`);
@@ -113,7 +128,18 @@ serve(async (req) => {
       body: payload,
     });
     
-    const responseText = await response.text();
+    let responseText = "";
+    try {
+      responseText = await response.text();
+    } catch (e) {
+      console.error(`[SIMULATE ERROR] Error reading response text: ${e.message}`);
+    }
+    
+    if (!response.ok) {
+      console.error(`[SIMULATE ERROR] Webhook response error: ${response.status} ${responseText}`);
+    } else {
+      console.log(`[SIMULATE SUCCESS] Webhook response: ${response.status} ${responseText}`);
+    }
     
     return new Response(
       JSON.stringify({
@@ -125,7 +151,10 @@ serve(async (req) => {
           type: event.type,
           timestamp: timestamp,
         },
-        message: "Test webhook sent successfully. Check the logs for handleStripeWebhook to see the results."
+        message: response.ok 
+          ? "Test webhook sent successfully. Check the logs for handleStripeWebhook to see the results."
+          : `Error sending webhook: ${response.status} ${responseText}`,
+        webhookUrl: webhookUrl
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
