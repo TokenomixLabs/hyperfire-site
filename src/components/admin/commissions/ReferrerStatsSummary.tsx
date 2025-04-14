@@ -14,6 +14,12 @@ interface ReferrerStatsSummaryProps {
   referrerId: string | null;
 }
 
+interface UserData {
+  id: string;
+  name?: string;
+  email: string;
+}
+
 const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId }) => {
   const [stats, setStats] = useState<ReferrerStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,9 +42,10 @@ const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId 
         if (txnError) throw txnError;
         
         // Get commission rule count using a stored procedure
-        const { data: rulesData, error: rulesError } = await supabase.rpc('get_commission_rules_count', {
-          p_referrer_id: referrerId
-        });
+        const { data: rulesData, error: rulesError } = await supabase.rpc(
+          'get_commission_rules_count',
+          { p_referrer_id: referrerId }
+        );
         
         if (rulesError) {
           console.error('Error fetching rule count:', rulesError);
@@ -50,7 +57,9 @@ const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId 
           
           let referrerName = null;
           if (!userError && userData) {
-            const user = userData.find((u: any) => u.id === referrerId);
+            // Type assertion since we know the structure of userData
+            const typedUserData = userData as UserData[];
+            const user = typedUserData.find(u => u.id === referrerId);
             referrerName = user ? (user.name || user.email) : null;
           }
           
@@ -68,7 +77,9 @@ const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId 
           
           let referrerName = null;
           if (!userError && userData) {
-            const user = userData.find((u: any) => u.id === referrerId);
+            // Type assertion since we know the structure of userData
+            const typedUserData = userData as UserData[];
+            const user = typedUserData.find(u => u.id === referrerId);
             referrerName = user ? (user.name || user.email) : null;
           }
           

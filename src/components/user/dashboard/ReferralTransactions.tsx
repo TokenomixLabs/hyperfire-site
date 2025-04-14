@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -29,6 +28,17 @@ interface Transaction {
   product_name?: string;
 }
 
+interface RawTransaction {
+  id: string;
+  created_at: string;
+  amount: number;
+  currency: string;
+  referrer_amount: number;
+  payout_status: string;
+  metadata: any;
+  [key: string]: any;
+}
+
 const ReferralTransactions = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -49,20 +59,21 @@ const ReferralTransactions = () => {
         
         if (error) throw error;
         
-        // Process transactions to format data nicely
-        const processedTransactions = data.map(txn => {
-          // Extract customer email from metadata if available
-          const metadataObj = typeof txn.metadata === 'string' ? JSON.parse(txn.metadata) : txn.metadata;
+        const processedTransactions: Transaction[] = (data as RawTransaction[]).map(txn => {
+          const metadataObj = typeof txn.metadata === 'string' 
+            ? JSON.parse(txn.metadata) 
+            : txn.metadata;
+          
           const customerEmail = metadataObj?.customer_email || 'Anonymous';
           
-          // Extract product name from metadata if available
           const lineItems = metadataObj?.line_items || [];
           const productName = lineItems[0]?.description || 'Product Purchase';
           
           return {
             ...txn,
             customer_email: customerEmail,
-            product_name: productName
+            product_name: productName,
+            metadata: metadataObj
           };
         });
         
