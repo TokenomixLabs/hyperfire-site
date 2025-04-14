@@ -42,7 +42,8 @@ const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId 
         if (txnError) throw txnError;
         
         // Get commission rule count using a stored procedure
-        const { data: rulesData, error: rulesError } = await supabase.rpc(
+        // Use type assertion to overcome TypeScript limitation with custom RPCs
+        const { data: rulesData, error: rulesError } = await (supabase.rpc as any)(
           'get_commission_rules_count',
           { p_referrer_id: referrerId }
         );
@@ -53,7 +54,8 @@ const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId 
           const ruleCount = 0;
           
           // Get referrer name
-          const { data: userData, error: userError } = await supabase.rpc('get_all_users');
+          // Use type assertion to overcome TypeScript limitation with custom RPCs
+          const { data: userData, error: userError } = await (supabase.rpc as any)('get_all_users');
           
           let referrerName = null;
           if (!userError && userData) {
@@ -73,7 +75,8 @@ const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId 
           });
         } else {
           // Get referrer name
-          const { data: userData, error: userError } = await supabase.rpc('get_all_users');
+          // Use type assertion to overcome TypeScript limitation with custom RPCs
+          const { data: userData, error: userError } = await (supabase.rpc as any)('get_all_users');
           
           let referrerName = null;
           if (!userError && userData) {
