@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import NavigationLink from './NavigationLink';
@@ -16,6 +15,7 @@ const DesktopNav = () => {
     { path: '/learn', label: 'Education Hub', icon: BookOpen },
     { path: '/explore', label: 'Explore', icon: Compass },
     { path: '/pricing', label: 'Pricing', icon: Zap },
+    { path: '/dashboard/settings/brand', label: 'Brand Settings', icon: Settings }
   ];
   
   // Add Admin link for admin users

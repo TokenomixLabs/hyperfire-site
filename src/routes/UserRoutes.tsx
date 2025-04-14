@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import ProfileSetup from "../pages/auth/ProfileSetup";
@@ -11,6 +10,7 @@ import ReferralTrackingStats from "../components/referrals/ReferralTrackingStats
 import MySignalFunnels from "../pages/user/MySignalFunnels";
 import MySignalDuplicates from "../pages/user/MySignalDuplicates";
 import ESPSettings from "../pages/user/ESPSettings";
+import BrandCustomizer from "../pages/user/BrandCustomizer";
 
 const UserRoutes = () => {
   return (
@@ -92,6 +92,14 @@ const UserRoutes = () => {
         element={
           <ProtectedRoute>
             <ESPSettings />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="settings/brand" 
+        element={
+          <ProtectedRoute>
+            <BrandCustomizer />
           </ProtectedRoute>
         } 
       />
