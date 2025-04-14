@@ -8,6 +8,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 
+interface TransactionMetadata {
+  customer_email?: string;
+  line_items?: Array<{
+    description?: string;
+    amount?: number;
+  }>;
+  [key: string]: any;
+}
+
 interface Transaction {
   id: string;
   created_at: string;
@@ -15,6 +24,7 @@ interface Transaction {
   currency: string;
   referrer_amount: number;
   payout_status: string;
+  metadata: TransactionMetadata | null;
   customer_email?: string;
   product_name?: string;
 }
@@ -42,9 +52,12 @@ const ReferralTransactions = () => {
         // Process transactions to format data nicely
         const processedTransactions = data.map(txn => {
           // Extract customer email from metadata if available
-          const customerEmail = txn.metadata?.customer_email || 'Anonymous';
+          const metadataObj = typeof txn.metadata === 'string' ? JSON.parse(txn.metadata) : txn.metadata;
+          const customerEmail = metadataObj?.customer_email || 'Anonymous';
+          
           // Extract product name from metadata if available
-          const productName = txn.metadata?.line_items?.[0]?.description || 'Product Purchase';
+          const lineItems = metadataObj?.line_items || [];
+          const productName = lineItems[0]?.description || 'Product Purchase';
           
           return {
             ...txn,

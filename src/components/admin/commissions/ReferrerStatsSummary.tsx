@@ -35,31 +35,52 @@ const ReferrerStatsSummary: React.FC<ReferrerStatsSummaryProps> = ({ referrerId 
         
         if (txnError) throw txnError;
         
-        // Get commission rule count
-        const { data: rules, error: rulesError } = await supabase
-          .from('commission_rules')
-          .select('id')
-          .eq('referrer_id', referrerId);
-        
-        if (rulesError) throw rulesError;
-        
-        // Get referrer name
-        const { data: userData, error: userError } = await supabase.rpc('get_all_users');
-        
-        let referrerName = null;
-        if (!userError && userData) {
-          const user = userData.find((u: any) => u.id === referrerId);
-          referrerName = user ? (user.name || user.email) : null;
-        }
-        
-        // Calculate total commissions
-        const totalCommission = transactions.reduce((sum, txn) => sum + (txn.referrer_amount || 0), 0) / 100;
-        
-        setStats({
-          totalCommission,
-          ruleCount: rules.length,
-          referrerName
+        // Get commission rule count using a stored procedure
+        const { data: rulesData, error: rulesError } = await supabase.rpc('get_commission_rules_count', {
+          p_referrer_id: referrerId
         });
+        
+        if (rulesError) {
+          console.error('Error fetching rule count:', rulesError);
+          // Fallback: assume 0 rules if the RPC function is not available
+          const ruleCount = 0;
+          
+          // Get referrer name
+          const { data: userData, error: userError } = await supabase.rpc('get_all_users');
+          
+          let referrerName = null;
+          if (!userError && userData) {
+            const user = userData.find((u: any) => u.id === referrerId);
+            referrerName = user ? (user.name || user.email) : null;
+          }
+          
+          // Calculate total commissions
+          const totalCommission = transactions.reduce((sum, txn) => sum + (txn.referrer_amount || 0), 0) / 100;
+          
+          setStats({
+            totalCommission,
+            ruleCount,
+            referrerName
+          });
+        } else {
+          // Get referrer name
+          const { data: userData, error: userError } = await supabase.rpc('get_all_users');
+          
+          let referrerName = null;
+          if (!userError && userData) {
+            const user = userData.find((u: any) => u.id === referrerId);
+            referrerName = user ? (user.name || user.email) : null;
+          }
+          
+          // Calculate total commissions
+          const totalCommission = transactions.reduce((sum, txn) => sum + (txn.referrer_amount || 0), 0) / 100;
+          
+          setStats({
+            totalCommission,
+            ruleCount: rulesData || 0,
+            referrerName
+          });
+        }
       } catch (error) {
         console.error('Error fetching referrer stats:', error);
       } finally {
