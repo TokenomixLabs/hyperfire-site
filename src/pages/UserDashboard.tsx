@@ -6,7 +6,7 @@ import AnimatedTransition from '@/components/AnimatedTransition';
 import Header from '@/components/Header';
 import DashboardStats from '@/components/user/dashboard/DashboardStats';
 import EmptyState from '@/components/empty-states/EmptyState';
-import { Share2, BarChart2, Link, Users, Zap, DollarSign } from 'lucide-react';
+import { Share2, BarChart2, Link, Users, Zap, DollarSign, RefreshCw } from 'lucide-react';
 import { ReferralPlatform } from '@/context/ReferralContext';
 import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
