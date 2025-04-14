@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -18,6 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Lead } from '@/types/autoresponder';
+import { leadsTable } from '@/utils/supabaseHelpers';
 
 const ReferredLeadsList: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -31,16 +31,14 @@ const ReferredLeadsList: React.FC = () => {
       
       setLoading(true);
       try {
-        // Use explicit casting to handle the table type issue
-        const { data, error } = await supabase
-          .from('leads')
+        const { data, error } = await leadsTable()
           .select('*')
           .eq('referrer_user_id', user.id)
           .order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        setLeads(data as unknown as Lead[]);
+        setLeads(data as Lead[]);
       } catch (error) {
         console.error('Error fetching leads:', error);
         toast({

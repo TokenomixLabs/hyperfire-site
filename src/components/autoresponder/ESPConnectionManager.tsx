@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ESPConnection } from '@/types/autoresponder';
+import { autoresponderConnectionsTable } from '@/utils/supabaseHelpers';
 
 const espConnectionSchema = z.object({
   provider: z.string({
@@ -70,14 +71,13 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
     const fetchConnections = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('autoresponder_connections')
+        const { data, error } = await autoresponderConnectionsTable()
           .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setConnections(data as unknown as ESPConnection[]);
+        setConnections(data as ESPConnection[]);
       } catch (error) {
         console.error('Error fetching connections:', error);
         toast({
@@ -95,8 +95,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
 
   const onSubmit = async (values: z.infer<typeof espConnectionSchema>) => {
     try {
-      const { data, error } = await supabase
-        .from('autoresponder_connections')
+      const { data, error } = await autoresponderConnectionsTable()
         .insert({
           user_id: userId,
           provider: values.provider,
@@ -110,7 +109,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
 
       if (error) throw error;
 
-      setConnections([...(data as unknown as ESPConnection[]), ...connections]);
+      setConnections([...(data as ESPConnection[]), ...connections]);
       setShowForm(false);
       form.reset();
       
@@ -143,8 +142,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
 
       if (!response.ok) throw new Error(result.error || 'Connection test failed');
 
-      const { error } = await supabase
-        .from('autoresponder_connections')
+      const { error } = await autoresponderConnectionsTable()
         .update({ last_verified: new Date().toISOString() })
         .eq('id', connectionId);
 
@@ -176,8 +174,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
 
   const deleteConnection = async (connectionId: string) => {
     try {
-      const { error } = await supabase
-        .from('autoresponder_connections')
+      const { error } = await autoresponderConnectionsTable()
         .delete()
         .eq('id', connectionId);
 

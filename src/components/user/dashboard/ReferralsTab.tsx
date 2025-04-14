@@ -9,7 +9,7 @@ import { Mail, Link } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useReferral } from '@/context/ReferralContext';
 
-const ReferralsTab = () => {
+const ReferralsTab: React.FC = () => {
   const navigate = useNavigate();
   const { referralLinks, updateReferralLink } = useReferral();
   

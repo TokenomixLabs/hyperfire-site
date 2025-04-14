@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -17,6 +16,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import useReferralTracking from '@/hooks/useReferralTracking';
+import { leadsTable } from '@/utils/supabaseHelpers';
 
 // Define the form schema
 const leadFormSchema = z.object({
@@ -61,9 +61,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
       const referrerId = getCurrentReferrer();
       
       // First, store the lead in Supabase
-      // Use explicit casting to handle the table type issue
-      const { data: lead, error } = await supabase
-        .from('leads')
+      const { data: lead, error } = await leadsTable()
         .insert({
           email: values.email,
           first_name: values.first_name,

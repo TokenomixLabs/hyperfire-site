@@ -36,26 +36,6 @@ const mockUserData = {
       signups: 4
     }
   ],
-  topReferrals: [
-    {
-      id: "1",
-      name: "Mark Wilson",
-      signupDate: "Aug 12, 2023",
-      source: "twitter"
-    },
-    {
-      id: "2",
-      name: "Jessica Chen",
-      signupDate: "Aug 10, 2023",
-      source: "direct link"
-    },
-    {
-      id: "3",
-      name: "Thomas Rodriguez",
-      signupDate: "Aug 8, 2023",
-      source: "facebook"
-    }
-  ],
   reachStats: {
     totalVisitors: 254,
     countries: 6,
