@@ -31,16 +31,16 @@ const ReferredLeadsList: React.FC = () => {
       
       setLoading(true);
       try {
-        // We need to use any type since our types don't include the leads table yet
+        // Use explicit casting to handle the table type issue
         const { data, error } = await supabase
           .from('leads')
           .select('*')
           .eq('referrer_user_id', user.id)
-          .order('created_at', { ascending: false }) as any;
+          .order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        setLeads(data || []);
+        setLeads(data as unknown as Lead[]);
       } catch (error) {
         console.error('Error fetching leads:', error);
         toast({

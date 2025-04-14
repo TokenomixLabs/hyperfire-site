@@ -74,10 +74,10 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
           .from('autoresponder_connections')
           .select('*')
           .eq('user_id', userId)
-          .order('created_at', { ascending: false }) as any;
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setConnections(data || []);
+        setConnections(data as unknown as ESPConnection[]);
       } catch (error) {
         console.error('Error fetching connections:', error);
         toast({
@@ -106,11 +106,11 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
           tag: values.tag || null,
           is_active: true,
         })
-        .select() as any;
+        .select();
 
       if (error) throw error;
 
-      setConnections([...(data || []), ...connections]);
+      setConnections([...(data as unknown as ESPConnection[]), ...connections]);
       setShowForm(false);
       form.reset();
       
@@ -146,7 +146,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
       const { error } = await supabase
         .from('autoresponder_connections')
         .update({ last_verified: new Date().toISOString() })
-        .eq('id', connectionId) as any;
+        .eq('id', connectionId);
 
       if (error) throw error;
 
@@ -179,7 +179,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
       const { error } = await supabase
         .from('autoresponder_connections')
         .delete()
-        .eq('id', connectionId) as any;
+        .eq('id', connectionId);
 
       if (error) throw error;
 

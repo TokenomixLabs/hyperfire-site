@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -28,8 +27,6 @@ const UserDashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if the user is new based on registration date or activity
-    // This would typically come from user data
     const userJoinDate = user?.createdAt ? new Date(user.createdAt) : user?.joinDate ? new Date(user.joinDate) : null;
     const isRecent = userJoinDate ? 
       (Date.now() - userJoinDate.getTime()) < (7 * 24 * 60 * 60 * 1000) : false;
@@ -37,7 +34,6 @@ const UserDashboard = () => {
     setIsNewUser(isRecent);
   }, [user]);
 
-  // Mock Data
   const aggregatedStats = {
     clicks: 4567,
     signups: 789,
@@ -50,7 +46,6 @@ const UserDashboard = () => {
     platforms: 12,
   };
 
-  // Mock platform stats data for StatsTab
   const platformStats = [
     { platform: 'insiderlife' as ReferralPlatform, clicks: 2500, signups: 400, sharedContent: 60 },
     { platform: 'insiderdao' as ReferralPlatform, clicks: 1200, signups: 220, sharedContent: 35 },
@@ -64,7 +59,6 @@ const UserDashboard = () => {
     { id: "3", name: "Charlie Brown", signupDate: "2024-02-10", source: "societi" },
   ];
 
-  // Convert the object format to array format for ReferralLinksTab
   const referralLinks = [
     { platform: 'insiderlife' as ReferralPlatform, url: "insiderlife.com/?ref=your-username", isSet: true },
     { platform: 'insiderdao' as ReferralPlatform, url: "insiderdao.com/?ref=your-username", isSet: true },
@@ -72,18 +66,6 @@ const UserDashboard = () => {
     { platform: 'aifc' as ReferralPlatform, url: "aifc.com/?ref=your-username", isSet: true }
   ];
 
-  // Mock updateReferralLink function
-  const updateReferralLink = (platform: ReferralPlatform, url: string) => {
-    console.log(`Updating ${platform} referral link to ${url}`);
-    toast({
-      title: "Link Updated",
-      description: `Your ${platform} referral link has been updated.`,
-      duration: 3000,
-    });
-    // In a real app, this would update the state or call an API
-  };
-
-  // Convert the format to match what SharesTab expects
   const shares = [
     { id: "1", title: "The Future of AI", date: "March 15, 2024", clicks: 120, signups: 14 },
     { id: "2", title: "Blockchain Explained", date: "March 2, 2024", clicks: 90, signups: 8 },
@@ -201,7 +183,7 @@ const UserDashboard = () => {
                   
                   <TabsContent value="referrals" className="mt-6">
                     {referrals.length > 0 ? (
-                      <ReferralsTab referrals={referrals} />
+                      <ReferralsTab />
                     ) : (
                       <EmptyState
                         title="No Referrals Yet"
