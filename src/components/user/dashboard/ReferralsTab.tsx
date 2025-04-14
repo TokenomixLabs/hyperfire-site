@@ -37,10 +37,12 @@ const ReferralsTab: React.FC = () => {
       <CommissionStats />
       
       <div className="grid grid-cols-1 gap-6">
-        <ReferralLinksTab 
-          referralLinks={referralLinks}
-          updateReferralLink={updateReferralLink}
-        />
+        {referralLinks && updateReferralLink && (
+          <ReferralLinksTab 
+            referralLinks={referralLinks}
+            updateReferralLink={updateReferralLink}
+          />
+        )}
         <ReferredLeadsList />
         <ReferralTransactions />
       </div>

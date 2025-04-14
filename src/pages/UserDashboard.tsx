@@ -18,6 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import DashboardActivityWidget from '@/components/activity/DashboardActivityWidget';
+import { ReferralLink } from '@/types/referral';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
@@ -59,12 +60,12 @@ const UserDashboard = () => {
     { id: "3", name: "Charlie Brown", signupDate: "2024-02-10", source: "societi" },
   ];
 
-  const referralLinks = [
+  const [referralLinks, setReferralLinks] = useState<ReferralLink[]>([
     { platform: 'insiderlife' as ReferralPlatform, url: "insiderlife.com/?ref=your-username", isSet: true },
     { platform: 'insiderdao' as ReferralPlatform, url: "insiderdao.com/?ref=your-username", isSet: true },
     { platform: 'societi' as ReferralPlatform, url: "societi.com/?ref=your-username", isSet: true },
     { platform: 'aifc' as ReferralPlatform, url: "aifc.com/?ref=your-username", isSet: true }
-  ];
+  ]);
 
   const shares = [
     { id: "1", title: "The Future of AI", date: "March 15, 2024", clicks: 120, signups: 14 },
@@ -82,6 +83,33 @@ const UserDashboard = () => {
         duration: 3000,
       });
     });
+  };
+
+  const updateReferralLink = (platform: ReferralPlatform, url: string) => {
+    const updatedLinks = referralLinks.map(link => 
+      link.platform === platform 
+        ? { ...link, url, isSet: url.trim() !== '' } 
+        : link
+    );
+    
+    setReferralLinks(updatedLinks);
+    
+    try {
+      localStorage.setItem('referralLinks', JSON.stringify(updatedLinks));
+      toast({
+        title: "Link Updated",
+        description: `Your ${platform} referral link has been updated.`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Failed to save referral links:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your referral link. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
   };
 
   return (
