@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -5,7 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import EmptyState from '@/components/empty-states/EmptyState';
 
 interface TransactionMetadata {
   customer_email?: string;
@@ -26,6 +29,7 @@ interface Transaction {
   metadata: TransactionMetadata | null;
   customer_email?: string;
   product_name?: string;
+  funnel_id?: string;
 }
 
 interface RawTransaction {
@@ -36,6 +40,7 @@ interface RawTransaction {
   referrer_amount: number;
   payout_status: string;
   metadata: any;
+  funnel_id?: string;
   [key: string]: any;
 }
 
@@ -60,9 +65,19 @@ const ReferralTransactions = () => {
         if (error) throw error;
         
         const processedTransactions: Transaction[] = (data as RawTransaction[]).map(txn => {
-          const metadataObj = typeof txn.metadata === 'string' 
-            ? JSON.parse(txn.metadata) 
-            : txn.metadata;
+          let metadataObj: TransactionMetadata | null = null;
+          
+          if (txn.metadata) {
+            if (typeof txn.metadata === 'string') {
+              try {
+                metadataObj = JSON.parse(txn.metadata);
+              } catch (e) {
+                metadataObj = null;
+              }
+            } else {
+              metadataObj = txn.metadata;
+            }
+          }
           
           const customerEmail = metadataObj?.customer_email || 'Anonymous';
           
@@ -95,8 +110,31 @@ const ReferralTransactions = () => {
           <CardTitle>Recent Referrals</CardTitle>
           <CardDescription>Loading your recent referrals</CardDescription>
         </CardHeader>
-        <CardContent className="pt-2 flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <CardContent className="pt-2">
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     );
@@ -110,12 +148,12 @@ const ReferralTransactions = () => {
           <CardDescription>Your most recent referral transactions</CardDescription>
         </CardHeader>
         <CardContent className="pt-2">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground">You haven't received any referrals yet.</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Share your referral link to start earning commissions!
-            </p>
-          </div>
+          <EmptyState
+            title="No Referrals Yet"
+            description="Share your referral link with your network to start earning commissions."
+            icon={<Users className="h-8 w-8" />}
+            size="md"
+          />
         </CardContent>
       </Card>
     );

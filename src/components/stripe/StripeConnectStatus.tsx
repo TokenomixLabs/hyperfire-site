@@ -2,11 +2,12 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, CheckCircle, ExternalLink, Lock } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ExternalLink, Lock, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { User } from '@/types/user';
 import { format } from 'date-fns';
 import StripeConnectButton from './StripeConnectButton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StripeConnectStatusProps {
   user: User;
@@ -26,24 +27,60 @@ const StripeConnectStatus: React.FC<StripeConnectStatusProps> = ({
   const getStatusBadge = () => {
     if (isConnected) {
       return (
-        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
-          <CheckCircle className="mr-1 h-3 w-3" /> Connected
-        </Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center">
+                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
+                  <CheckCircle className="mr-1 h-3 w-3" /> Connected
+                </Badge>
+                <HelpCircle className="ml-1 h-4 w-4 text-muted-foreground cursor-help" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p>Your Stripe account is fully connected and can receive payments. Commissions will be automatically sent to this account.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     }
     
     if (isPending) {
       return (
-        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">
-          <AlertTriangle className="mr-1 h-3 w-3" /> Setup Pending
-        </Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center">
+                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">
+                  <AlertTriangle className="mr-1 h-3 w-3" /> Setup Pending
+                </Badge>
+                <HelpCircle className="ml-1 h-4 w-4 text-muted-foreground cursor-help" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p>Your Stripe account needs additional setup. Click the "Complete Stripe Setup" button to provide the required information.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     }
     
     return (
-      <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200">
-        <Lock className="mr-1 h-3 w-3" /> Not Connected
-      </Badge>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center">
+              <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200">
+                <Lock className="mr-1 h-3 w-3" /> Not Connected
+              </Badge>
+              <HelpCircle className="ml-1 h-4 w-4 text-muted-foreground cursor-help" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <p>Connect your Stripe account to receive commission payouts directly to your bank account.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
 
