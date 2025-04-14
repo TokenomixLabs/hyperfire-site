@@ -1,27 +1,19 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { ArrowLeft, Edit, Trash, Plus, AlertTriangle, CheckCircle2 } from "lucide-react";
-import AnimatedTransition from "@/components/AnimatedTransition";
-import { Button } from "@/components/ui/button";
+
+import React, { useState, useEffect } from 'react';
+import { useCommissions } from '@/hooks/useCommissions';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { User, Product, CommissionRule } from '@/types/commissions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Plus, Trash2, Edit, Info, Search, X } from 'lucide-react';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +21,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,18 +39,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import { useCommissions, CommissionRule, Product, User } from "@/hooks/commissions";
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import ReferrerStatsSummary from '@/components/admin/commissions/ReferrerStatsSummary';
+import { useAuth } from '@/context/AuthContext';
 
 const CommissionsAdmin = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const { user } = useAuth();
-  const { 
+  const {
     isLoading,
     error,
     commissionRules,
@@ -58,732 +55,623 @@ const CommissionsAdmin = () => {
     users,
     addCommissionRule,
     updateCommissionRule,
-    deleteCommissionRule
+    deleteCommissionRule,
+    refreshRules,
   } = useCommissions();
-  
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { toast } = useToast();
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<CommissionRule | null>(null);
-  const [searchUser, setSearchUser] = useState("");
-  const [searchProduct, setSearchProduct] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  
-  const form = useForm({
-    defaultValues: {
-      referrer_id: "",
-      product_id: "",
-      commission_percent: 80,
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: "",
-      priority: 0
-    }
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedReferrerId, setSelectedReferrerId] = useState<string | null>(null);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    referrer_id: '',
+    product_id: '',
+    commission_percent: 80,
+    start_date: '',
+    end_date: '',
+    priority: 0,
   });
 
-  // Filter users based on search
+  // Initialize form with today's date
   useEffect(() => {
-    if (searchUser.trim() === "") {
-      setFilteredUsers([]);
-    } else {
-      const filtered = users.filter(
-        (user) => 
-          user.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchUser.toLowerCase())
-      );
-      setFilteredUsers(filtered.slice(0, 5)); // Limit to 5 results
-    }
-  }, [searchUser, users]);
-  
-  // Filter products based on search
+    const today = new Date();
+    setFormData(prev => ({
+      ...prev,
+      start_date: today.toISOString().split('T')[0],
+    }));
+  }, []);
+
+  // Reset form when dialog closes
   useEffect(() => {
-    if (searchProduct.trim() === "") {
-      setFilteredProducts([]);
-    } else {
-      const filtered = products.filter(
-        (product) => 
-          product.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-          (product.description?.toLowerCase().includes(searchProduct.toLowerCase()) || false)
-      );
-      setFilteredProducts(filtered.slice(0, 5)); // Limit to 5 results
-    }
-  }, [searchProduct, products]);
-  
-  const handleGoBack = () => {
-    navigate("/admin");
-  };
-  
-  const handleAddRule = () => {
-    form.reset({
-      referrer_id: "",
-      product_id: "",
-      commission_percent: 80,
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: "",
-      priority: 0
-    });
-    setShowAddDialog(true);
-  };
-  
-  const handleEditRule = (rule: CommissionRule) => {
-    setSelectedRule(rule);
-    form.reset({
-      referrer_id: rule.referrer_id,
-      product_id: rule.product_id || "",
-      commission_percent: rule.commission_percent,
-      start_date: rule.start_date ? new Date(rule.start_date).toISOString().split('T')[0] : "",
-      end_date: rule.end_date ? new Date(rule.end_date).toISOString().split('T')[0] : "",
-      priority: rule.priority
-    });
-    setShowEditDialog(true);
-  };
-  
-  const handleDeleteRule = (rule: CommissionRule) => {
-    setSelectedRule(rule);
-    setShowDeleteDialog(true);
-  };
-  
-  const onSubmitAdd = async (data: any) => {
-    try {
-      if (!user?.id) {
-        throw new Error("User not authenticated");
-      }
-      
-      await addCommissionRule({
-        referrer_id: data.referrer_id,
-        product_id: data.product_id || null,
-        commission_percent: parseFloat(data.commission_percent),
-        start_date: data.start_date ? new Date(data.start_date).toISOString() : new Date().toISOString(),
-        end_date: data.end_date ? new Date(data.end_date).toISOString() : null,
-        priority: parseInt(data.priority),
-        created_by: user.id
+    if (!isAddDialogOpen && !isEditDialogOpen) {
+      const today = new Date();
+      setFormData({
+        referrer_id: '',
+        product_id: '',
+        commission_percent: 80,
+        start_date: today.toISOString().split('T')[0],
+        end_date: '',
+        priority: 0,
       });
-      
-      setShowAddDialog(false);
-      
+    }
+  }, [isAddDialogOpen, isEditDialogOpen]);
+
+  // Set form data when editing
+  useEffect(() => {
+    if (selectedRule && isEditDialogOpen) {
+      setFormData({
+        referrer_id: selectedRule.referrer_id,
+        product_id: selectedRule.product_id || '',
+        commission_percent: selectedRule.commission_percent,
+        start_date: selectedRule.start_date.split('T')[0],
+        end_date: selectedRule.end_date ? selectedRule.end_date.split('T')[0] : '',
+        priority: selectedRule.priority,
+      });
+    }
+  }, [selectedRule, isEditDialogOpen]);
+
+  const handleAddRule = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to perform this action.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addCommissionRule({
+        referrer_id: formData.referrer_id,
+        product_id: formData.product_id || null,
+        commission_percent: formData.commission_percent,
+        start_date: new Date(formData.start_date).toISOString(),
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+        priority: formData.priority,
+        created_by: user.id,
+      });
+
       toast({
         title: "Success",
-        description: "Commission rule created successfully",
-        variant: "default"
+        description: "Commission rule added successfully.",
       });
+
+      setIsAddDialogOpen(false);
     } catch (error) {
       console.error("Error adding rule:", error);
       toast({
         title: "Error",
-        description: "Failed to create commission rule",
-        variant: "destructive"
+        description: "Failed to add commission rule. Please try again.",
+        variant: "destructive",
       });
     }
   };
-  
-  const onSubmitEdit = async (data: any) => {
+
+  const handleEditRule = async () => {
     if (!selectedRule) return;
-    
+
     try {
       await updateCommissionRule(selectedRule.id, {
-        referrer_id: data.referrer_id,
-        product_id: data.product_id || null,
-        commission_percent: parseFloat(data.commission_percent),
-        start_date: data.start_date ? new Date(data.start_date).toISOString() : new Date().toISOString(),
-        end_date: data.end_date ? new Date(data.end_date).toISOString() : null,
-        priority: parseInt(data.priority)
+        referrer_id: formData.referrer_id,
+        product_id: formData.product_id || null,
+        commission_percent: formData.commission_percent,
+        start_date: new Date(formData.start_date).toISOString(),
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+        priority: formData.priority,
       });
-      
-      setShowEditDialog(false);
-      
+
       toast({
         title: "Success",
-        description: "Commission rule updated successfully",
-        variant: "default"
+        description: "Commission rule updated successfully.",
       });
+
+      setIsEditDialogOpen(false);
     } catch (error) {
       console.error("Error updating rule:", error);
       toast({
         title: "Error",
-        description: "Failed to update commission rule",
-        variant: "destructive"
+        description: "Failed to update commission rule. Please try again.",
+        variant: "destructive",
       });
     }
   };
-  
-  const confirmDelete = async () => {
+
+  const handleDeleteRule = async () => {
     if (!selectedRule) return;
-    
+
     try {
       await deleteCommissionRule(selectedRule.id);
-      
-      setShowDeleteDialog(false);
-      
+
       toast({
         title: "Success",
-        description: "Commission rule deleted successfully",
-        variant: "default"
+        description: "Commission rule deleted successfully.",
       });
+
+      setIsDeleteAlertOpen(false);
     } catch (error) {
       console.error("Error deleting rule:", error);
       toast({
         title: "Error",
-        description: "Failed to delete commission rule",
-        variant: "destructive"
+        description: "Failed to delete commission rule. Please try again.",
+        variant: "destructive",
       });
     }
   };
-  
-  const selectUser = (user: User) => {
-    form.setValue("referrer_id", user.id);
-    setSearchUser(user.name || user.email);
-    setFilteredUsers([]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    
+    // If a referrer was selected, clear it if the search term doesn't match
+    if (selectedReferrerId) {
+      const selectedUser = users.find(u => u.id === selectedReferrerId);
+      const selectedName = selectedUser?.name || selectedUser?.email || '';
+      
+      if (!selectedName.toLowerCase().includes(e.target.value.toLowerCase())) {
+        setSelectedReferrerId(null);
+      }
+    }
   };
   
-  const selectProduct = (product: Product) => {
-    form.setValue("product_id", product.id);
-    setSearchProduct(product.name);
-    setFilteredProducts([]);
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setSelectedReferrerId(null);
   };
   
-  const clearProductSelection = () => {
-    form.setValue("product_id", "");
-    setSearchProduct("");
-  };
-  
-  // Format date for display
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "No end date";
-    return new Date(dateString).toLocaleDateString();
+  const handleReferrerSelect = (userId: string) => {
+    setSelectedReferrerId(userId);
+    
+    // Find the user name to set in search field
+    const selectedUser = users.find(u => u.id === userId);
+    if (selectedUser) {
+      setSearchTerm(selectedUser.name || selectedUser.email || '');
+    }
   };
 
-  return (
-    <AnimatedTransition className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleGoBack}
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold">Commission Rules</h1>
+  // Filter rules based on search term or selected referrer
+  const filteredRules = commissionRules.filter(rule => {
+    if (selectedReferrerId) {
+      return rule.referrer_id === selectedReferrerId;
+    }
+    
+    if (!searchTerm) return true;
+    
+    const user = users.find(u => u.id === rule.referrer_id);
+    const userName = user?.name || '';
+    const userEmail = user?.email || '';
+    
+    return userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           userEmail.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+  
+  // Filter users for dropdown search results
+  const filteredUsers = searchTerm ? users.filter(user => {
+    const userName = user.name || '';
+    const userEmail = user.email || '';
+    
+    return userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           userEmail.toLowerCase().includes(searchTerm.toLowerCase());
+  }) : [];
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="bg-red-100 text-red-700 p-4 rounded">
+          Error loading commission data: {error.message}
         </div>
-        
-        <Button 
-          onClick={handleAddRule}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Create Commission Rule
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Commission Rules</h1>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add Rule
         </Button>
       </div>
-      
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Commission Engine</CardTitle>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Commission Rules Management</CardTitle>
+          <CardDescription>
+            Manage commission rules for affiliates. Set different rates based on product and affiliates.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-              <div className="flex items-center mb-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mr-2" />
-                <h3 className="font-medium text-amber-800">How Priority Works</h3>
+          <div className="space-y-4">
+            <div className="flex gap-2 relative">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search by referrer name or email"
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+                {searchTerm && (
+                  <button 
+                    className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+                    onClick={handleClearSearch}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                
+                {/* Search results dropdown */}
+                {searchTerm && filteredUsers.length > 0 && !selectedReferrerId && (
+                  <div className="absolute z-10 w-full bg-white dark:bg-gray-800 mt-1 border rounded-md shadow-lg">
+                    <ul className="py-1 max-h-60 overflow-auto">
+                      {filteredUsers.map(user => (
+                        <li 
+                          key={user.id}
+                          className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                          onClick={() => handleReferrerSelect(user.id)}
+                        >
+                          <div className="font-medium">{user.name || 'Unnamed User'}</div>
+                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-              <p className="text-sm text-amber-700">
-                Higher priority rules (larger numbers) override lower priority rules. Product-specific rules take precedence over general rules with the same priority.
-              </p>
+              <Button variant="outline" onClick={refreshRules}>
+                Refresh
+              </Button>
             </div>
             
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex items-center mb-2">
-                <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2" />
-                <h3 className="font-medium text-blue-800">Time-Based Rules</h3>
-              </div>
-              <p className="text-sm text-blue-700">
-                Set start and end dates for limited-time promotions. Rules with no end date remain active indefinitely.
-              </p>
-            </div>
-            
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <div className="flex items-center mb-2">
-                <CheckCircle2 className="h-5 w-5 text-purple-600 mr-2" />
-                <h3 className="font-medium text-purple-800">Default Rates</h3>
-              </div>
-              <p className="text-sm text-purple-700">
-                If no custom rules match, the system uses the product's default revenue share percentage, typically 80%.
-              </p>
+            {selectedReferrerId && (
+              <ReferrerStatsSummary referrerId={selectedReferrerId} />
+            )}
+
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Referrer</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead className="text-center">Commission %</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>End Date</TableHead>
+                    <TableHead className="text-center">Priority</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-10">
+                        <div className="flex justify-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500" />
+                        </div>
+                        <div className="mt-2 text-sm text-gray-500">Loading rules...</div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredRules.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                        No commission rules found
+                        {searchTerm && ` matching "${searchTerm}"`}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredRules.map(rule => (
+                      <TableRow key={rule.id}>
+                        <TableCell>
+                          <div className="font-medium">
+                            {rule.referrer_name || 'Unknown'}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate max-w-[150px]">
+                            {rule.referrer_id}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {rule.product_name ? (
+                            <div className="font-medium">{rule.product_name}</div>
+                          ) : (
+                            <div className="text-muted-foreground italic">All Products</div>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center font-medium">
+                          {rule.commission_percent}%
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(rule.start_date), 'MMM d, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          {rule.end_date
+                            ? format(new Date(rule.end_date), 'MMM d, yyyy')
+                            : <span className="text-muted-foreground">No end date</span>}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {rule.priority}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRule(rule);
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span className="sr-only">Edit</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRule(rule);
+                                setIsDeleteAlertOpen(true);
+                              }}
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Delete</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </div>
         </CardContent>
       </Card>
-      
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-muted-foreground">Loading commission rules...</p>
-        </div>
-      ) : error ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-red-500">Error loading commission rules. Please try again.</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <Table>
-            <TableCaption>Active commission rules ordered by priority</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Referrer</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Commission %</TableHead>
-                <TableHead>Valid From</TableHead>
-                <TableHead>Valid Until</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {commissionRules.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <p className="text-muted-foreground">No commission rules found</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={handleAddRule}
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> Create Your First Rule
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                commissionRules.map((rule) => (
-                  <TableRow key={rule.id}>
-                    <TableCell className="font-medium">{rule.referrer_name}</TableCell>
-                    <TableCell>{rule.product_name || "All Products"}</TableCell>
-                    <TableCell>{rule.commission_percent}%</TableCell>
-                    <TableCell>{formatDate(rule.start_date)}</TableCell>
-                    <TableCell>{formatDate(rule.end_date)}</TableCell>
-                    <TableCell>{rule.priority}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => handleEditRule(rule)}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => handleDeleteRule(rule)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-      
-      {/* Add Commission Rule Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+
+      {/* Add Rule Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Commission Rule</DialogTitle>
+            <DialogTitle>Add Commission Rule</DialogTitle>
             <DialogDescription>
-              Configure a new commission rule for a referrer. Higher priority rules take precedence.
+              Create a new commission rule for a referrer. Higher priority rules are applied first.
             </DialogDescription>
           </DialogHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmitAdd)} className="space-y-4">
-              {/* Referrer Selection */}
-              <FormField
-                control={form.control}
-                name="referrer_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Referrer</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          value={searchUser}
-                          onChange={(e) => setSearchUser(e.target.value)}
-                          placeholder="Search for a user by name or email"
-                        />
-                      </FormControl>
-                      <input type="hidden" {...field} />
-                      {filteredUsers.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                          {filteredUsers.map((user) => (
-                            <div
-                              key={user.id}
-                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                              onClick={() => selectUser(user)}
-                            >
-                              <div className="font-medium">{user.name || "No Name"}</div>
-                              <div className="text-sm text-gray-500">{user.email}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="referrer">Referrer</Label>
+              <Select
+                value={formData.referrer_id}
+                onValueChange={value => setFormData({ ...formData, referrer_id: value })}
+              >
+                <SelectTrigger id="referrer">
+                  <SelectValue placeholder="Select a referrer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map(user => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name || user.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="product">Product (Optional)</Label>
+              <Select
+                value={formData.product_id}
+                onValueChange={value => setFormData({ ...formData, product_id: value })}
+              >
+                <SelectTrigger id="product">
+                  <SelectValue placeholder="All Products" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Products</SelectItem>
+                  {products.map(product => (
+                    <SelectItem key={product.id} value={product.id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Leave empty to apply this commission to all products
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="commission">Commission Percentage</Label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  id="commission"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.commission_percent}
+                  onChange={e => setFormData({ ...formData, commission_percent: parseFloat(e.target.value) })}
+                />
+                <span>%</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="start-date">Start Date</Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={formData.start_date}
+                  onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end-date">End Date (Optional)</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={formData.end_date}
+                  onChange={e => setFormData({ ...formData, end_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Input
+                id="priority"
+                type="number"
+                min="0"
+                value={formData.priority}
+                onChange={e => setFormData({ ...formData, priority: parseInt(e.target.value) })}
               />
-              
-              {/* Product Selection (Optional) */}
-              <FormField
-                control={form.control}
-                name="product_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product (Optional)</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <div className="flex">
-                          <Input
-                            value={searchProduct}
-                            onChange={(e) => setSearchProduct(e.target.value)}
-                            placeholder="Search for a product (leave empty for all products)"
-                            className="flex-1"
-                          />
-                          {searchProduct && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="ml-2"
-                              onClick={clearProductSelection}
-                            >
-                              Clear
-                            </Button>
-                          )}
-                        </div>
-                      </FormControl>
-                      <input type="hidden" {...field} />
-                      {filteredProducts.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                          {filteredProducts.map((product) => (
-                            <div
-                              key={product.id}
-                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                              onClick={() => selectProduct(product)}
-                            >
-                              <div className="font-medium">{product.name}</div>
-                              {product.description && (
-                                <div className="text-sm text-gray-500">{product.description}</div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <FormDescription>
-                      If specified, this rule will only apply to this product. Otherwise it applies to all products.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Commission Percentage */}
-              <FormField
-                control={form.control}
-                name="commission_percent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Commission Percentage</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" max="100" step="0.1" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Percentage of the transaction amount that goes to the referrer (e.g., 80 for 80%).
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Start Date */}
-              <FormField
-                control={form.control}
-                name="start_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      When this commission rule becomes active. Defaults to today if left empty.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* End Date (Optional) */}
-              <FormField
-                control={form.control}
-                name="end_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Date (Optional)</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      When this commission rule expires. Leave empty for no expiration.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Priority */}
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priority</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" step="1" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Higher priority rules (larger numbers) take precedence over lower priority rules.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-                  Create Rule
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+              <p className="text-xs text-muted-foreground">
+                Higher priority rules are applied first (default is 0)
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddRule}>Add Rule</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Edit Commission Rule Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+
+      {/* Edit Rule Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Commission Rule</DialogTitle>
             <DialogDescription>
-              Update the configuration for this commission rule.
+              Update the commission rule settings.
             </DialogDescription>
           </DialogHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmitEdit)} className="space-y-4">
-              {/* Same form fields as Add Dialog, just reused */}
-              {/* Referrer Selection */}
-              <FormField
-                control={form.control}
-                name="referrer_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Referrer</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          value={searchUser || (selectedRule?.referrer_name || "")}
-                          onChange={(e) => setSearchUser(e.target.value)}
-                          placeholder="Search for a user by name or email"
-                        />
-                      </FormControl>
-                      <input type="hidden" {...field} />
-                      {filteredUsers.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                          {filteredUsers.map((user) => (
-                            <div
-                              key={user.id}
-                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                              onClick={() => selectUser(user)}
-                            >
-                              <div className="font-medium">{user.name || "No Name"}</div>
-                              <div className="text-sm text-gray-500">{user.email}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-referrer">Referrer</Label>
+              <Select
+                value={formData.referrer_id}
+                onValueChange={value => setFormData({ ...formData, referrer_id: value })}
+              >
+                <SelectTrigger id="edit-referrer">
+                  <SelectValue placeholder="Select a referrer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map(user => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name || user.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-product">Product (Optional)</Label>
+              <Select
+                value={formData.product_id}
+                onValueChange={value => setFormData({ ...formData, product_id: value })}
+              >
+                <SelectTrigger id="edit-product">
+                  <SelectValue placeholder="All Products" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Products</SelectItem>
+                  {products.map(product => (
+                    <SelectItem key={product.id} value={product.id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Leave empty to apply this commission to all products
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-commission">Commission Percentage</Label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  id="edit-commission"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.commission_percent}
+                  onChange={e => setFormData({ ...formData, commission_percent: parseFloat(e.target.value) })}
+                />
+                <span>%</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-start-date">Start Date</Label>
+                <Input
+                  id="edit-start-date"
+                  type="date"
+                  value={formData.start_date}
+                  onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-end-date">End Date (Optional)</Label>
+                <Input
+                  id="edit-end-date"
+                  type="date"
+                  value={formData.end_date}
+                  onChange={e => setFormData({ ...formData, end_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-priority">Priority</Label>
+              <Input
+                id="edit-priority"
+                type="number"
+                min="0"
+                value={formData.priority}
+                onChange={e => setFormData({ ...formData, priority: parseInt(e.target.value) })}
               />
-              
-              {/* Product Selection (Optional) */}
-              <FormField
-                control={form.control}
-                name="product_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product (Optional)</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <div className="flex">
-                          <Input
-                            value={searchProduct || (selectedRule?.product_name || "")}
-                            onChange={(e) => setSearchProduct(e.target.value)}
-                            placeholder="Search for a product (leave empty for all products)"
-                            className="flex-1"
-                          />
-                          {(searchProduct || selectedRule?.product_name) && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="ml-2"
-                              onClick={clearProductSelection}
-                            >
-                              Clear
-                            </Button>
-                          )}
-                        </div>
-                      </FormControl>
-                      <input type="hidden" {...field} />
-                      {filteredProducts.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                          {filteredProducts.map((product) => (
-                            <div
-                              key={product.id}
-                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                              onClick={() => selectProduct(product)}
-                            >
-                              <div className="font-medium">{product.name}</div>
-                              {product.description && (
-                                <div className="text-sm text-gray-500">{product.description}</div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <FormDescription>
-                      If specified, this rule will only apply to this product. Otherwise it applies to all products.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Commission Percentage */}
-              <FormField
-                control={form.control}
-                name="commission_percent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Commission Percentage</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" max="100" step="0.1" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Percentage of the transaction amount that goes to the referrer (e.g., 80 for 80%).
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Start Date */}
-              <FormField
-                control={form.control}
-                name="start_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      When this commission rule becomes active.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* End Date (Optional) */}
-              <FormField
-                control={form.control}
-                name="end_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Date (Optional)</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      When this commission rule expires. Leave empty for no expiration.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Priority */}
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priority</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" step="1" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Higher priority rules (larger numbers) take precedence over lower priority rules.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-                  Update Rule
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+              <p className="text-xs text-muted-foreground">
+                Higher priority rules are applied first (default is 0)
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditRule}>Update Rule</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Commission Rule</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this commission rule? This action cannot be undone.
+              This will permanently delete the commission rule for{' '}
+              {selectedRule?.referrer_name || 'this referrer'}.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
+            <AlertDialogAction onClick={handleDeleteRule} className="bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AnimatedTransition>
+    </div>
   );
 };
 

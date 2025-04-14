@@ -9,6 +9,9 @@ import { UpgradeOverlay } from '@/components/membership/UpgradeOverlay';
 import ReferralLinksTab from './ReferralLinksTab'; 
 import { ReferralPlatform, useReferral } from '@/context/ReferralContext';
 import { useToast } from '@/hooks/use-toast';
+import CommissionStats from './CommissionStats';
+import ReferralLinkCard from './ReferralLinkCard';
+import ReferralTransactions from './ReferralTransactions';
 
 const AffiliateTab = () => {
   const { user } = useAuth();
@@ -50,6 +53,13 @@ const AffiliateTab = () => {
   return (
     <div className="space-y-6">
       <StripeConnectStatus user={user} />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ReferralLinkCard />
+        <CommissionStats />
+      </div>
+      
+      <ReferralTransactions />
       
       <Card>
         <CardHeader>
