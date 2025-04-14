@@ -1,31 +1,27 @@
+
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Header from '@/components/Header';
 import DashboardStats from '@/components/user/dashboard/DashboardStats';
-import StatsTab from '@/components/user/dashboard/StatsTab';
-import ReferralsTab from '@/components/user/dashboard/ReferralsTab';
-import ReferralLinksTab from '@/components/user/dashboard/ReferralLinksTab';
-import SharesTab from '@/components/user/dashboard/SharesTab';
-import AffiliateTab from '@/components/user/dashboard/AffiliateTab';
-import GlobalCTA from '@/components/GlobalCTA';
-import WelcomeBanner from '@/components/welcome/WelcomeBanner';
 import EmptyState from '@/components/empty-states/EmptyState';
-import { MessageSquare, BookOpen, Share2, BarChart2, Link, Users, RefreshCw, Zap, DollarSign } from 'lucide-react';
+import { Share2, BarChart2, Link, Users, Zap, DollarSign } from 'lucide-react';
 import { ReferralPlatform } from '@/context/ReferralContext';
 import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 import DashboardActivityWidget from '@/components/activity/DashboardActivityWidget';
-import { ReferralLink } from '@/types/referral';
+import GlobalCTA from '@/components/GlobalCTA';
+import WelcomeBanner from '@/components/welcome/WelcomeBanner';
+import DashboardTabs from '@/components/user/dashboard/DashboardTabs';
+import { useReferralLinks } from '@/hooks/useReferralLinks';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [isNewUser, setIsNewUser] = useState(false);
   const [showActivityFeed, setShowActivityFeed] = useState(true);
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { referralLinks, handleCopyLink, updateReferralLink } = useReferralLinks();
 
   useEffect(() => {
     const userJoinDate = user?.createdAt ? new Date(user.createdAt) : user?.joinDate ? new Date(user.joinDate) : null;
@@ -35,6 +31,7 @@ const UserDashboard = () => {
     setIsNewUser(isRecent);
   }, [user]);
 
+  // Mock data - would come from API in a real app
   const aggregatedStats = {
     clicks: 4567,
     signups: 789,
@@ -60,13 +57,6 @@ const UserDashboard = () => {
     { id: "3", name: "Charlie Brown", signupDate: "2024-02-10", source: "societi" },
   ];
 
-  const [referralLinks, setReferralLinks] = useState<ReferralLink[]>([
-    { platform: 'insiderlife' as ReferralPlatform, url: "insiderlife.com/?ref=your-username", isSet: true },
-    { platform: 'insiderdao' as ReferralPlatform, url: "insiderdao.com/?ref=your-username", isSet: true },
-    { platform: 'societi' as ReferralPlatform, url: "societi.com/?ref=your-username", isSet: true },
-    { platform: 'aifc' as ReferralPlatform, url: "aifc.com/?ref=your-username", isSet: true }
-  ]);
-
   const shares = [
     { id: "1", title: "The Future of AI", date: "March 15, 2024", clicks: 120, signups: 14 },
     { id: "2", title: "Blockchain Explained", date: "March 2, 2024", clicks: 90, signups: 8 },
@@ -74,43 +64,6 @@ const UserDashboard = () => {
   ];
 
   const hasNoActivity = shares.length === 0 && referrals.length === 0;
-
-  const handleCopyLink = (link: string) => {
-    navigator.clipboard.writeText(link).then(() => {
-      toast({
-        title: "Link Copied",
-        description: "Referral link copied to clipboard!",
-        duration: 3000,
-      });
-    });
-  };
-
-  const updateReferralLink = (platform: ReferralPlatform, url: string) => {
-    const updatedLinks = referralLinks.map(link => 
-      link.platform === platform 
-        ? { ...link, url, isSet: url.trim() !== '' } 
-        : link
-    );
-    
-    setReferralLinks(updatedLinks);
-    
-    try {
-      localStorage.setItem('referralLinks', JSON.stringify(updatedLinks));
-      toast({
-        title: "Link Updated",
-        description: `Your ${platform} referral link has been updated.`,
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error('Failed to save referral links:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save your referral link. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -202,60 +155,19 @@ const UserDashboard = () => {
                     </TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="stats" className="mt-6">
-                    <StatsTab 
+                  <TooltipProvider>
+                    <DashboardTabs
+                      activeTab={activeTab}
+                      setActiveTab={setActiveTab}
                       platformStats={platformStats}
                       reachStats={reachStats}
+                      referrals={referrals}
+                      shares={shares}
+                      referralLinks={referralLinks}
+                      updateReferralLink={updateReferralLink}
+                      handleCopyLink={handleCopyLink}
                     />
-                  </TabsContent>
-                  
-                  <TabsContent value="referrals" className="mt-6">
-                    {referrals.length > 0 ? (
-                      <ReferralsTab />
-                    ) : (
-                      <EmptyState
-                        title="No Referrals Yet"
-                        description="Share your referral links with your network to start earning rewards."
-                        icon={<Users className="h-8 w-8" />}
-                        actionLabel="View Referral Links"
-                        onAction={() => setActiveTab('links')}
-                        size="md"
-                      />
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="links" className="mt-6">
-                    <TooltipProvider>
-                      <ReferralLinksTab
-                        referralLinks={referralLinks}
-                        updateReferralLink={updateReferralLink}
-                        onCopyLink={handleCopyLink}
-                      />
-                    </TooltipProvider>
-                  </TabsContent>
-                  
-                  <TabsContent value="shares" className="mt-6">
-                    {shares.length > 0 ? (
-                      <SharesTab shares={shares} />
-                    ) : (
-                      <EmptyState
-                        title="No Shares Yet"
-                        description="Start sharing content with your network to track engagement."
-                        icon={<Share2 className="h-8 w-8" />}
-                        actionLabel="Browse Content"
-                        actionHref="/content"
-                        size="md"
-                      />
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="activity" className="mt-6">
-                    <DashboardActivityWidget />
-                  </TabsContent>
-                  
-                  <TabsContent value="affiliate" className="mt-6">
-                    <AffiliateTab />
-                  </TabsContent>
+                  </TooltipProvider>
                 </Tabs>
               </>
             )}
