@@ -1,48 +1,45 @@
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React from 'react';
+import ReferralLinksTab from './ReferralLinksTab';
+import CommissionStats from './CommissionStats';
+import ReferralTransactions from './ReferralTransactions';
+import ReferredLeadsList from './ReferredLeadsList';
+import { Button } from '@/components/ui/button';
+import { Mail, Link } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface Referral {
-  id: string;
-  name: string;
-  signupDate: string;
-  source: string;
-}
-
-interface ReferralsTabProps {
-  referrals: Referral[];
-}
-
-const ReferralsTab = ({ referrals }: ReferralsTabProps) => {
+const ReferralsTab = () => {
+  const navigate = useNavigate();
+  
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Top Referrals</CardTitle>
-        <CardDescription>
-          People who signed up through your referral links
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Signup Date</TableHead>
-              <TableHead>Source</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {referrals.map(referral => (
-              <TableRow key={referral.id}>
-                <TableCell className="font-medium">{referral.name}</TableCell>
-                <TableCell>{referral.signupDate}</TableCell>
-                <TableCell className="capitalize">{referral.source}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4 justify-between mb-6">
+        <Button 
+          onClick={() => navigate('/user/esp-settings')} 
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Mail className="h-4 w-4" />
+          Email Marketing Settings
+        </Button>
+        <Button 
+          onClick={() => navigate('/user/referral-stats')} 
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Link className="h-4 w-4" />
+          Detailed Referral Stats
+        </Button>
+      </div>
+      
+      <CommissionStats />
+      
+      <div className="grid grid-cols-1 gap-6">
+        <ReferralLinksTab />
+        <ReferredLeadsList />
+        <ReferralTransactions />
+      </div>
+    </div>
   );
 };
 

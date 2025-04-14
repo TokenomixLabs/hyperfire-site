@@ -10,6 +10,7 @@ import DocumentVault from "../pages/DocumentVault";
 import ReferralTrackingStats from "../components/referrals/ReferralTrackingStats";
 import MySignalFunnels from "../pages/user/MySignalFunnels";
 import MySignalDuplicates from "../pages/user/MySignalDuplicates";
+import ESPSettings from "../pages/user/ESPSettings";
 
 const UserRoutes = () => {
   return (
@@ -83,6 +84,14 @@ const UserRoutes = () => {
         element={
           <ProtectedRoute>
             <MySignalDuplicates />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="esp-settings" 
+        element={
+          <ProtectedRoute>
+            <ESPSettings />
           </ProtectedRoute>
         } 
       />

@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import useReferralTracking from '@/hooks/useReferralTracking';
 import { Funnel, FunnelStep } from '@/types/funnel';
+import LeadCaptureForm from './LeadCaptureForm';
 
 interface FunnelViewerProps {
   funnel?: Funnel; // Optional for direct prop passing
@@ -17,6 +18,7 @@ export default function FunnelViewer({ funnel: propFunnel }: FunnelViewerProps) 
   const [funnel, setFunnel] = useState<Funnel | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showLeadForm, setShowLeadForm] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
@@ -158,11 +160,8 @@ export default function FunnelViewer({ funnel: propFunnel }: FunnelViewerProps) 
         }
         break;
       case 'join_community':
-        if (!isAuthenticated) {
-          navigate('/signup');
-        } else {
-          navigate('/dashboard');
-        }
+        // Show the lead capture form
+        setShowLeadForm(true);
         break;
       case 'purchase':
         navigate('/pricing');
@@ -190,6 +189,21 @@ export default function FunnelViewer({ funnel: propFunnel }: FunnelViewerProps) 
     }
   };
   
+  const handleLeadCaptureSuccess = () => {
+    toast({
+      title: "Thanks for joining!",
+      description: "You've been added to our community. Check your email for next steps.",
+    });
+    
+    // Redirect to dashboard if authenticated, otherwise to the home page
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      // Could redirect to a thank you page or login page
+      navigate('/');
+    }
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
@@ -204,6 +218,31 @@ export default function FunnelViewer({ funnel: propFunnel }: FunnelViewerProps) 
         <h2 className="text-2xl font-bold mb-2">Funnel Not Found</h2>
         <p className="text-muted-foreground mb-4">The requested funnel does not exist or is not available.</p>
         <Button onClick={() => navigate('/')}>Return to Home</Button>
+      </div>
+    );
+  }
+  
+  // If showing the lead capture form
+  if (showLeadForm) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="space-y-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl md:text-4xl font-bold">Complete Your Registration</h1>
+            <p className="text-lg text-muted-foreground">
+              Enter your information below to join our community and get access to exclusive content.
+            </p>
+          </div>
+          
+          <div className="flex justify-center">
+            <div className="w-full max-w-md">
+              <LeadCaptureForm
+                funnelId={funnel.id}
+                onSuccess={handleLeadCaptureSuccess}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
