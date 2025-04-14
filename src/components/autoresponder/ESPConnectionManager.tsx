@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,8 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { ESPConnection } from '@/types/autoresponder';
 
-// Define the form schema
 const espConnectionSchema = z.object({
   provider: z.string({
     required_error: "Please select an email provider",
@@ -46,19 +45,6 @@ const espConnectionSchema = z.object({
 
 interface ESPConnectionManagerProps {
   userId: string;
-}
-
-interface ESPConnection {
-  id: string;
-  provider: string;
-  api_key: string;
-  api_secret?: string;
-  list_id: string;
-  tag?: string;
-  is_active: boolean;
-  last_verified?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) => {
@@ -80,7 +66,6 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
     },
   });
 
-  // Fetch existing connections
   useEffect(() => {
     const fetchConnections = async () => {
       setLoading(true);
@@ -89,7 +74,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
           .from('autoresponder_connections')
           .select('*')
           .eq('user_id', userId)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false }) as any;
 
         if (error) throw error;
         setConnections(data || []);
@@ -121,7 +106,7 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
           tag: values.tag || null,
           is_active: true,
         })
-        .select();
+        .select() as any;
 
       if (error) throw error;
 
@@ -146,7 +131,6 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
   const testConnection = async (connectionId: string) => {
     setTestingConnection(connectionId);
     try {
-      // Call edge function to test the connection
       const response = await fetch('/api/test-esp-connection', {
         method: 'POST',
         headers: {
@@ -159,15 +143,13 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
 
       if (!response.ok) throw new Error(result.error || 'Connection test failed');
 
-      // Update the connection's last_verified timestamp
       const { error } = await supabase
         .from('autoresponder_connections')
         .update({ last_verified: new Date().toISOString() })
-        .eq('id', connectionId);
+        .eq('id', connectionId) as any;
 
       if (error) throw error;
 
-      // Update local state
       setConnections(
         connections.map(conn => 
           conn.id === connectionId 
@@ -197,11 +179,10 @@ const ESPConnectionManager: React.FC<ESPConnectionManagerProps> = ({ userId }) =
       const { error } = await supabase
         .from('autoresponder_connections')
         .delete()
-        .eq('id', connectionId);
+        .eq('id', connectionId) as any;
 
       if (error) throw error;
 
-      // Update local state
       setConnections(connections.filter(conn => conn.id !== connectionId));
       
       toast({

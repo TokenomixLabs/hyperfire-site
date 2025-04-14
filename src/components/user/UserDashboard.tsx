@@ -110,7 +110,7 @@ const UserDashboard = () => {
         </TabsContent>
         
         <TabsContent value="referrals" className="mt-4">
-          <ReferralsTab referrals={mockUserData.topReferrals} />
+          <ReferralsTab />
         </TabsContent>
       </Tabs>
     </div>

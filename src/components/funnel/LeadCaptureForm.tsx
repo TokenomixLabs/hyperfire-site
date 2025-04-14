@@ -61,6 +61,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
       const referrerId = getCurrentReferrer();
       
       // First, store the lead in Supabase
+      // We need to use any type since our types don't include the leads table yet
       const { data: lead, error } = await supabase
         .from('leads')
         .insert({
@@ -75,7 +76,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
             utm_params: Object.fromEntries(new URLSearchParams(window.location.search)),
           },
         })
-        .select();
+        .select() as any;
 
       if (error) throw error;
 

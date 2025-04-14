@@ -7,9 +7,11 @@ import ReferredLeadsList from './ReferredLeadsList';
 import { Button } from '@/components/ui/button';
 import { Mail, Link } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useReferral } from '@/context/ReferralContext';
 
 const ReferralsTab = () => {
   const navigate = useNavigate();
+  const { referralLinks, updateReferralLink } = useReferral();
   
   return (
     <div className="space-y-6">
@@ -35,7 +37,10 @@ const ReferralsTab = () => {
       <CommissionStats />
       
       <div className="grid grid-cols-1 gap-6">
-        <ReferralLinksTab />
+        <ReferralLinksTab 
+          referralLinks={referralLinks}
+          updateReferralLink={updateReferralLink}
+        />
         <ReferredLeadsList />
         <ReferralTransactions />
       </div>

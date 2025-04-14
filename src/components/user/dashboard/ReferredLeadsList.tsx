@@ -17,17 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-interface Lead {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string | null;
-  funnel_id: string | null;
-  created_at: string;
-  esp_status: string | null;
-  esp_provider: string | null;
-}
+import { Lead } from '@/types/autoresponder';
 
 const ReferredLeadsList: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -41,11 +31,12 @@ const ReferredLeadsList: React.FC = () => {
       
       setLoading(true);
       try {
+        // We need to use any type since our types don't include the leads table yet
         const { data, error } = await supabase
           .from('leads')
           .select('*')
           .eq('referrer_user_id', user.id)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false }) as any;
         
         if (error) throw error;
         
