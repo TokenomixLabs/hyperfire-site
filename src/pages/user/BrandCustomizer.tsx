@@ -48,11 +48,10 @@ const BrandCustomizer: React.FC = () => {
 
   const fetchBrandSettings = async () => {
     try {
-      // Use type assertion to tell TypeScript this is okay
-      const { data, error } = await supabase
-        .rpc('get_brand_settings') as { data: BrandSettings | null, error: Error | null };
-
-      if (data) {
+      // Use the fetch API directly to call the RPC function
+      const { data, error } = await supabase.functions.invoke('get_brand_settings');
+      
+      if (data && !error) {
         setBrandSettings(prev => ({
           ...prev,
           ...data as BrandSettings
@@ -65,9 +64,9 @@ const BrandCustomizer: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      // Use type assertion to tell TypeScript this is okay
-      const { data, error } = await supabase
-        .rpc('upsert_brand_settings', {
+      // Use the fetch API directly to call the RPC function
+      const { data, error } = await supabase.functions.invoke('upsert_brand_settings', {
+        body: {
           p_logo_url: brandSettings.logo_url,
           p_favicon_url: brandSettings.favicon_url,
           p_primary_color: brandSettings.primary_color,
@@ -76,7 +75,8 @@ const BrandCustomizer: React.FC = () => {
           p_font: brandSettings.font,
           p_theme_mode: brandSettings.theme_mode,
           p_button_style: brandSettings.button_style
-        }) as { data: any, error: Error | null };
+        }
+      });
 
       if (error) {
         toast({ 

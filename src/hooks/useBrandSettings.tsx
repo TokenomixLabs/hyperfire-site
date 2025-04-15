@@ -28,11 +28,10 @@ export const useBrandSettings = () => {
   useEffect(() => {
     const fetchBrandSettings = async () => {
       try {
-        // Use type assertion to tell TypeScript this is okay
-        const { data, error } = await supabase
-          .rpc('get_brand_settings') as { data: BrandSettings | null, error: Error | null };
-
-        if (data) {
+        // Use the fetch API directly to call the RPC function
+        const { data, error } = await supabase.functions.invoke('get_brand_settings');
+        
+        if (data && !error) {
           setBrandSettings({
             ...DEFAULT_BRAND_SETTINGS,
             ...data as BrandSettings
