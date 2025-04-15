@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { supabaseTable } from "@/utils/supabaseHelpers";
 
 interface BrandSettings {
   logo_url?: string;
