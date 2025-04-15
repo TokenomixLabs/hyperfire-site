@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { PageTitle } from "@/components/ui/page-headers";
 import { ChromePicker } from 'react-color';
+import { useAuth } from '@/context/AuthContext';
 
 const GOOGLE_FONTS = [
   'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 
@@ -18,6 +19,7 @@ const BUTTON_STYLES = ['pill', 'square'];
 
 const BrandCustomizer: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [brandSettings, setBrandSettings] = useState({
     logo_url: '',
     favicon_url: '',
@@ -34,33 +36,54 @@ const BrandCustomizer: React.FC = () => {
   }, []);
 
   const fetchBrandSettings = async () => {
-    const { data, error } = await supabase
-      .from('brand_settings')
-      .select('*')
-      .single();
+    try {
+      const { data, error } = await supabase
+        .rpc('get_brand_settings')
+        .maybeSingle();
 
-    if (data) {
-      setBrandSettings(data);
+      if (data) {
+        setBrandSettings(prev => ({
+          ...prev,
+          ...data
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching brand settings:", error);
     }
   };
 
   const handleSave = async () => {
-    const { data, error } = await supabase
-      .from('brand_settings')
-      .upsert(brandSettings, { 
-        onConflict: 'user_id' 
-      });
+    try {
+      const { data, error } = await supabase
+        .rpc('upsert_brand_settings', {
+          p_logo_url: brandSettings.logo_url,
+          p_favicon_url: brandSettings.favicon_url,
+          p_primary_color: brandSettings.primary_color,
+          p_secondary_color: brandSettings.secondary_color,
+          p_accent_color: brandSettings.accent_color,
+          p_font: brandSettings.font,
+          p_theme_mode: brandSettings.theme_mode,
+          p_button_style: brandSettings.button_style
+        });
 
-    if (error) {
+      if (error) {
+        toast({ 
+          title: "Error", 
+          description: "Could not save brand settings: " + error.message, 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "Success", 
+          description: "Brand settings updated" 
+        });
+      }
+    } catch (error) {
+      console.error("Error saving brand settings:", error);
       toast({ 
         title: "Error", 
         description: "Could not save brand settings", 
         variant: "destructive" 
-      });
-    } else {
-      toast({ 
-        title: "Success", 
-        description: "Brand settings updated" 
       });
     }
   };
@@ -74,12 +97,12 @@ const BrandCustomizer: React.FC = () => {
           <h2 className="text-xl font-semibold">Logo & Favicon</h2>
           <Input 
             placeholder="Logo URL" 
-            value={brandSettings.logo_url}
+            value={brandSettings.logo_url || ''}
             onChange={(e) => setBrandSettings({...brandSettings, logo_url: e.target.value})}
           />
           <Input 
             placeholder="Favicon URL" 
-            value={brandSettings.favicon_url}
+            value={brandSettings.favicon_url || ''}
             onChange={(e) => setBrandSettings({...brandSettings, favicon_url: e.target.value})}
           />
 

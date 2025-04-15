@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseTable } from "@/utils/supabaseHelpers";
 
 interface BrandSettings {
   logo_url?: string;
@@ -27,16 +28,19 @@ export const useBrandSettings = () => {
 
   useEffect(() => {
     const fetchBrandSettings = async () => {
-      const { data, error } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .single();
+      try {
+        const { data, error } = await supabase
+          .rpc('get_brand_settings')
+          .maybeSingle();
 
-      if (data) {
-        setBrandSettings({
-          ...DEFAULT_BRAND_SETTINGS,
-          ...data
-        });
+        if (data) {
+          setBrandSettings({
+            ...DEFAULT_BRAND_SETTINGS,
+            ...data
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching brand settings:", error);
       }
     };
 
