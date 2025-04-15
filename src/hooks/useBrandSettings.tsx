@@ -28,14 +28,14 @@ export const useBrandSettings = () => {
   useEffect(() => {
     const fetchBrandSettings = async () => {
       try {
+        // Use type assertion to tell TypeScript this is okay
         const { data, error } = await supabase
-          .rpc('get_brand_settings')
-          .maybeSingle();
+          .rpc('get_brand_settings') as { data: BrandSettings | null, error: Error | null };
 
         if (data) {
           setBrandSettings({
             ...DEFAULT_BRAND_SETTINGS,
-            ...data
+            ...data as BrandSettings
           });
         }
       } catch (error) {

@@ -17,10 +17,21 @@ const GOOGLE_FONTS = [
 const THEME_MODES = ['auto', 'light', 'dark'];
 const BUTTON_STYLES = ['pill', 'square'];
 
+interface BrandSettings {
+  logo_url?: string;
+  favicon_url?: string;
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
+  font: string;
+  theme_mode: string;
+  button_style: string;
+}
+
 const BrandCustomizer: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [brandSettings, setBrandSettings] = useState({
+  const [brandSettings, setBrandSettings] = useState<BrandSettings>({
     logo_url: '',
     favicon_url: '',
     primary_color: '#0A84FF',
@@ -37,14 +48,14 @@ const BrandCustomizer: React.FC = () => {
 
   const fetchBrandSettings = async () => {
     try {
+      // Use type assertion to tell TypeScript this is okay
       const { data, error } = await supabase
-        .rpc('get_brand_settings')
-        .maybeSingle();
+        .rpc('get_brand_settings') as { data: BrandSettings | null, error: Error | null };
 
       if (data) {
         setBrandSettings(prev => ({
           ...prev,
-          ...data
+          ...data as BrandSettings
         }));
       }
     } catch (error) {
@@ -54,6 +65,7 @@ const BrandCustomizer: React.FC = () => {
 
   const handleSave = async () => {
     try {
+      // Use type assertion to tell TypeScript this is okay
       const { data, error } = await supabase
         .rpc('upsert_brand_settings', {
           p_logo_url: brandSettings.logo_url,
@@ -64,7 +76,7 @@ const BrandCustomizer: React.FC = () => {
           p_font: brandSettings.font,
           p_theme_mode: brandSettings.theme_mode,
           p_button_style: brandSettings.button_style
-        });
+        }) as { data: any, error: Error | null };
 
       if (error) {
         toast({ 
@@ -112,11 +124,11 @@ const BrandCustomizer: React.FC = () => {
               <div key={colorType}>
                 <label>{colorType.charAt(0).toUpperCase() + colorType.slice(1)} Color</label>
                 <ChromePicker 
-                  color={brandSettings[`${colorType}_color`]}
+                  color={brandSettings[`${colorType}_color` as keyof BrandSettings] as string}
                   onChange={(color) => setBrandSettings({
                     ...brandSettings, 
                     [`${colorType}_color`]: color.hex
-                  })}
+                  } as BrandSettings)}
                 />
               </div>
             ))}
